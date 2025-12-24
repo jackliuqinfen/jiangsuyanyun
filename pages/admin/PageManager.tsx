@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, CheckCircle2, Trash2, Plus, Layout, Type, Image as ImageIcon, MessageSquare, ArrowUp, ArrowDown, Eye, EyeOff, Layers, Link as LinkIcon, Settings2, GripVertical } from 'lucide-react';
+import { Save, CheckCircle2, Trash2, Plus, Layout, Type, Image as ImageIcon, MessageSquare, ArrowUp, ArrowDown, Eye, EyeOff, Layers, Link as LinkIcon, Settings2, GripVertical, Activity, Sparkles, PieChart } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { PageContent, PageHeaderConfig, HomeSectionConfig, FooterLink } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
@@ -170,6 +170,9 @@ const PageManager: React.FC = () => {
                         
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">高亮关键词</label>
                         <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none text-primary font-bold" value={content.home.hero.titleHighlight} onChange={e => updateContent(['home', 'hero', 'titleHighlight'], e.target.value)} />
+                        
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">描述段落</label>
+                        <textarea rows={3} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none resize-none" value={content.home.hero.description} onChange={e => updateContent(['home', 'hero', 'description'], e.target.value)} />
                      </div>
                      <div className="space-y-4">
                         <MediaSelector label="Hero 背景视觉图" value={content.home.hero.bgImage} onChange={v => updateContent(['home', 'hero', 'bgImage'], v)} />
@@ -187,9 +190,48 @@ const PageManager: React.FC = () => {
                   </div>
                </section>
 
+               {/* Process / Management System Section */}
                <section className="space-y-6 pt-10 border-t">
                   <div className="flex items-center gap-4 mb-4">
-                     <span className="w-10 h-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center font-bold">02</span>
+                     <span className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center font-bold">02</span>
+                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">管理系统流程 (Process)</h3>
+                  </div>
+                  <div className="space-y-6 p-6 bg-gray-50 rounded-2xl border border-gray-100">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">板块标题</label>
+                           <input type="text" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl" value={content.home.process.title} onChange={e => updateContent(['home', 'process', 'title'], e.target.value)} />
+                        </div>
+                        <div>
+                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">板块描述</label>
+                           <input type="text" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl" value={content.home.process.description} onChange={e => updateContent(['home', 'process', 'description'], e.target.value)} />
+                        </div>
+                     </div>
+                     
+                     <div className="space-y-4">
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">核心步骤 (3项)</label>
+                        {content.home.process.steps.map((step, i) => (
+                           <div key={i} className="flex gap-4 items-start">
+                              <div className="w-8 h-8 flex items-center justify-center bg-gray-200 rounded-full font-bold text-xs text-gray-500 shrink-0">{i+1}</div>
+                              <input type="text" className="w-1/3 px-3 py-2 border rounded-lg bg-white" placeholder="步骤标题" value={step.title} onChange={e => {
+                                 const newSteps = [...content.home.process.steps];
+                                 newSteps[i].title = e.target.value;
+                                 updateContent(['home', 'process', 'steps'], newSteps);
+                              }} />
+                              <input type="text" className="flex-1 px-3 py-2 border rounded-lg bg-white" placeholder="步骤描述" value={step.desc} onChange={e => {
+                                 const newSteps = [...content.home.process.steps];
+                                 newSteps[i].desc = e.target.value;
+                                 updateContent(['home', 'process', 'steps'], newSteps);
+                              }} />
+                           </div>
+                        ))}
+                     </div>
+                  </div>
+               </section>
+
+               <section className="space-y-6 pt-10 border-t">
+                  <div className="flex items-center gap-4 mb-4">
+                     <span className="w-10 h-10 bg-orange-50 text-orange-500 rounded-xl flex items-center justify-center font-bold">03</span>
                      <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">关键数据统计栏</h3>
                   </div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -205,6 +247,34 @@ const PageManager: React.FC = () => {
                            </div>
                         </div>
                      ))}
+                  </div>
+               </section>
+
+               {/* CTA Section */}
+               <section className="space-y-6 pt-10 border-t">
+                  <div className="flex items-center gap-4 mb-4">
+                     <span className="w-10 h-10 bg-pink-50 text-pink-500 rounded-xl flex items-center justify-center font-bold">04</span>
+                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">底部行动号召 (CTA)</h3>
+                  </div>
+                  <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                     <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">主标题</label>
+                        <input type="text" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl" value={content.home.cta.title} onChange={e => updateContent(['home', 'cta', 'title'], e.target.value)} />
+                     </div>
+                     <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">副标题 / 描述</label>
+                        <input type="text" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl" value={content.home.cta.description} onChange={e => updateContent(['home', 'cta', 'description'], e.target.value)} />
+                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">按钮文字</label>
+                           <input type="text" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl" value={content.home.cta.buttonText} onChange={e => updateContent(['home', 'cta', 'buttonText'], e.target.value)} />
+                        </div>
+                        <div>
+                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">按钮链接</label>
+                           <input type="text" className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl" value={content.home.cta.buttonLink} onChange={e => updateContent(['home', 'cta', 'buttonLink'], e.target.value)} />
+                        </div>
+                     </div>
                   </div>
                </section>
             </MotionDiv>
@@ -332,49 +402,103 @@ const PageManager: React.FC = () => {
 
          {activeTab === 'services' && (
             <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-               <div className="flex items-center justify-between mb-8">
+               {/* Intro Stats Editor */}
+               <section className="space-y-6">
                   <div className="flex items-center gap-4">
-                     <div className="p-3 bg-blue-50 text-blue-500 rounded-2xl">
-                        <MessageSquare size={24} />
+                     <div className="p-3 bg-indigo-50 text-indigo-500 rounded-2xl">
+                        <Activity size={24} />
                      </div>
-                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">FAQ 常见问题库</h3>
+                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">服务页核心指标 (Intro Stats)</h3>
                   </div>
-                  <button 
-                     onClick={() => updateContent(['services', 'faqs'], [...content.services.faqs, { q: '', a: '' }])}
-                     className="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all"
-                  >
-                     <Plus size={14} className="inline-block mr-1" /> 新增问答条目
-                  </button>
-               </div>
-               
-               <div className="grid grid-cols-1 gap-6">
-                  {content.services.faqs.map((faq, idx) => (
-                     <div key={idx} className="group relative bg-gray-50 p-8 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl hover:border-gray-200 transition-all">
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                           <button onClick={() => updateContent(['services', 'faqs'], content.services.faqs.filter((_, i) => i !== idx))} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                              <Trash2 size={18} />
-                           </button>
-                        </div>
-                        <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                     {content.services.introStats.map((stat, idx) => (
+                        <div key={idx} className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-3 relative group">
+                           <div className="absolute top-2 right-2 opacity-20 text-xs font-bold">{idx + 1}</div>
                            <div>
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">问题 0{idx + 1}</label>
-                              <input type="text" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl outline-none font-bold" value={faq.q} onChange={e => {
-                                 const newFaqs = [...content.services.faqs];
-                                 newFaqs[idx].q = e.target.value;
-                                 updateContent(['services', 'faqs'], newFaqs);
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">图标名称 (Lucide)</label>
+                              <select 
+                                 className="w-full px-3 py-2 bg-white border rounded-lg text-sm"
+                                 value={stat.icon} 
+                                 onChange={e => {
+                                    const newStats = [...content.services.introStats];
+                                    newStats[idx].icon = e.target.value;
+                                    updateContent(['services', 'introStats'], newStats);
+                                 }}
+                              >
+                                 <option value="Shield">Shield (资质)</option>
+                                 <option value="Clock">Clock (效率)</option>
+                                 <option value="TrendingUp">TrendingUp (成本)</option>
+                                 <option value="Users">Users (团队)</option>
+                                 <option value="Award">Award (奖项)</option>
+                                 <option value="Zap">Zap (快速)</option>
+                              </select>
+                           </div>
+                           <div>
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">标题</label>
+                              <input type="text" className="w-full px-3 py-2 bg-white border rounded-lg text-sm font-bold" value={stat.label} onChange={e => {
+                                 const newStats = [...content.services.introStats];
+                                 newStats[idx].label = e.target.value;
+                                 updateContent(['services', 'introStats'], newStats);
                               }} />
                            </div>
                            <div>
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">标准回答内容</label>
-                              <textarea rows={3} className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl outline-none" value={faq.a} onChange={e => {
-                                 const newFaqs = [...content.services.faqs];
-                                 newFaqs[idx].a = e.target.value;
-                                 updateContent(['services', 'faqs'], newFaqs);
+                              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">描述</label>
+                              <input type="text" className="w-full px-3 py-2 bg-white border rounded-lg text-sm" value={stat.desc} onChange={e => {
+                                 const newStats = [...content.services.introStats];
+                                 newStats[idx].desc = e.target.value;
+                                 updateContent(['services', 'introStats'], newStats);
                               }} />
                            </div>
                         </div>
+                     ))}
+                  </div>
+               </section>
+
+               <div className="border-t border-dashed pt-8">
+                  <div className="flex items-center justify-between mb-8">
+                     <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 text-blue-500 rounded-2xl">
+                           <MessageSquare size={24} />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">FAQ 常见问题库</h3>
                      </div>
-                  ))}
+                     <button 
+                        onClick={() => updateContent(['services', 'faqs'], [...content.services.faqs, { q: '', a: '' }])}
+                        className="px-4 py-2 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-black transition-all"
+                     >
+                        <Plus size={14} className="inline-block mr-1" /> 新增问答条目
+                     </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-6">
+                     {content.services.faqs.map((faq, idx) => (
+                        <div key={idx} className="group relative bg-gray-50 p-8 rounded-3xl border border-gray-100 hover:bg-white hover:shadow-xl hover:border-gray-200 transition-all">
+                           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button onClick={() => updateContent(['services', 'faqs'], content.services.faqs.filter((_, i) => i !== idx))} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                                 <Trash2 size={18} />
+                              </button>
+                           </div>
+                           <div className="space-y-4">
+                              <div>
+                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">问题 0{idx + 1}</label>
+                                 <input type="text" className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl outline-none font-bold" value={faq.q} onChange={e => {
+                                    const newFaqs = [...content.services.faqs];
+                                    newFaqs[idx].q = e.target.value;
+                                    updateContent(['services', 'faqs'], newFaqs);
+                                 }} />
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 block">标准回答内容</label>
+                                 <textarea rows={3} className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl outline-none" value={faq.a} onChange={e => {
+                                    const newFaqs = [...content.services.faqs];
+                                    newFaqs[idx].a = e.target.value;
+                                    updateContent(['services', 'faqs'], newFaqs);
+                                 }} />
+                              </div>
+                           </div>
+                        </div>
+                     ))}
+                  </div>
                </div>
             </MotionDiv>
          )}

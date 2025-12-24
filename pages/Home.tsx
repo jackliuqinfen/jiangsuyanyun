@@ -139,8 +139,8 @@ const Home: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/90 to-transparent"></div>
         </div>
 
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="max-w-5xl pt-20">
+        <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <MotionDiv className="max-w-3xl pt-20">
              <MotionDiv
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -184,7 +184,10 @@ const Home: React.FC = () => {
                    {homeContent.hero.secondaryButtonText}
                 </Link>
              </MotionDiv>
-          </div>
+          </MotionDiv>
+          
+          {/* SmartSearch Removed - Keeping structure empty to preserve left alignment of text */}
+          <div className="hidden lg:block"></div>
         </div>
       </section>
   );
@@ -195,20 +198,16 @@ const Home: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
                <div className="lg:col-span-5">
                   <div className="p-3 bg-primary text-white rounded-2xl inline-block mb-6 shadow-xl shadow-primary/20"><Activity size={24}/></div>
-                  <h2 className="text-4xl font-black text-gray-900 tracking-tighter mb-6 leading-tight">全过程数字化<br/>管控系统 (Yy-PMS)</h2>
+                  <h2 className="text-4xl font-black text-gray-900 tracking-tighter mb-6 leading-tight whitespace-pre-line">{homeContent.process.title}</h2>
                   <p className="text-gray-500 leading-relaxed font-medium mb-10">
-                     我们将工程监理与项目管理深度集成于数字化底座，实现从“事后纠偏”向“事前预警”的范式转变，确保每一个关键节点皆在掌控之中。
+                     {homeContent.process.description}
                   </p>
                   
                   <div className="grid grid-cols-1 gap-6">
-                     {[
-                        { icon: Database, title: '数据驱动', desc: '实时汇总现场5D数据，精准匹配投资强度。' },
-                        { icon: ShieldCheck, title: '智能合规', desc: '全自动化风险扫描，规避法律及施工红线。' },
-                        { icon: Server, title: '云端交付', desc: '工程文档全数字化存档，支持全周期可追溯查询。' }
-                     ].map((item, i) => (
+                     {homeContent.process.steps.map((item: any, i: number) => (
                         <div key={i} className="flex gap-4 group">
-                           <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-100 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                              <item.icon size={20} />
+                           <div className="flex-shrink-0 w-12 h-12 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm border border-gray-100 group-hover:bg-primary group-hover:text-white transition-colors duration-300 font-bold text-lg">
+                              {i + 1}
                            </div>
                            <div>
                               <h4 className="font-bold text-gray-900 mb-1">{item.title}</h4>
@@ -375,18 +374,23 @@ const Home: React.FC = () => {
                            key={honor.id}
                            className="flex-shrink-0 w-full sm:w-[calc(50%-16px)] lg:w-[calc(25%-24px)]"
                         >
-                           <div className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-soft hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col items-center text-center group h-full">
-                              <div className="w-20 h-28 bg-gray-50 rounded-xl mb-8 flex items-center justify-center overflow-hidden border border-gray-100 shadow-inner group-hover:rotate-3 transition-transform">
+                           <div className="bg-white rounded-[2rem] border border-gray-100 shadow-soft hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col overflow-hidden h-full group">
+                              <div className="aspect-[3/4] w-full bg-gray-50 relative overflow-hidden border-b border-gray-50">
                                  {honor.imageUrl ? (
-                                    <img src={honor.imageUrl} className="w-full h-full object-cover" />
+                                    <img src={honor.imageUrl} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={honor.title} />
                                  ) : (
-                                    <Award className="text-accent" size={40} />
+                                    <div className="w-full h-full flex items-center justify-center">
+                                       <Award className="text-gray-300" size={64} />
+                                    </div>
                                  )}
+                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                               </div>
-                              <h4 className="font-black text-gray-900 mb-3 tracking-tight">{honor.title}</h4>
-                              <div className="flex flex-col gap-1 mt-auto">
-                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{honor.issuingAuthority}</p>
-                                 <p className="text-[10px] text-primary font-black">{honor.issueDate}</p>
+                              <div className="p-6 flex flex-col flex-grow">
+                                 <h4 className="font-bold text-gray-900 mb-2 line-clamp-2 leading-snug">{honor.title}</h4>
+                                 <div className="mt-auto flex justify-between items-end border-t border-gray-100 pt-4">
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{honor.issuingAuthority}</div>
+                                    <div className="text-[10px] text-primary font-black bg-blue-50 px-2 py-1 rounded">{honor.issueDate}</div>
+                                 </div>
                               </div>
                            </div>
                         </MotionDiv>
@@ -418,16 +422,21 @@ const Home: React.FC = () => {
                     <MotionDiv 
                        key={s.id}
                        whileHover={{ y: -15 }}
-                       className="p-10 bg-gray-50 rounded-[2.5rem] border border-gray-100 group transition-all hover:bg-primary hover:border-primary cursor-pointer shadow-soft"
+                       className="p-10 bg-gray-50 rounded-[2.5rem] border border-gray-100 group transition-all hover:bg-primary hover:border-primary cursor-pointer shadow-soft flex flex-col"
                     >
                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-10 shadow-lg transition-transform group-hover:rotate-12 group-hover:scale-110">
                           <ServiceIcon className="text-primary" size={28} />
                        </div>
                        <h3 className="text-xl font-black text-gray-900 group-hover:text-white mb-4 tracking-tight leading-snug">{s.title}</h3>
                        <p className="text-sm text-gray-500 group-hover:text-blue-100 leading-relaxed font-medium mb-10">{s.description}</p>
-                       <div className="pt-6 border-t border-gray-200 group-hover:border-white/20">
-                          <span className="text-xs font-black text-primary group-hover:text-white uppercase tracking-widest">了解服务详情</span>
-                       </div>
+                       <Link 
+                          to={`/services#service-${s.id}`} 
+                          className="pt-6 border-t border-gray-200 group-hover:border-white/20 block mt-auto"
+                       >
+                          <span className="text-xs font-black text-primary group-hover:text-white uppercase tracking-widest flex items-center justify-between">
+                             了解服务详情 <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                          </span>
+                       </Link>
                     </MotionDiv>
                  );
               })}
@@ -442,22 +451,65 @@ const Home: React.FC = () => {
             <h3 className="text-white font-black uppercase tracking-[0.3em] text-xs">值得信赖的伙伴</h3>
             <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">合作客户</p>
          </div>
-         {/* Gradient Mask for Smooth Edges */}
-         <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-            <MotionDiv 
-               animate={{ x: ["0%", "-50%"] }}
-               transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-               className="flex gap-20 items-center whitespace-nowrap pr-20"
-            >
-               {/* Tripling the list to ensure smooth infinite loop without gaps */}
-               {[...partners, ...partners, ...partners].map((p: any, i: number) => (
-                  <div key={i} className="flex-shrink-0 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
-                     <span className="text-2xl font-black text-white tracking-tighter select-none">{p.name}</span>
-                  </div>
-               ))}
-            </MotionDiv>
+         
+         <div className="space-y-12">
+             {/* Row 1: Right to Left (Standard) */}
+             <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                <MotionDiv 
+                   animate={{ x: ["0%", "-50%"] }}
+                   transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+                   className="flex gap-20 items-center whitespace-nowrap pr-20"
+                >
+                   {/* Quadrupling the list to ensure smooth infinite loop without gaps on wider screens */}
+                   {[...partners, ...partners, ...partners, ...partners].map((p: any, i: number) => (
+                      <div key={`r1-${i}`} className="flex-shrink-0 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
+                         <span className="text-2xl font-black text-white tracking-tighter select-none">{p.name}</span>
+                      </div>
+                   ))}
+                </MotionDiv>
+             </div>
+
+             {/* Row 2: Left to Right */}
+             <div className="relative w-full overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                <MotionDiv 
+                   animate={{ x: ["-50%", "0%"] }}
+                   transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+                   className="flex gap-20 items-center whitespace-nowrap pr-20"
+                >
+                   {[...partners, ...partners, ...partners, ...partners].map((p: any, i: number) => (
+                      <div key={`r2-${i}`} className="flex-shrink-0 grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all cursor-pointer">
+                         <span className="text-2xl font-black text-white tracking-tighter select-none">{p.name}</span>
+                      </div>
+                   ))}
+                </MotionDiv>
+             </div>
          </div>
       </section>
+  );
+
+  const renderCTA = () => (
+    <section className="py-24 bg-surface relative overflow-hidden">
+       {/* Decorative blob */}
+       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-[120px] pointer-events-none"></div>
+       
+       <div className="container mx-auto px-6 relative z-10">
+          <div className="bg-white rounded-[3rem] p-12 md:p-20 shadow-2xl border border-gray-100 text-center relative overflow-hidden">
+             <div className="relative z-10 max-w-3xl mx-auto">
+                <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight leading-tight">{homeContent.cta.title}</h2>
+                <p className="text-lg text-gray-500 mb-10 leading-relaxed">{homeContent.cta.description}</p>
+                <Link 
+                   to={homeContent.cta.buttonLink} 
+                   className="inline-flex items-center gap-3 px-10 py-4 bg-primary text-white rounded-2xl font-bold shadow-xl shadow-primary/20 hover:scale-105 hover:bg-primary-dark transition-all"
+                >
+                   {homeContent.cta.buttonText} <ArrowRight size={20}/>
+                </Link>
+             </div>
+             
+             {/* Background Mesh */}
+             <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#2C388B 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+          </div>
+       </div>
+    </section>
   );
 
   // Layout Rendering Logic
@@ -465,7 +517,7 @@ const Home: React.FC = () => {
   const sortedLayout = [...layout].sort((a, b) => a.order - b.order);
 
   return (
-    <div className="bg-white">
+    <div>
       {sortedLayout.map(section => {
          if (!section.isVisible) return null;
          switch(section.type) {
@@ -475,6 +527,7 @@ const Home: React.FC = () => {
             case 'honors': return <React.Fragment key={section.id}>{renderHonors()}</React.Fragment>;
             case 'services': return <React.Fragment key={section.id}>{renderServices()}</React.Fragment>;
             case 'partners': return <React.Fragment key={section.id}>{renderPartners()}</React.Fragment>;
+            case 'cta': return <React.Fragment key={section.id}>{renderCTA()}</React.Fragment>;
             default: return null;
          }
       })}

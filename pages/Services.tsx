@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ChevronDown, ChevronUp, Shield, Clock, TrendingUp, Users } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { storageService } from '../services/storageService';
 import { Service } from '../types';
@@ -14,10 +15,32 @@ const Services: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const content = storageService.getPageContent().services;
   const header = storageService.getPageContent().headers.services;
+  const location = useLocation();
 
   useEffect(() => {
     storageService.getServices().then(setServices);
   }, []);
+
+  // Handle Anchor Scrolling
+  useEffect(() => {
+    if (location.hash) {
+      const id = location.hash.replace('#', '');
+      // Delay slightly to ensure DOM is rendered
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          const headerOffset = 100; // Fixed header height
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+          
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+        }
+      }, 100);
+    }
+  }, [location, services]);
 
   const toggleFaq = (idx: number) => {
     setOpenFaq(openFaq === idx ? null : idx);
@@ -67,6 +90,7 @@ const Services: React.FC = () => {
           {services.map((service, idx) => (
             <MotionDiv 
               key={service.id}
+              id={`service-${service.id}`} // Added ID for anchor linking
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
