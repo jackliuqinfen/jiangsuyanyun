@@ -5,6 +5,7 @@ import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, B
 import { storageService } from '../services/storageService';
 import { SiteSettings, ResourceType, User, Role } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
+import AnniversaryPopup from './AnniversaryPopup'; // Import AnniversaryPopup
 
 const MotionDiv = motion.div as any;
 const MotionAside = motion.aside as any;
@@ -216,6 +217,10 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <div className="flex h-screen bg-[#F1F5F9] overflow-hidden">
+      
+      {/* Enable Anniversary Popup in Admin for Preview */}
+      <AnniversaryPopup />
+
       {/* Desktop Sidebar */}
       <aside className="w-64 hidden lg:flex flex-col shadow-2xl z-20 flex-shrink-0">
         <SidebarContent 
