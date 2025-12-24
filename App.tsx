@@ -8,15 +8,22 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
 import Cases from './pages/Cases';
+import CaseDetail from './pages/CaseDetail'; // New Case Detail Page
 import News from './pages/News';
 import NewsDetail from './pages/NewsDetail';
 import Branches from './pages/Branches';
 import Contact from './pages/Contact';
 import Navigation from './pages/Navigation';
+import Honors from './pages/Honors';
+import HonorDetail from './pages/HonorDetail'; // New Honor Detail Page
+import Tenders from './pages/Tenders'; 
+import TenderDetail from './pages/TenderDetail';
 import Dashboard from './pages/admin/Dashboard';
 import Login from './pages/admin/Login';
 import Settings from './pages/admin/Settings';
+import SecuritySettings from './pages/admin/SecuritySettings'; 
 import NewsManager from './pages/admin/NewsManager';
+import TenderManager from './pages/admin/TenderManager'; 
 import ProjectManager from './pages/admin/ProjectManager';
 import ServiceManager from './pages/admin/ServiceManager';
 import BranchManager from './pages/admin/BranchManager';
@@ -29,16 +36,6 @@ import PageManager from './pages/admin/PageManager';
 import TeamManager from './pages/admin/TeamManager';
 import HistoryManager from './pages/admin/HistoryManager';
 
-// Placeholder for remaining minor pages
-const AdminPlaceholder: React.FC<{title: string}> = ({ title }) => (
-  <div className="min-h-[50vh] flex items-center justify-center bg-white rounded-lg shadow m-4">
-    <div className="text-center">
-       <h1 className="text-3xl font-bold text-gray-300 mb-2">{title}</h1>
-       <p className="text-gray-400">该模块功能即将上线</p>
-    </div>
-  </div>
-);
-
 const App: React.FC = () => {
   return (
     <HashRouter>
@@ -50,8 +47,10 @@ const App: React.FC = () => {
             <Routes>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="settings" element={<Settings />} />
+              <Route path="security" element={<SecuritySettings />} />
               <Route path="pages" element={<PageManager />} />
               <Route path="news" element={<NewsManager />} />
+              <Route path="tenders" element={<TenderManager />} /> 
               <Route path="projects" element={<ProjectManager />} />
               <Route path="services" element={<ServiceManager />} />
               <Route path="branches" element={<BranchManager />} />
@@ -75,11 +74,16 @@ const App: React.FC = () => {
               <Route path="/about" element={<About />} />
               <Route path="/services" element={<Services />} />
               <Route path="/cases" element={<Cases />} />
+              <Route path="/cases/:id" element={<CaseDetail />} />
+              <Route path="/tenders" element={<Tenders />} />
+              <Route path="/tenders/:id" element={<TenderDetail />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:id" element={<NewsDetail />} />
               <Route path="/branches" element={<Branches />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/navigation" element={<Navigation />} />
+              <Route path="/honors" element={<Honors />} />
+              <Route path="/honors/:id" element={<HonorDetail />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </Layout>

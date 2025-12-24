@@ -2,30 +2,70 @@
 import React, { useState, useEffect } from 'react';
 // Fix react-router-dom export errors by ensuring standard v6 imports
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, Mail, MapPin, ChevronRight, ArrowRight, ChevronDown, Monitor, ShieldCheck, ExternalLink } from 'lucide-react';
+import { Menu, X, Phone, Mail, MapPin, ChevronRight, ArrowRight, ChevronDown, Monitor, ShieldCheck, ExternalLink, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storageService } from '../services/storageService';
-import { SiteSettings } from '../types';
+import { SiteSettings, PageContent } from '../types';
+import AnniversaryPopup from './AnniversaryPopup'; // Import the new popup
 
 // Cast motion components to any to resolve property 'animate'/'initial' etc. missing errors in current type environment
 const MotionDiv = motion.div as any;
 const MotionImg = motion.img as any;
 const MotionNav = motion.nav as any;
+const MotionButton = motion.button as any;
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
+  const [footerConfig, setFooterConfig] = useState<PageContent['footer']>(storageService.getPageContent().footer);
   const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
+      setShowBackToTop(window.scrollY > 400);
     };
+    
+    // Listen for settings/content changes from Admin panel
+    const handleSettingsUpdate = () => {
+      setSettings(storageService.getSettings());
+      setFooterConfig(storageService.getPageContent().footer);
+    };
+
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('settingsChanged', handleSettingsUpdate);
+    
+    // Refresh settings on route change too
     setSettings(storageService.getSettings());
-    return () => window.removeEventListener('scroll', handleScroll);
+    setFooterConfig(storageService.getPageContent().footer);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('settingsChanged', handleSettingsUpdate);
+    };
   }, [location.pathname]);
+
+  // Update Favicon based on settings
+  useEffect(() => {
+    const updateFavicon = (url: string) => {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = url;
+    };
+    
+    if (settings.faviconUrl) {
+      updateFavicon(settings.faviconUrl);
+    } else if (settings.graphicLogoUrl) {
+      // Fallback to graphic logo if no specific favicon is set
+      updateFavicon(settings.graphicLogoUrl);
+    }
+  }, [settings.faviconUrl, settings.graphicLogoUrl]);
 
   // 禁止移动端菜单开启时背景滚动
   useEffect(() => {
@@ -36,20 +76,37 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, [isMobileMenuOpen]);
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const navLinks = [
     { name: '首页', path: '/' },
     { name: '关于盐韵', path: '/about' },
+    { name: '荣誉资质', path: '/honors' },
     { name: '业务领域', path: '/services' },
     { name: '经典案例', path: '/cases' },
+    { name: '招标信息', path: '/tenders' }, // 新增
     { name: '新闻动态', path: '/news' },
+    { name: '网址导航', path: '/navigation' },
     { name: '分支机构', path: '/branches' },
   ];
+
+  // Dynamic Footer Links
+  const quickLinks = footerConfig?.quickLinks?.filter(l => l.isVisible) || [];
 
   const isAtHome = location.pathname === '/';
   const isLightHeader = scrolled || !isAtHome;
 
+  // Don't show anniversary popup on admin pages
+  const showPopup = !location.pathname.startsWith('/admin');
+
   return (
     <div className="flex flex-col min-h-screen bg-surface font-sans text-gray-800">
+      
+      {/* 8th Anniversary Popup */}
+      {showPopup && <AnniversaryPopup />}
+
       {/* Top Bar - Desktop Only */}
       <MotionDiv 
         animate={{ opacity: scrolled ? 0 : 1, y: scrolled ? -40 : 0 }}
@@ -103,7 +160,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <MotionImg 
                 src={settings.textLogoUrl} 
                 alt={settings.siteName} 
-                className="h-[60%] md:h-[65%] w-auto object-contain"
+                className="h-full w-auto object-contain"
                 initial={false}
                 animate={{
                   filter: isLightHeader 
@@ -208,7 +265,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                       </MotionNav>
                     </div>
 
-                    {/* Staff Entrance Section (Retained for Mobile) */}
+                    {/* Staff Entrance Section */}
                     <div>
                       <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">员工入口</h4>
                       <div className="grid grid-cols-1 gap-3">
@@ -278,15 +335,30 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {children}
       </main>
 
+      {/* Back to Top Button */}
+      <AnimatePresence>
+        {showBackToTop && (
+          <MotionButton
+            initial={{ opacity: 0, scale: 0.5 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-40 bg-white/80 backdrop-blur-md p-3 rounded-full shadow-xl border border-white/20 text-gray-600 hover:text-primary hover:scale-110 transition-all group"
+            whileHover={{ y: -3 }}
+          >
+            <ArrowUp size={24} className="group-hover:animate-bounce" />
+          </MotionButton>
+        )}
+      </AnimatePresence>
+
       {/* Footer */}
-      <footer className="bg-gray-950 text-white pt-24 pb-12 border-t border-white/5 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-accent to-primary opacity-30"></div>
+      <footer className="bg-gray-950 text-white pt-24 pb-12 -mt-1">
         <div className="container mx-auto px-6 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16 mb-20">
             <div className="space-y-8">
               <div className="flex items-center space-x-3 h-12">
                  <img src={settings.graphicLogoUrl} alt="G-Logo" className="h-full w-auto object-contain" />
-                 <img src={settings.textLogoUrl} alt="T-Logo" className="h-[65%] w-auto object-contain invert brightness-200" />
+                 <img src={settings.textLogoUrl} alt="T-Logo" className="h-full w-auto object-contain invert brightness-200" />
               </div>
               <p className="text-gray-400 text-sm leading-8 max-w-sm">
                 以匠心致初心，以品质筑未来。作为江苏领先的工程管理机构，我们始终坚持数字化管控与卓越交付。
@@ -295,16 +367,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
             <div>
               <h4 className="text-sm font-black uppercase tracking-[0.3em] mb-8 text-gray-500">快速导航</h4>
-              <ul className="space-y-5">
-                {[
-                  { name: '关于盐韵', path: '/about' },
-                  { name: '服务体系', path: '/services' },
-                  { name: '案例展示', path: '/cases' },
-                  { name: '行业资源', path: '/navigation' },
-                ].map((item, i) => (
+              <ul className="grid grid-cols-2 gap-x-8 gap-y-4">
+                {quickLinks.map((item, i) => (
                   <li key={i}>
-                    <Link to={item.path} className="text-gray-300 hover:text-white transition-all text-sm flex items-center group">
-                      <span className="w-0 group-hover:w-4 h-px bg-primary mr-0 group-hover:mr-3 transition-all duration-300"></span>
+                    <Link to={item.path} className="text-gray-400 hover:text-white transition-colors text-sm flex items-center group">
+                      <ChevronRight size={12} className="mr-2 text-gray-600 group-hover:text-primary transition-colors" />
                       {item.name}
                     </Link>
                   </li>
@@ -312,33 +379,37 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </ul>
             </div>
 
-            <div>
-              <h4 className="text-sm font-black uppercase tracking-[0.3em] mb-8 text-gray-500">联系信息</h4>
-              <ul className="space-y-6 text-gray-300 text-sm">
-                <li className="flex items-start group">
-                  <MapPin size={18} className="mr-4 text-primary flex-shrink-0" /> 
-                  <span className="group-hover:text-white transition-colors">{settings.contactAddress}</span>
-                </li>
-                <li className="flex items-center group">
-                  <Phone size={18} className="mr-4 text-primary flex-shrink-0" /> 
-                  <span className="group-hover:text-white transition-colors font-bold text-lg">{settings.contactPhone}</span>
-                </li>
-                <li className="flex items-center group">
-                  <Mail size={18} className="mr-4 text-primary flex-shrink-0" /> 
-                  <span className="group-hover:text-white transition-colors">{settings.contactEmail}</span>
-                </li>
-              </ul>
-            </div>
+            {footerConfig?.showContactInfo && (
+              <div>
+                <h4 className="text-sm font-black uppercase tracking-[0.3em] mb-8 text-gray-500">联系信息</h4>
+                <ul className="space-y-6 text-gray-300 text-sm">
+                  <li className="flex items-start group">
+                    <MapPin size={18} className="mr-4 text-primary flex-shrink-0" /> 
+                    <span className="group-hover:text-white transition-colors">{settings.contactAddress}</span>
+                  </li>
+                  <li className="flex items-center group">
+                    <Phone size={18} className="mr-4 text-primary flex-shrink-0" /> 
+                    <span className="group-hover:text-white transition-colors font-bold text-lg">{settings.contactPhone}</span>
+                  </li>
+                  <li className="flex items-center group">
+                    <Mail size={18} className="mr-4 text-primary flex-shrink-0" /> 
+                    <span className="group-hover:text-white transition-colors">{settings.contactEmail}</span>
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
           
-          <div className="border-t border-white/5 pt-10 flex flex-col md:flex-row justify-between items-center text-gray-600 text-xs tracking-widest uppercase">
-            <p>{settings.copyrightText}</p>
-            <div className="flex space-x-8 mt-6 md:mt-0 font-bold">
-              <a href="#" className="hover:text-white transition-colors">Privacy</a>
-              <a href="#" className="hover:text-white transition-colors">Terms</a>
-              <a href="#" className="hover:text-white transition-colors">Sitemap</a>
+          {footerConfig?.showCopyright && (
+            <div className="pt-10 flex flex-col md:flex-row justify-between items-center text-gray-600 text-xs tracking-widest uppercase">
+              <p>{settings.copyrightText}</p>
+              <div className="flex space-x-8 mt-6 md:mt-0 font-bold">
+                <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                <a href="#" className="hover:text-white transition-colors">Terms</a>
+                <a href="#" className="hover:text-white transition-colors">Sitemap</a>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </footer>
     </div>

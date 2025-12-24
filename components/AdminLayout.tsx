@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, ChevronRight, Clock, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, ChevronRight, Clock, Menu, X, Megaphone, Lock } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { SiteSettings, ResourceType, User, Role } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +20,7 @@ const NAV_GROUPS = [
     items: [
       { name: '页面文案', path: '/admin/pages', icon: Layout, resource: 'pages' as ResourceType },
       { name: '新闻动态', path: '/admin/news', icon: FileText, resource: 'news' as ResourceType },
+      { name: '招标信息', path: '/admin/tenders', icon: Megaphone, resource: 'tenders' as ResourceType },
       { name: '项目案例', path: '/admin/projects', icon: Briefcase, resource: 'projects' as ResourceType },
       { name: '业务领域', path: '/admin/services', icon: Hexagon, resource: 'services' as ResourceType },
     ]
@@ -39,38 +40,62 @@ const NAV_GROUPS = [
     items: [
       { name: '媒体库', path: '/admin/media', icon: Image, resource: 'media' as ResourceType },
       { name: '外部导航', path: '/admin/navigation', icon: Compass, resource: 'navigation' as ResourceType },
-      { name: '权限用户', path: '/admin/users', icon: ShieldCheck, resource: 'users' as ResourceType },
+      { name: '权限用户', path: '/admin/users', icon: Users, resource: 'users' as ResourceType }, // Icon changed to Users
+      { name: '安全审计', path: '/admin/security', icon: ShieldCheck, resource: 'security' as ResourceType }, // New Security Item
       { name: '站点设置', path: '/admin/settings', icon: Settings, resource: 'settings' as ResourceType },
     ]
   }
 ];
 
-// 将侧边栏内容提取为独立组件，防止父组件状态更新（如时间）导致侧边栏重挂载
 interface SidebarContentProps {
   currentUser: User | null;
   currentRole: Role | null;
   currentPath: string;
   onLogout: () => void;
+  logoUrl?: string; // Add logo prop
 }
 
-const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRole, currentPath, onLogout }) => (
+const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRole, currentPath, onLogout, logoUrl }) => (
   <div className="flex flex-col h-full overflow-hidden bg-gray-900 text-white">
     <div className="p-8 flex-shrink-0">
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-lg shadow-glow">Y</div>
-        <h2 className="text-lg font-black tracking-tighter uppercase italic">Yanyun OS</h2>
+        <div className="w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center font-bold text-lg shadow-glow border border-white/10 overflow-hidden">
+           {logoUrl ? (
+             <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" />
+           ) : (
+             <span className="text-primary">Y</span>
+           )}
+        </div>
+        <div>
+           <h2 className="text-lg font-black tracking-tighter uppercase italic leading-none">Yanyun OS</h2>
+           <p className="text-[9px] text-white/30 mt-1 font-bold tracking-widest uppercase">Professional Edition</p>
+        </div>
       </div>
-      <p className="text-[10px] text-white/30 mt-1 font-bold tracking-widest uppercase">Professional Edition</p>
     </div>
     
-    {/* 这里是滚动区域，确保 flex-1 正确占据剩余空间 */}
     <nav className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pb-6">
       {NAV_GROUPS.map((group, groupIdx) => (
         <div key={groupIdx}>
           <h3 className="px-4 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3">{group.label}</h3>
           <div className="space-y-1">
             {group.items.map((item) => {
-              if (item.resource && currentRole && !currentRole.permissions[item.resource]?.read) return null;
+              // 安全优化：权限降级策略
+              let hasPermission = false;
+              
+              if (!item.resource) {
+                 hasPermission = true; 
+              } else if (currentRole) {
+                 const perm = currentRole.permissions[item.resource];
+                 if (perm) {
+                    hasPermission = perm.read;
+                 } else {
+                    // 兼容旧数据：如果是超级管理员，允许访问新模块；否则拒绝
+                    hasPermission = currentRole.isSystem || false;
+                 }
+              }
+              
+              if (!hasPermission) return null;
+              
               const Icon = item.icon;
               const isActive = currentPath === item.path;
               return (
@@ -98,7 +123,10 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRol
         </div>
         <div className="min-w-0">
           <p className="text-xs font-bold truncate">{currentUser?.name}</p>
-          <p className="text-[10px] text-white/40 truncate">{currentRole?.name}</p>
+          <div className="flex items-center gap-1 text-[10px] text-white/40 truncate">
+             {currentUser?.mfaEnabled && <Lock size={8} className="text-emerald-500" />} 
+             {currentRole?.name}
+          </div>
         </div>
       </div>
       <button onClick={onLogout} className="w-full py-3 bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95">
@@ -115,6 +143,8 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentRole, setCurrentRole] = useState<Role | null>(storageService.getCurrentUserRole());
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
+  const [logo, setLogo] = useState(settings.graphicLogoUrl);
 
   useEffect(() => {
     const user = storageService.getCurrentUser();
@@ -126,8 +156,39 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
 
     const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
-    return () => clearInterval(timer);
+    
+    // Listen for settings update to refresh logo
+    const handleSettingsUpdate = () => {
+       const newSettings = storageService.getSettings();
+       setSettings(newSettings);
+       setLogo(newSettings.graphicLogoUrl);
+    };
+    window.addEventListener('settingsChanged', handleSettingsUpdate);
+
+    return () => {
+       clearInterval(timer);
+       window.removeEventListener('settingsChanged', handleSettingsUpdate);
+    };
   }, [navigate]);
+
+  // Update Favicon based on settings (Ensuring admin panel also reflects brand)
+  useEffect(() => {
+    const updateFavicon = (url: string) => {
+      let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = url;
+    };
+    
+    if (settings.faviconUrl) {
+      updateFavicon(settings.faviconUrl);
+    } else if (settings.graphicLogoUrl) {
+      updateFavicon(settings.graphicLogoUrl);
+    }
+  }, [settings.faviconUrl, settings.graphicLogoUrl]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -162,6 +223,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           currentRole={currentRole} 
           currentPath={location.pathname}
           onLogout={handleLogout}
+          logoUrl={logo}
         />
       </aside>
 
@@ -188,6 +250,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 currentRole={currentRole} 
                 currentPath={location.pathname}
                 onLogout={handleLogout}
+                logoUrl={logo}
               />
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}

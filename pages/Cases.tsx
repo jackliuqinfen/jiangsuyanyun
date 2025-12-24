@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, ArrowUpRight, Award } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { storageService } from '../services/storageService';
 import { ProjectCase } from '../types';
@@ -85,20 +86,18 @@ const Cases: React.FC = () => {
                     </div>
                   )}
                   
-                  {/* Results Overlay - visible on hover */}
-                  <div className="absolute inset-0 bg-primary/90 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center p-6 text-center text-white">
-                      <p className="font-bold text-lg mb-2">项目成果</p>
-                      <ul className="text-sm space-y-2 text-blue-100">
-                          <li>• 荣获省优质工程奖</li>
-                          <li>• 提前 30 天竣工交付</li>
-                          <li>• 节约造价 5.2%</li>
-                      </ul>
-                      <button className="mt-6 px-6 py-2 bg-white text-primary rounded-full font-bold text-sm">查看详情</button>
-                  </div>
+                  {/* Minimized Interaction Overlay */}
+                  <Link to={`/cases/${project.id}`} className="absolute inset-0 bg-primary/80 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-sm cursor-pointer">
+                      <button className="w-16 h-16 bg-white text-primary rounded-full flex items-center justify-center shadow-2xl transform scale-50 group-hover:scale-100 transition-transform duration-300 delay-75">
+                          <ArrowUpRight size={32} />
+                      </button>
+                  </Link>
                 </div>
                 
                 <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">{project.title}</h3>
+                  <Link to={`/cases/${project.id}`}>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-primary transition-colors">{project.title}</h3>
+                  </Link>
                   <div className="flex items-center text-gray-500 text-xs mb-4">
                     <MapPin size={12} className="mr-1" />
                     <span className="mr-4">{project.location}</span>
@@ -108,11 +107,13 @@ const Cases: React.FC = () => {
                   <p className="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow leading-relaxed">
                     {project.description}
                   </p>
-                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center group/btn cursor-pointer">
-                     <span className="text-xs text-gray-400 font-medium">查看完整案例</span>
-                     <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover/btn:bg-primary group-hover/btn:text-white transition-all">
-                        <ArrowUpRight size={16} />
-                     </div>
+                  <div className="pt-4 border-t border-gray-100 flex justify-between items-center group/btn">
+                     <Link to={`/cases/${project.id}`} className="flex items-center justify-between w-full">
+                        <span className="text-xs text-gray-400 font-medium group-hover:text-primary transition-colors">查看完整案例</span>
+                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-primary group-hover:text-white transition-all">
+                            <ArrowUpRight size={16} />
+                        </div>
+                     </Link>
                   </div>
                 </div>
               </MotionDiv>

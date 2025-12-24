@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Cell } from 'recharts';
-import { Users, FileText, Briefcase, Award, ArrowUpRight, Activity, TrendingUp, Clock, MousePointer2, Settings } from 'lucide-react';
+import { Users, FileText, Briefcase, Award, ArrowUpRight, Activity, TrendingUp, Clock, MousePointer2, Settings, Megaphone } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { motion } from 'framer-motion';
 
@@ -13,22 +13,25 @@ const Dashboard: React.FC = () => {
     newsCount: 0,
     projectCount: 0,
     serviceCount: 0,
-    honorCount: 0
+    honorCount: 0,
+    tenderCount: 0
   });
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [news, projects, services, honors] = await Promise.all([
+      const [news, projects, services, honors, tenders] = await Promise.all([
         storageService.getNews(),
         storageService.getProjects(),
         storageService.getServices(),
-        storageService.getHonors()
+        storageService.getHonors(),
+        storageService.getTenders()
       ]);
       setStats({
         newsCount: news.length,
         projectCount: projects.length,
         serviceCount: services.length,
-        honorCount: honors.length
+        honorCount: honors.length,
+        tenderCount: tenders.length
       });
     };
     fetchStats();
@@ -54,7 +57,7 @@ const Dashboard: React.FC = () => {
   const statCards = [
     { title: '发布动态', value: stats.newsCount, icon: FileText, color: 'bg-indigo-600', trend: '+12%', label: '本月新增' },
     { title: '管理项目', value: stats.projectCount, icon: Briefcase, color: 'bg-blue-600', trend: '+2', label: '进行中' },
-    { title: '核心团队', value: 3, icon: Users, color: 'bg-amber-500', trend: '稳定', label: '专家团队' },
+    { title: '招标公告', value: stats.tenderCount, icon: Megaphone, color: 'bg-amber-500', trend: '活跃', label: '信息发布' },
     { title: '品牌荣誉', value: stats.honorCount, icon: Award, color: 'bg-emerald-600', trend: '持续增加', label: '资质认证' },
   ];
 

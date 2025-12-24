@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Plus, Trash2, Filter, Image as ImageIcon, Video, Link as LinkIcon, Copy, Check, FolderOpen, Upload, Grid, List as ListIcon, X, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, Trash2, Filter, Image as ImageIcon, Video, Link as LinkIcon, Copy, Check, FolderOpen, Upload, Grid, List as ListIcon, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { MediaItem, MediaCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,6 +27,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
@@ -89,12 +90,15 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert("本地存储限制，请上传 2MB 以内的图片");
+    // 增加文件大小限制 (3MB)
+    if (file.size > 3 * 1024 * 1024) {
+      alert("⚠️ 图片过大！\n\n由于浏览器缓存限制，请上传 3MB 以内的图片。\n建议使用 TinyPNG 等工具压缩后再上传。");
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
     const reader = new FileReader();
+    reader.onloadstart = () => setIsUploading(true);
     reader.onloadend = () => {
       const base64String = reader.result as string;
       setUploadForm(prev => ({ 
@@ -102,27 +106,57 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
         url: base64String,
         name: prev.name || file.name.split('.')[0]
       }));
+      setIsUploading(false);
+    };
+    reader.onerror = () => {
+      alert("读取文件失败，请重试");
+      setIsUploading(false);
     };
     reader.readAsDataURL(file);
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newItem: MediaItem = {
-      id: Date.now().toString(),
-      name: uploadForm.name || '未命名资源',
-      type: uploadForm.type,
-      category: uploadForm.category,
-      url: uploadForm.url,
-      uploadDate: new Date().toISOString().split('T')[0],
-      size: uploadForm.type === 'image' ? 'Local' : 'External'
-    };
+    if (!uploadForm.url) {
+      alert("请先选择图片或输入视频链接");
+      return;
+    }
 
-    const updated = [newItem, ...media];
-    await storageService.saveMedia(updated);
-    loadData();
-    setIsUploadModalOpen(false);
-    setUploadForm({ name: '', type: 'image', category: 'site', url: '' });
+    setIsUploading(true);
+    try {
+      const newItem: MediaItem = {
+        id: Date.now().toString(),
+        name: uploadForm.name || '未命名资源',
+        type: uploadForm.type,
+        category: uploadForm.category,
+        url: uploadForm.url,
+        uploadDate: new Date().toISOString().split('T')[0],
+        size: uploadForm.type === 'image' ? (Math.round(uploadForm.url.length / 1024) + ' KB') : 'External'
+      };
+
+      // 1. 获取最新数据 (防止覆盖)
+      const currentMedia = await storageService.getMedia();
+      const updated = [newItem, ...currentMedia];
+      
+      // 2. 保存到 Storage
+      await storageService.saveMedia(updated);
+      
+      // 3. 刷新列表状态
+      await loadData();
+      
+      // 4. 重置表单并关闭弹窗
+      setIsUploadModalOpen(false);
+      setUploadForm({ name: '', type: 'image', category: 'site', url: '' });
+
+      // 5. 如果是选择模式，自动选中并回调
+      if (mode === 'select' && onSelect) {
+        onSelect(newItem.url);
+      }
+    } catch (err: any) {
+      alert(`上传失败: ${err.message}`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleItemClick = (item: MediaItem) => {
@@ -327,7 +361,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setIsUploadModalOpen(false)}
+              onClick={() => !isUploading && setIsUploadModalOpen(false)}
             />
             <MotionDiv 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -337,7 +371,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             >
               <div className="flex justify-between items-center mb-6">
                  <h2 className="text-xl font-bold text-gray-900">上传至云库</h2>
-                 <button onClick={() => setIsUploadModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
+                 <button onClick={() => !isUploading && setIsUploadModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={20}/></button>
               </div>
 
               <form onSubmit={handleUploadSubmit} className="space-y-4">
@@ -346,7 +380,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <input 
                       type="text" 
                       required 
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none" 
+                      disabled={isUploading}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-primary outline-none disabled:bg-gray-50 disabled:text-gray-400" 
                       value={uploadForm.name} 
                       onChange={e => setUploadForm({...uploadForm, name: e.target.value})}
                       placeholder="取个好名字方便搜索"
@@ -357,7 +392,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">素材类型</label>
                       <select 
-                        className="w-full px-3 py-2 border rounded-lg bg-white outline-none"
+                        disabled={isUploading}
+                        className="w-full px-3 py-2 border rounded-lg bg-white outline-none disabled:bg-gray-50"
                         value={uploadForm.type}
                         onChange={e => setUploadForm({...uploadForm, type: e.target.value as any})}
                       >
@@ -368,7 +404,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-1">存入分类</label>
                       <select 
-                        className="w-full px-3 py-2 border rounded-lg bg-white outline-none"
+                        disabled={isUploading}
+                        className="w-full px-3 py-2 border rounded-lg bg-white outline-none disabled:bg-gray-50"
                         value={uploadForm.category}
                         onChange={e => setUploadForm({...uploadForm, category: e.target.value})}
                       >
@@ -381,15 +418,21 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <div>
                        <label className="block text-sm font-bold text-gray-700 mb-2">选择文件</label>
                        <div 
-                         onClick={() => fileInputRef.current?.click()}
-                         className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                         onClick={() => !isUploading && fileInputRef.current?.click()}
+                         className={`border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                           isUploading ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50'
+                         }`}
                        >
                           {uploadForm.url ? (
                             <img src={uploadForm.url} className="h-32 w-full object-contain mb-2" alt="upload-preview" />
+                          ) : isUploading ? (
+                            <Loader2 className="text-primary animate-spin mb-2" size={32} />
                           ) : (
                             <Upload className="text-gray-300 mb-2" size={32} />
                           )}
-                          <p className="text-sm font-medium text-gray-600">{uploadForm.url ? '点击更换文件' : '点击选择图片'}</p>
+                          <p className="text-sm font-medium text-gray-600">
+                             {isUploading ? '正在处理文件...' : uploadForm.url ? '点击更换文件' : '点击选择图片'}
+                          </p>
                        </div>
                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                     </div>
@@ -401,7 +444,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                           <input 
                             type="text" 
                             required 
-                            className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none" 
+                            disabled={isUploading}
+                            className="w-full pl-10 pr-4 py-2 border rounded-lg outline-none disabled:bg-gray-50" 
                             value={uploadForm.url} 
                             onChange={e => setUploadForm({...uploadForm, url: e.target.value})}
                             placeholder="https://..."
@@ -411,8 +455,15 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                  )}
 
                  <div className="flex justify-end gap-3 mt-8">
-                    <button type="button" onClick={() => setIsUploadModalOpen(false)} className="px-4 py-2 text-gray-600 font-medium">取消</button>
-                    <button type="submit" className="px-8 py-2 bg-primary text-white rounded-lg font-bold shadow-lg hover:shadow-primary/30 transition-all">确认上传并存库</button>
+                    <button type="button" disabled={isUploading} onClick={() => setIsUploadModalOpen(false)} className="px-4 py-2 text-gray-600 font-medium hover:bg-gray-100 rounded-lg">取消</button>
+                    <button 
+                      type="submit" 
+                      disabled={isUploading || !uploadForm.url}
+                      className="px-8 py-2 bg-primary text-white rounded-lg font-bold shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2 disabled:bg-gray-400 disabled:shadow-none"
+                    >
+                      {isUploading && <Loader2 size={16} className="animate-spin" />}
+                      {isUploading ? '处理中...' : '确认上传并存库'}
+                    </button>
                  </div>
               </form>
             </MotionDiv>

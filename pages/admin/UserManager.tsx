@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Shield, User, Check, X, Lock } from 'lucide-react';
+import { Plus, Edit, Trash2, Shield, User, Check, X, Lock, Eye, EyeOff } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { User as UserType, Role, ResourceType } from '../../types';
 import { RESOURCES, INITIAL_ROLES } from '../../constants';
 import ImageUpload from '../../components/ImageUpload';
+import { maskEmail, maskPhone, validatePassword } from '../../utils/security'; // Import security utils
 
 const UserManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'roles'>('users');
@@ -18,8 +19,12 @@ const UserManager: React.FC = () => {
   const [editingRole, setEditingRole] = useState<Role | null>(null);
 
   // Forms
-  const [userForm, setUserForm] = useState<Partial<UserType>>({ username: '', name: '', roleId: '' });
-  const [roleForm, setRoleForm] = useState<Role>({ ...INITIAL_ROLES[2], id: '', name: '', description: '', isSystem: false }); // Default to viewer-like structure
+  const [userForm, setUserForm] = useState<Partial<UserType>>({ username: '', name: '', roleId: '', email: '', phone: '' });
+  const [newPassword, setNewPassword] = useState(''); // Only for new/update
+  const [roleForm, setRoleForm] = useState<Role>({ ...INITIAL_ROLES[2], id: '', name: '', description: '', isSystem: false });
+
+  // Security UI State
+  const [showMasked, setShowMasked] = useState(true);
 
   useEffect(() => {
     refreshData();
@@ -36,12 +41,14 @@ const UserManager: React.FC = () => {
   const handleEditUser = (user: UserType) => {
     setEditingUser(user);
     setUserForm(user);
+    setNewPassword(''); // Don't show existing password
     setIsUserModalOpen(true);
   };
 
   const handleAddUser = () => {
     setEditingUser(null);
-    setUserForm({ username: '', name: '', roleId: roles[0]?.id || '' });
+    setUserForm({ username: '', name: '', roleId: roles[0]?.id || '', email: '', phone: '' });
+    setNewPassword('');
     setIsUserModalOpen(true);
   };
 
@@ -55,10 +62,25 @@ const UserManager: React.FC = () => {
 
   const submitUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Password Strength Check if setting a new password
+    if (newPassword) {
+       const check = validatePassword(newPassword);
+       if (!check.valid) {
+          alert(`密码强度不足: ${check.message}`);
+          return;
+       }
+    } else if (!editingUser) {
+       // Creating new user requires password
+       alert("新用户必须设置初始密码");
+       return;
+    }
+
     if (editingUser) {
       const updated = users.map(u => u.id === editingUser.id ? { ...u, ...userForm } as UserType : u);
       await storageService.saveUsers(updated);
     } else {
+      // In a real app, password would be hashed here
       const newUser = { ...userForm, id: Date.now().toString() } as UserType;
       await storageService.saveUsers([...users, newUser]);
     }
@@ -69,13 +91,12 @@ const UserManager: React.FC = () => {
   // --- Role Logic ---
   const handleEditRole = (role: Role) => {
     setEditingRole(role);
-    setRoleForm(JSON.parse(JSON.stringify(role))); // Deep copy
+    setRoleForm(JSON.parse(JSON.stringify(role)));
     setIsRoleModalOpen(true);
   };
 
   const handleAddRole = () => {
     setEditingRole(null);
-    // Create a blank role based on structure
     const emptyPerms = {} as any;
     RESOURCES.forEach(r => emptyPerms[r.id] = { read: false, write: false, delete: false });
     
@@ -105,11 +126,9 @@ const UserManager: React.FC = () => {
     const newPerms = { ...roleForm.permissions };
     newPerms[resource] = { ...newPerms[resource], [type]: !newPerms[resource][type] };
     
-    // Auto-enable read if write/delete is checked
     if ((type === 'write' || type === 'delete') && newPerms[resource][type]) {
        newPerms[resource].read = true;
     }
-    // Auto-disable write/delete if read is unchecked
     if (type === 'read' && !newPerms[resource].read) {
        newPerms[resource].write = false;
        newPerms[resource].delete = false;
@@ -136,7 +155,18 @@ const UserManager: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
            <h1 className="text-2xl font-bold text-gray-800">用户与权限管理</h1>
-           <p className="text-sm text-gray-500">管理后台登录用户及细粒度角色权限控制</p>
+           <p className="text-sm text-gray-500">RBAC 角色控制与 PII 数据保护</p>
+        </div>
+        <div className="flex gap-2">
+           {activeTab === 'users' && (
+              <button 
+                onClick={() => setShowMasked(!showMasked)} 
+                className="bg-white border border-gray-300 text-gray-600 px-4 py-2 rounded-lg flex items-center hover:bg-gray-50 transition-colors text-sm font-bold"
+              >
+                {showMasked ? <EyeOff size={16} className="mr-2" /> : <Eye size={16} className="mr-2" />}
+                {showMasked ? '显示敏感数据' : '脱敏显示'}
+              </button>
+           )}
         </div>
       </div>
 
@@ -169,8 +199,9 @@ const UserManager: React.FC = () => {
                  <thead className="bg-gray-50 border-b">
                     <tr>
                        <th className="px-6 py-4 font-semibold text-gray-700">用户</th>
-                       <th className="px-6 py-4 font-semibold text-gray-700">登录账号</th>
+                       <th className="px-6 py-4 font-semibold text-gray-700">联系方式 (PII)</th>
                        <th className="px-6 py-4 font-semibold text-gray-700">所属角色</th>
+                       <th className="px-6 py-4 font-semibold text-gray-700">MFA</th>
                        <th className="px-6 py-4 font-semibold text-gray-700 text-right">操作</th>
                     </tr>
                  </thead>
@@ -183,10 +214,19 @@ const UserManager: React.FC = () => {
                                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-3 overflow-hidden">
                                    {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt={user.name}/> : <User size={16}/>}
                                 </div>
-                                {user.name}
+                                <div>
+                                   <div className="font-bold text-gray-900">{user.name}</div>
+                                   <div className="text-xs text-gray-400">@{user.username}</div>
+                                </div>
                              </td>
-                             <td className="px-6 py-4 text-gray-600 font-mono">{user.username}</td>
+                             <td className="px-6 py-4 text-gray-600 font-mono text-xs">
+                                <div><span className="text-gray-400 w-8 inline-block">Tel:</span> {showMasked ? maskPhone(user.phone) : (user.phone || '-')}</div>
+                                <div><span className="text-gray-400 w-8 inline-block">Mail:</span> {showMasked ? maskEmail(user.email) : (user.email || '-')}</div>
+                             </td>
                              <td className="px-6 py-4"><span className="bg-blue-50 text-primary px-2 py-1 rounded text-xs font-bold">{roleName}</span></td>
+                             <td className="px-6 py-4">
+                                {user.mfaEnabled ? <span className="text-green-600 text-xs font-bold flex items-center"><Shield size={12} className="mr-1"/> ON</span> : <span className="text-gray-400 text-xs">OFF</span>}
+                             </td>
                              <td className="px-6 py-4 text-right">
                                 <button onClick={() => handleEditUser(user)} className="text-blue-600 hover:bg-blue-50 p-2 rounded"><Edit size={16}/></button>
                                 <button onClick={() => handleDeleteUser(user.id)} className="text-red-600 hover:bg-red-50 p-2 rounded ml-2"><Trash2 size={16}/></button>
@@ -256,29 +296,54 @@ const UserManager: React.FC = () => {
       {/* User Modal */}
       {isUserModalOpen && (
          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
                <h2 className="text-xl font-bold mb-6">{editingUser ? '编辑用户' : '新增用户'}</h2>
                <form onSubmit={submitUser} className="space-y-4">
-                  <div>
-                     <label className="block text-sm font-bold text-gray-700 mb-1">显示名称</label>
-                     <input type="text" required className="w-full px-3 py-2 border rounded-lg" value={userForm.name} onChange={e => setUserForm({...userForm, name: e.target.value})} />
-                  </div>
-                  <div>
-                     <label className="block text-sm font-bold text-gray-700 mb-1">登录账号</label>
-                     <input type="text" required className="w-full px-3 py-2 border rounded-lg" value={userForm.username} onChange={e => setUserForm({...userForm, username: e.target.value})} />
-                  </div>
-                  {!editingUser && (
+                  <div className="grid grid-cols-2 gap-4">
                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-1">初始密码</label>
-                        <input type="text" disabled value="admin (默认)" className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-500" />
+                        <label className="block text-sm font-bold text-gray-700 mb-1">显示名称</label>
+                        <input type="text" required className="w-full px-3 py-2 border rounded-lg" value={userForm.name} onChange={e => setUserForm({...userForm, name: e.target.value})} />
                      </div>
-                  )}
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">登录账号</label>
+                        <input type="text" required className="w-full px-3 py-2 border rounded-lg" value={userForm.username} onChange={e => setUserForm({...userForm, username: e.target.value})} />
+                     </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">手机号</label>
+                        <input type="text" className="w-full px-3 py-2 border rounded-lg" value={userForm.phone} onChange={e => setUserForm({...userForm, phone: e.target.value})} />
+                     </div>
+                     <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">邮箱</label>
+                        <input type="email" className="w-full px-3 py-2 border rounded-lg" value={userForm.email} onChange={e => setUserForm({...userForm, email: e.target.value})} />
+                     </div>
+                  </div>
+
+                  <div>
+                     <label className="block text-sm font-bold text-gray-700 mb-1">{editingUser ? '重置密码 (留空不修改)' : '初始密码'}</label>
+                     <input 
+                        type="password" 
+                        className="w-full px-3 py-2 border rounded-lg" 
+                        value={newPassword} 
+                        onChange={e => setNewPassword(e.target.value)} 
+                        placeholder={editingUser ? '••••••' : '至少8位，包含大小写和数字'}
+                     />
+                  </div>
+
                   <div>
                      <label className="block text-sm font-bold text-gray-700 mb-1">分配角色</label>
                      <select className="w-full px-3 py-2 border rounded-lg bg-white" value={userForm.roleId} onChange={e => setUserForm({...userForm, roleId: e.target.value})}>
                         {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                      </select>
                   </div>
+
+                  <div className="flex items-center gap-2 pt-2">
+                     <input type="checkbox" id="mfa" checked={userForm.mfaEnabled || false} onChange={e => setUserForm({...userForm, mfaEnabled: e.target.checked})} className="rounded text-primary focus:ring-primary" />
+                     <label htmlFor="mfa" className="text-sm font-bold text-gray-700">启用 MFA 双重认证</label>
+                  </div>
+
                   <ImageUpload label="头像" value={userForm.avatar} onChange={b64 => setUserForm({...userForm, avatar: b64})} />
                   <div className="flex justify-end gap-3 mt-6">
                      <button type="button" onClick={() => setIsUserModalOpen(false)} className="px-4 py-2 border rounded-lg">取消</button>
@@ -299,6 +364,7 @@ const UserManager: React.FC = () => {
                </div>
                
                <form onSubmit={submitRole} className="flex-1 flex flex-col overflow-hidden">
+                  {/* ... Same Role Form Content as before ... */}
                   <div className="grid grid-cols-2 gap-6 mb-6">
                      <div>
                         <label className="block text-sm font-bold text-gray-700 mb-1">角色名称</label>

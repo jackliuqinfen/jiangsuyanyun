@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Save, CheckCircle2, Eye } from 'lucide-react';
+import { Save, CheckCircle2, Eye, Sparkles } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { SiteSettings } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
@@ -12,6 +12,11 @@ const Settings: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setSettings(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleToggle = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setSettings(prev => ({ ...prev, [name]: checked }));
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -45,18 +50,48 @@ const Settings: React.FC = () => {
              </div>
              <div className="flex items-center justify-center space-x-4 h-16 md:h-20 border border-white/5 rounded-xl bg-white/[0.02]">
                 {settings.graphicLogoUrl ? <img src={settings.graphicLogoUrl} alt="G-Logo" className="h-full w-auto object-contain" /> : <div className="h-12 w-12 bg-white/10 rounded-full animate-pulse" />}
-                {settings.textLogoUrl ? <img src={settings.textLogoUrl} alt="T-Logo" className="h-[60%] w-auto object-contain brightness-100" /> : <div className="h-6 w-32 bg-white/10 rounded-lg animate-pulse" />}
+                {settings.textLogoUrl ? <img src={settings.textLogoUrl} alt="T-Logo" className="h-full w-auto object-contain brightness-100" /> : <div className="h-6 w-32 bg-white/10 rounded-lg animate-pulse" />}
              </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-6">
                <MediaSelector label="图形 Logo" value={settings.graphicLogoUrl} onChange={url => setSettings({...settings, graphicLogoUrl: url})} />
             </div>
             <div className="space-y-6">
                <MediaSelector label="文本 Logo (建议白色底透明背景)" value={settings.textLogoUrl} onChange={url => setSettings({...settings, textLogoUrl: url})} />
             </div>
+            <div className="space-y-6">
+               <MediaSelector label="浏览器图标 (Favicon - 建议32x32)" value={settings.faviconUrl} onChange={url => setSettings({...settings, faviconUrl: url})} />
+            </div>
           </div>
+        </div>
+
+        {/* Anniversary Settings */}
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+              <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                 <Sparkles size={20} />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">营销与活动配置</h2>
+           </div>
+           
+           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+              <div>
+                 <span className="block font-bold text-gray-800">8 周年庆典弹窗</span>
+                 <span className="text-xs text-gray-500">开启后，用户访问首页时将看到全屏庆祝动画（每位访客仅显示一次）</span>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                 <input 
+                    type="checkbox" 
+                    name="enableAnniversary" 
+                    className="sr-only peer" 
+                    checked={settings.enableAnniversary || false} 
+                    onChange={handleToggle} 
+                 />
+                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+           </div>
         </div>
 
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">

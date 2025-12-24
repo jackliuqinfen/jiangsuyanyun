@@ -5,6 +5,7 @@ import { Plus, Search, Edit, Trash2, MapPin, Calendar, Award, Loader2, X } from 
 import { storageService } from '../../services/storageService';
 import { ProjectCase } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
+import RichTextEditor from '../../components/RichTextEditor';
 
 const ProjectManager: React.FC = () => {
   const [projects, setProjects] = useState<ProjectCase[]>([]);
@@ -17,6 +18,7 @@ const ProjectManager: React.FC = () => {
     title: '',
     category: '市政工程',
     description: '',
+    content: '',
     location: '',
     date: new Date().toISOString().split('T')[0],
     isFeatured: false,
@@ -47,6 +49,7 @@ const ProjectManager: React.FC = () => {
       title: '',
       category: '市政工程',
       description: '',
+      content: '',
       location: '',
       date: new Date().toISOString().split('T')[0],
       isFeatured: false,
@@ -137,7 +140,7 @@ const ProjectManager: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setIsModalOpen(false)}></div>
-          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+          <div className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
              <div className="p-8 border-b flex justify-between items-center bg-gray-50">
                 <div>
                    <h2 className="text-xl font-bold text-gray-900">{editingItem ? '编辑项目详情' : '登记新项目案例'}</h2>
@@ -148,13 +151,13 @@ const ProjectManager: React.FC = () => {
                 </button>
              </div>
              
-             <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
-                <div>
-                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">项目完整名称</label>
-                   <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
-                </div>
-                
+             <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   <div className="col-span-1 md:col-span-2">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">项目完整名称</label>
+                      <input type="text" required className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none font-bold" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                   </div>
+                   
                    <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">工程品类</label>
                       <select className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl outline-none bg-white font-medium" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
@@ -162,12 +165,32 @@ const ProjectManager: React.FC = () => {
                          <option>工业厂房</option>
                          <option>住宅工程</option>
                          <option>基础设施</option>
+                         <option>公共建筑</option>
                       </select>
                    </div>
                    <div>
                       <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">竣工/交付日期</label>
                       <input type="date" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-medium" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
                    </div>
+                   <div className="col-span-1 md:col-span-2">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">项目地点</label>
+                      <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 transition-all outline-none" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} placeholder="例如：盐城市盐都区" />
+                   </div>
+                </div>
+
+                <div className="space-y-4">
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">简介摘要 (列表页展示)</label>
+                   <textarea rows={2} className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                </div>
+
+                <div className="space-y-4">
+                   <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">项目详细介绍 (内页富文本)</label>
+                   <RichTextEditor 
+                      value={formData.content || ''} 
+                      onChange={val => setFormData({...formData, content: val})} 
+                      placeholder="请详细描述项目概况、技术难点及建设成果..."
+                      className="min-h-[300px]"
+                   />
                 </div>
 
                 <MediaSelector label="项目全景/效果图" value={formData.imageUrl} onChange={url => setFormData({...formData, imageUrl: url})} />
@@ -185,7 +208,7 @@ const ProjectManager: React.FC = () => {
                    </div>
                 </div>
 
-                <div className="flex justify-end gap-4 pt-6">
+                <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
                    <button type="button" disabled={isSubmitting} onClick={() => setIsModalOpen(false)} className="px-6 py-3 text-gray-500 font-bold hover:text-gray-900 transition-colors">取消操作</button>
                    <button 
                       type="submit" 

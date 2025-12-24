@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, CheckCircle2, Trash2, Plus, Layout, Type, Image as ImageIcon, MessageSquare } from 'lucide-react';
+import { Save, CheckCircle2, Trash2, Plus, Layout, Type, Image as ImageIcon, MessageSquare, ArrowUp, ArrowDown, Eye, EyeOff, Layers, Link as LinkIcon, Settings2, GripVertical } from 'lucide-react';
 import { storageService } from '../../services/storageService';
-import { PageContent, PageHeaderConfig } from '../../types';
+import { PageContent, PageHeaderConfig, HomeSectionConfig, FooterLink } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
 import { motion } from 'framer-motion';
 
@@ -11,7 +11,7 @@ const MotionDiv = motion.div as any;
 
 const PageManager: React.FC = () => {
   const [content, setContent] = useState<PageContent>(storageService.getPageContent());
-  const [activeTab, setActiveTab] = useState<'home' | 'about' | 'services' | 'headers'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'footer' | 'about' | 'services' | 'headers'>('home');
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = () => {
@@ -32,10 +32,51 @@ const PageManager: React.FC = () => {
     });
   };
 
+  // --- Home Layout Helpers ---
+  const moveSection = (index: number, direction: 'up' | 'down') => {
+    const newLayout = [...content.home.layout];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < newLayout.length) {
+      [newLayout[index], newLayout[targetIndex]] = [newLayout[targetIndex], newLayout[index]];
+      // Update orders
+      newLayout.forEach((sec, idx) => sec.order = idx + 1);
+      updateContent(['home', 'layout'], newLayout);
+    }
+  };
+
+  const toggleSectionVisibility = (index: number) => {
+    const newLayout = [...content.home.layout];
+    newLayout[index].isVisible = !newLayout[index].isVisible;
+    updateContent(['home', 'layout'], newLayout);
+  };
+
+  // --- Footer Helpers ---
+  const addFooterLink = () => {
+    const newLink: FooterLink = { 
+        id: Date.now().toString(), 
+        name: '新链接', 
+        path: '/', 
+        isVisible: true 
+    };
+    updateContent(['footer', 'quickLinks'], [...content.footer.quickLinks, newLink]);
+  };
+
+  const updateFooterLink = (index: number, key: keyof FooterLink, value: any) => {
+    const newLinks = [...content.footer.quickLinks];
+    newLinks[index] = { ...newLinks[index], [key]: value };
+    updateContent(['footer', 'quickLinks'], newLinks);
+  };
+
+  const removeFooterLink = (index: number) => {
+    const newLinks = content.footer.quickLinks.filter((_, i) => i !== index);
+    updateContent(['footer', 'quickLinks'], newLinks);
+  };
+
   const tabs = [
     { id: 'home', label: '首页配置', icon: Layout },
+    { id: 'footer', label: '动态页脚', icon: Layers },
     { id: 'about', label: '关于我们', icon: Type },
-    { id: 'services', label: '业务/问答', icon: ImageIcon },
+    { id: 'services', label: '业务/问答', icon: MessageSquare },
     { id: 'headers', label: '全局页头', icon: ImageIcon },
   ];
 
@@ -80,23 +121,69 @@ const PageManager: React.FC = () => {
          
          {activeTab === 'home' && (
             <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-               <section className="space-y-6">
+               
+               {/* 1. Layout Manager */}
+               <section className="bg-blue-50/50 p-8 rounded-3xl border border-blue-100">
+                  <div className="flex items-center gap-4 mb-6">
+                     <div className="p-2 bg-blue-500 text-white rounded-xl"><Layers size={20}/></div>
+                     <div>
+                        <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">首页板块编排引擎</h3>
+                        <p className="text-xs text-gray-500 font-medium">拖拽排序或控制板块显隐，实时决定首页结构</p>
+                     </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                     {content.home.layout.map((section, index) => (
+                        <div key={section.id} className={`flex items-center justify-between p-4 bg-white border rounded-xl shadow-sm transition-all ${section.isVisible ? 'border-gray-200' : 'border-gray-100 opacity-60 bg-gray-50'}`}>
+                           <div className="flex items-center gap-4">
+                              <span className="text-gray-300 cursor-move"><GripVertical size={20}/></span>
+                              <div className={`px-3 py-1 rounded text-xs font-bold uppercase w-20 text-center ${section.isVisible ? 'bg-blue-50 text-primary' : 'bg-gray-200 text-gray-500'}`}>{section.type}</div>
+                              <span className="font-bold text-gray-800">{section.label}</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <button onClick={() => moveSection(index, 'up')} disabled={index === 0} className="p-2 hover:bg-gray-100 rounded text-gray-500 disabled:opacity-30"><ArrowUp size={16}/></button>
+                              <button onClick={() => moveSection(index, 'down')} disabled={index === content.home.layout.length - 1} className="p-2 hover:bg-gray-100 rounded text-gray-500 disabled:opacity-30"><ArrowDown size={16}/></button>
+                              <div className="w-px h-6 bg-gray-200 mx-2"></div>
+                              <button onClick={() => toggleSectionVisibility(index)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${section.isVisible ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>
+                                 {section.isVisible ? <Eye size={14}/> : <EyeOff size={14}/>}
+                                 {section.isVisible ? '显示中' : '已隐藏'}
+                              </button>
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               </section>
+
+               {/* 2. Content Editing */}
+               <section className="space-y-6 pt-6 border-t border-dashed">
                   <div className="flex items-center gap-4 mb-4">
-                     <span className="w-10 h-10 bg-blue-50 text-blue-500 rounded-xl flex items-center justify-center font-bold">01</span>
-                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">Hero 核心首屏展示</h3>
+                     <span className="w-10 h-10 bg-indigo-50 text-indigo-500 rounded-xl flex items-center justify-center font-bold">01</span>
+                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">Hero 首屏文案 & 交互</h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                      <div className="space-y-4">
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">浮动勋章文案 (Badge)</label>
-                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none transition-all" value={content.home.hero.badge} onChange={e => updateContent(['home', 'hero', 'badge'], e.target.value)} />
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">浮动勋章文案</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none" value={content.home.hero.badge} onChange={e => updateContent(['home', 'hero', 'badge'], e.target.value)} />
                         
                         <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">主标题 (Line 1)</label>
-                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none transition-all" value={content.home.hero.titleLine1} onChange={e => updateContent(['home', 'hero', 'titleLine1'], e.target.value)} />
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none" value={content.home.hero.titleLine1} onChange={e => updateContent(['home', 'hero', 'titleLine1'], e.target.value)} />
                         
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">高亮关键词 (Highlight)</label>
-                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none transition-all font-bold text-primary" value={content.home.hero.titleHighlight} onChange={e => updateContent(['home', 'hero', 'titleHighlight'], e.target.value)} />
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">高亮关键词</label>
+                        <input type="text" className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 outline-none text-primary font-bold" value={content.home.hero.titleHighlight} onChange={e => updateContent(['home', 'hero', 'titleHighlight'], e.target.value)} />
                      </div>
-                     <MediaSelector label="Hero 背景视觉图" value={content.home.hero.bgImage} onChange={v => updateContent(['home', 'hero', 'bgImage'], v)} />
+                     <div className="space-y-4">
+                        <MediaSelector label="Hero 背景视觉图" value={content.home.hero.bgImage} onChange={v => updateContent(['home', 'hero', 'bgImage'], v)} />
+                        <div className="grid grid-cols-2 gap-4 pt-2">
+                           <div>
+                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">主按钮文字</label>
+                              <input type="text" className="w-full px-3 py-2 border rounded-lg" value={content.home.hero.buttonText} onChange={e => updateContent(['home', 'hero', 'buttonText'], e.target.value)} />
+                           </div>
+                           <div>
+                              <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">跳转链接</label>
+                              <input type="text" className="w-full px-3 py-2 border rounded-lg bg-gray-50" value={content.home.hero.buttonLink} onChange={e => updateContent(['home', 'hero', 'buttonLink'], e.target.value)} />
+                           </div>
+                        </div>
+                     </div>
                   </div>
                </section>
 
@@ -120,6 +207,79 @@ const PageManager: React.FC = () => {
                      ))}
                   </div>
                </section>
+            </MotionDiv>
+         )}
+
+         {activeTab === 'footer' && (
+            <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+               <div className="flex items-center gap-4 mb-4">
+                  <div className="p-2 bg-gray-800 text-white rounded-xl"><Settings2 size={20}/></div>
+                  <div>
+                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">页脚全局配置</h3>
+                     <p className="text-xs text-gray-500 font-medium">管理全站底部的快速导航链接与显示项</p>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex items-center justify-between">
+                     <span className="font-bold text-gray-700">显示联系方式列</span>
+                     <button 
+                        onClick={() => updateContent(['footer', 'showContactInfo'], !content.footer.showContactInfo)}
+                        className={`w-12 h-6 rounded-full p-1 transition-colors ${content.footer.showContactInfo ? 'bg-primary' : 'bg-gray-300'}`}
+                     >
+                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${content.footer.showContactInfo ? 'translate-x-6' : 'translate-x-0'}`} />
+                     </button>
+                  </div>
+                  <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 flex items-center justify-between">
+                     <span className="font-bold text-gray-700">显示版权信息</span>
+                     <button 
+                        onClick={() => updateContent(['footer', 'showCopyright'], !content.footer.showCopyright)}
+                        className={`w-12 h-6 rounded-full p-1 transition-colors ${content.footer.showCopyright ? 'bg-primary' : 'bg-gray-300'}`}
+                     >
+                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${content.footer.showCopyright ? 'translate-x-6' : 'translate-x-0'}`} />
+                     </button>
+                  </div>
+               </div>
+
+               <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
+                     <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">快速导航链接池</h4>
+                     <button onClick={addFooterLink} className="text-xs bg-white border border-gray-300 px-3 py-1.5 rounded hover:bg-gray-50 font-bold flex items-center">
+                        <Plus size={14} className="mr-1"/> 添加链接
+                     </button>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                     {content.footer.quickLinks.map((link, idx) => (
+                        <div key={link.id} className="p-4 flex items-center gap-4 hover:bg-gray-50">
+                           <div className="w-8 flex justify-center text-gray-400 font-mono text-xs">{idx + 1}</div>
+                           <input 
+                              type="text" 
+                              className="flex-1 px-3 py-2 border rounded text-sm" 
+                              placeholder="链接名称" 
+                              value={link.name} 
+                              onChange={e => updateFooterLink(idx, 'name', e.target.value)} 
+                           />
+                           <input 
+                              type="text" 
+                              className="flex-1 px-3 py-2 border rounded text-sm bg-gray-50 font-mono text-gray-600" 
+                              placeholder="跳转路径 /path" 
+                              value={link.path} 
+                              onChange={e => updateFooterLink(idx, 'path', e.target.value)} 
+                           />
+                           <button 
+                              onClick={() => updateFooterLink(idx, 'isVisible', !link.isVisible)}
+                              className={`p-2 rounded hover:bg-gray-200 ${link.isVisible ? 'text-green-600' : 'text-gray-400'}`}
+                              title="切换可见性"
+                           >
+                              {link.isVisible ? <Eye size={16}/> : <EyeOff size={16}/>}
+                           </button>
+                           <button onClick={() => removeFooterLink(idx)} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded">
+                              <Trash2 size={16}/>
+                           </button>
+                        </div>
+                     ))}
+                  </div>
+               </div>
             </MotionDiv>
          )}
 

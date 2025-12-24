@@ -16,7 +16,9 @@ export type ResourceType =
   | 'navigation'
   | 'team'
   | 'history'
-  | 'pages';
+  | 'tenders' // Added tenders resource
+  | 'pages'
+  | 'security'; // Added security resource
 
 export interface Permission {
   read: boolean;
@@ -39,8 +41,13 @@ export interface User {
   roleId: string;
   avatar?: string;
   lastLogin?: string;
+  // Security fields
+  mfaEnabled?: boolean;
+  phone?: string;
+  email?: string;
 }
 
+// ... [Keep existing NewsItem, TenderItem, etc. unchanged] ...
 export interface NewsItem {
   id: string;
   title: string;
@@ -52,11 +59,27 @@ export interface NewsItem {
   published: boolean;
 }
 
+export type TenderCategory = '招标公告' | '中标公告' | '其他公告';
+export type TenderStatus = '报名中' | '进行中' | '已截止' | '公示中' | '已结束';
+
+export interface TenderItem {
+  id: string;
+  title: string;
+  projectNo: string;
+  category: TenderCategory;
+  region: string;
+  date: string;
+  deadline?: string;
+  status: TenderStatus;
+  content?: string;
+}
+
 export interface ProjectCase {
   id: string;
   title: string;
   category: string;
   description: string;
+  content?: string; // Added rich text content
   imageUrl: string;
   location: string;
   date: string;
@@ -72,6 +95,12 @@ export interface Service {
   order: number;
 }
 
+export interface BranchCategory {
+  id: string;
+  name: string;
+  order: number;
+}
+
 export interface Branch {
   id: string;
   name: string;
@@ -79,6 +108,7 @@ export interface Branch {
   phone: string;
   manager: string;
   coordinates: { lat: number; lng: number };
+  categoryId: string;
 }
 
 export interface NavigationLink {
@@ -112,15 +142,22 @@ export interface Partner {
   website?: string;
 }
 
+export interface HonorCategory {
+  id: string;
+  name: string;
+  order: number;
+}
+
 export interface Honor {
   id: string;
   title: string;
   issueDate: string;
   issuingAuthority: string;
   imageUrl: string;
+  categoryId: string;
+  content?: string; // Added rich text content
 }
 
-// Added missing Testimonial interface to match constants.ts exports
 export interface Testimonial {
   id: string;
   content: string;
@@ -135,11 +172,13 @@ export interface SiteSettings {
   logoUrl: string;
   graphicLogoUrl: string;
   textLogoUrl: string;
+  faviconUrl: string; // Added faviconUrl
   themeColor: string;
   contactPhone: string;
   contactEmail: string;
   contactAddress: string;
   copyrightText: string;
+  enableAnniversary?: boolean; // New Field: Enable 8th Anniversary Popup
 }
 
 export interface MediaItem {
@@ -158,6 +197,23 @@ export interface MediaCategory {
   count: number;
 }
 
+export type SectionType = 'hero' | 'stats' | 'services' | 'projects' | 'honors' | 'process' | 'partners' | 'cta';
+
+export interface HomeSectionConfig {
+  id: string;
+  type: SectionType;
+  label: string;
+  isVisible: boolean;
+  order: number;
+}
+
+export interface FooterLink {
+  id: string;
+  name: string;
+  path: string;
+  isVisible: boolean;
+}
+
 export interface PageContent {
   headers: {
     about: PageHeaderConfig;
@@ -167,14 +223,26 @@ export interface PageContent {
     branches: PageHeaderConfig;
     contact: PageHeaderConfig;
     navigation: PageHeaderConfig;
+    honors: PageHeaderConfig;
+    tenders: PageHeaderConfig;
+  };
+  footer: {
+    quickLinks: FooterLink[];
+    showContactInfo: boolean;
+    showCopyright: boolean;
   };
   home: {
+    layout: HomeSectionConfig[];
     hero: {
       badge: string;
       titleLine1: string;
       titleHighlight: string;
       description: string;
       bgImage: string;
+      buttonText: string;
+      buttonLink: string;
+      secondaryButtonText: string;
+      secondaryButtonLink: string;
     };
     stats: {
       stat1: { value: string; label: string };
@@ -190,6 +258,8 @@ export interface PageContent {
     cta: {
       title: string;
       description: string;
+      buttonText: string;
+      buttonLink: string;
     };
   };
   about: {
@@ -215,4 +285,33 @@ export interface PageHeaderConfig {
   title: string;
   subtitle: string;
   backgroundImage: string;
+}
+
+// --- NEW SECURITY TYPES ---
+
+export interface AuditLog {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;      // e.g., 'LOGIN', 'CREATE', 'DELETE'
+  resource: string;    // e.g., 'News', 'User'
+  details: string;
+  timestamp: string;
+  ipAddress: string;   // Simulated
+  status: 'SUCCESS' | 'FAILURE';
+}
+
+export interface LoginAttempt {
+  count: number;
+  lastAttempt: number; // timestamp
+  isLocked: boolean;
+  lockUntil: number;   // timestamp
+}
+
+export interface SecurityConfig {
+  mfaEnabled: boolean;
+  passwordMinLength: number;
+  maxLoginAttempts: number;
+  lockoutDurationMinutes: number;
+  sessionTimeoutMinutes: number;
 }

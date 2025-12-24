@@ -112,10 +112,6 @@ const Services: React.FC = () => {
                     </div>
                   ))}
                 </div>
-
-                <button className="text-primary font-bold flex items-center group hover:underline">
-                   下载服务白皮书 <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
-                </button>
               </div>
             </MotionDiv>
           ))}
