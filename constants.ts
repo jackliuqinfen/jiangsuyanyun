@@ -309,12 +309,21 @@ export const INITIAL_TEAM: TeamMember[] = [
 ];
 
 export const INITIAL_PARTNERS: Partner[] = [
-  { id: '1', name: '中国建筑', logoUrl: 'https://placehold.co/200x80/f3f4f6/6b7280?text=CSCEC' },
-  { id: '2', name: '万科地产', logoUrl: 'https://placehold.co/200x80/f3f4f6/6b7280?text=VANKE' },
-  { id: '3', name: '碧桂园', logoUrl: 'https://placehold.co/200x80/f3f4f6/6b7280?text=GARDEN' },
-  { id: '4', name: '保利发展', logoUrl: 'https://placehold.co/200x80/f3f4f6/6b7280?text=POLY' },
-  { id: '5', name: '绿地集团', logoUrl: 'https://placehold.co/200x80/f3f4f6/6b7280?text=GREENLAND' },
-  { id: '6', name: '融创中国', logoUrl: 'https://placehold.co/200x80/f3f4f6/6b7280?text=SUNAC' },
+  { id: '1', name: '中国建筑', logoUrl: '', website: 'https://www.cscec.com' },
+  { id: '2', name: '万科地产', logoUrl: '', website: 'https://www.vanke.com' },
+  { id: '3', name: '碧桂园', logoUrl: '', website: 'https://www.bgy.com.cn' },
+  { id: '4', name: '保利发展', logoUrl: '', website: 'https://www.poly.com.cn' },
+  { id: '5', name: '绿地集团', logoUrl: '', website: 'https://www.greenlandsc.com' },
+  { id: '6', name: '融创中国', logoUrl: '', website: 'https://www.sunac.com.cn' },
+  { id: '7', name: '中海地产', logoUrl: '', website: 'https://www.coli.com.hk' },
+  { id: '8', name: '华润置地', logoUrl: '', website: 'https://www.crland.com.hk' },
+  { id: '9', name: '龙湖集团', logoUrl: '', website: 'https://www.longfor.com' },
+  { id: '10', name: '招商蛇口', logoUrl: '', website: 'https://www.cmsk1979.com' },
+  { id: '11', name: '建发房产', logoUrl: '', website: 'https://www.cndrealty.com' },
+  { id: '12', name: '滨江集团', logoUrl: '', website: 'https://www.binjiang.com.cn' },
+  { id: '13', name: '绿城中国', logoUrl: '', website: 'https://www.chinagreentown.com' },
+  { id: '14', name: '金地集团', logoUrl: '', website: 'https://www.gemdale.com' },
+  { id: '15', name: '新城控股', logoUrl: '', website: 'https://www.seazen.com.cn' },
 ];
 
 export const INITIAL_HONORS: Honor[] = [

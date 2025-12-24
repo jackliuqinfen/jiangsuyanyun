@@ -92,31 +92,66 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Partners - Social Proof */}
-      <section className="py-12 bg-gray-50 border-b border-gray-200">
-        <div className="container mx-auto px-6">
-          <p className="text-center text-gray-500 text-sm font-bold uppercase tracking-widest mb-8">深受行业领军企业信赖</p>
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-70"
-          >
-            {partners.map((partner) => (
-              <motion.div 
-                key={partner.id}
-                variants={fadeInUp}
-                className="group relative cursor-pointer"
-              >
-                <img 
-                  src={partner.logoUrl} 
-                  alt={partner.name} 
-                  className="h-8 md:h-12 w-auto object-contain filter grayscale hover:grayscale-0 transition-all duration-300"
-                />
-              </motion.div>
-            ))}
-          </motion.div>
+      {/* 2. Partners - Marquee Infinite Scroll */}
+      <section className="py-16 bg-white border-b border-gray-100 overflow-hidden">
+        <div className="container mx-auto px-6 mb-10 text-center">
+            <h2 className="text-2xl font-bold text-gray-900">合作伙伴</h2>
+            <p className="text-gray-500 text-sm mt-2">携手行业领军企业，共创精品工程</p>
+        </div>
+
+        <div className="relative w-full max-w-[1920px] mx-auto">
+            {/* Gradient Masks */}
+            <div className="absolute left-0 top-0 bottom-0 w-12 md:w-32 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-12 md:w-32 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
+
+            {/* Marquee Container */}
+            <div className="flex overflow-hidden">
+                <motion.div
+                    className="flex gap-8 md:gap-12 items-center flex-nowrap pl-16"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{
+                        ease: "linear",
+                        duration: 60, // Slower scrolling for better visibility
+                        repeat: Infinity,
+                    }}
+                >
+                    {/* Render list twice for seamless loop */}
+                    {[...partners, ...partners].map((partner, idx) => {
+                        let logoSrc = partner.logoUrl;
+                        if (partner.website) {
+                            try {
+                                const hostname = new URL(partner.website).hostname;
+                                logoSrc = `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+                            } catch (e) {
+                                // Fallback to logoUrl or placeholder is handled if logoSrc remains original
+                            }
+                        }
+
+                        return (
+                          <a 
+                              key={`${partner.id}-${idx}`}
+                              href={partner.website || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex-shrink-0 group relative flex flex-col items-center justify-center p-4 w-[160px] h-[120px] bg-gray-50/50 rounded-xl hover:bg-white border border-transparent hover:border-gray-100 hover:shadow-lg transition-all duration-300"
+                              title={partner.name}
+                          >
+                               <div className="w-16 h-16 mb-2 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-500 opacity-60 group-hover:opacity-100">
+                                  <img 
+                                      src={logoSrc} 
+                                      alt={partner.name} 
+                                      className="w-full h-full object-contain"
+                                      loading="lazy"
+                                  />
+                               </div>
+                               <span className="text-xs font-bold text-gray-400 group-hover:text-gray-800 transition-colors opacity-0 group-hover:opacity-100 absolute bottom-3 translate-y-2 group-hover:translate-y-0 duration-300">
+                                  {partner.name}
+                               </span>
+                          </a>
+                        );
+                    })}
+                </motion.div>
+            </div>
         </div>
       </section>
 
@@ -330,4 +365,3 @@ const Home: React.FC = () => {
 };
 
 export default Home;
-    

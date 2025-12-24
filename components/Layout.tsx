@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Phone, Mail, MapPin, ChevronRight, Facebook, Twitter, Linkedin, ArrowRight, ChevronDown } from 'lucide-react';
+import { Menu, X, Phone, Mail, MapPin, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storageService } from '../services/storageService';
 import { SiteSettings } from '../types';
@@ -56,12 +56,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </span>
           </div>
           <div className="flex space-x-6 items-center">
-            <div className="flex space-x-3">
-                <Linkedin size={14} className="hover:text-white cursor-pointer transition-colors" />
-                <Twitter size={14} className="hover:text-white cursor-pointer transition-colors" />
-            </div>
-            <div className="w-px h-3 bg-gray-700"></div>
-            
             {/* Employee Dropdown */}
             <div className="relative group">
               <button className="flex items-center hover:text-accent transition-colors focus:outline-none py-1">
@@ -185,7 +179,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                    <p className="px-4 text-xs text-gray-400 mb-2 font-bold uppercase">员工通道</p>
                    <a
                     href="#"
-                    onClick={(e) => { e.preventDefault(); alert("OA系统正在维护中"); setIsMobileMenuOpen(false); }}
+                    onClick={(e) => { e.preventDefault(); alert("OA系统正在维护中，请稍后访问。"); setIsMobileMenuOpen(false); }}
                     className="block px-4 py-3 rounded-lg text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                   >
                     OA办公系统
@@ -212,7 +206,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Footer - Dynamic Info */}
       <footer className="bg-gray-900 text-white pt-20 pb-10 border-t border-gray-800">
         <div className="container mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
                  <img 
@@ -225,13 +219,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <p className="text-gray-400 text-sm leading-7">
                 我们致力于为每一位客户提供最专业的工程咨询与管理服务。以匠心致初心，以品质筑未来。
               </p>
-              <div className="flex space-x-4">
-                {[Facebook, Twitter, Linkedin].map((Icon, i) => (
-                  <a key={i} href="#" className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all duration-300">
-                    <Icon size={18} />
-                  </a>
-                ))}
-              </div>
             </div>
 
             <div>
@@ -264,21 +251,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                   <span>{settings.contactEmail}</span>
                 </li>
               </ul>
-            </div>
-
-            <div>
-              <h4 className="text-lg font-semibold mb-6 text-white">订阅动态</h4>
-              <p className="text-gray-400 text-sm mb-4">获取最新的行业资讯与公司动态。</p>
-              <form className="flex flex-col space-y-3">
-                <input 
-                  type="email" 
-                  placeholder="您的电子邮箱" 
-                  className="bg-gray-800 border border-gray-700 text-white px-4 py-3 rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
-                />
-                <button className="bg-primary hover:bg-primary-light text-white px-4 py-3 rounded-lg font-medium transition-colors text-sm" style={{ backgroundColor: settings.themeColor }}>
-                  订阅
-                </button>
-              </form>
             </div>
           </div>
           

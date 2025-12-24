@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { ExternalLink, Building2, Gavel, FileText, Globe, MapPin, Search, ChevronRight, Calculator, BookOpen, Layers, Users, Briefcase } from 'lucide-react';
 import { storageService } from '../services/storageService';
-import SmartSearch from '../components/SmartSearch';
 import { motion } from 'framer-motion';
 
 const Navigation: React.FC = () => {
@@ -39,11 +38,6 @@ const Navigation: React.FC = () => {
           <p className="text-gray-600 max-w-2xl mx-auto text-lg">
             汇集权威网站，助您快速获取行业政策与商机。
           </p>
-        </div>
-
-        {/* Gemini Smart Search Section - Prominent */}
-        <div className="mb-12 max-w-3xl mx-auto transform hover:-translate-y-1 transition-transform duration-500 relative z-10">
-           <SmartSearch />
         </div>
 
         {/* Local Link Filter Search */}
@@ -89,28 +83,51 @@ const Navigation: React.FC = () => {
                   <h2 className="text-xl font-bold text-gray-800">{category}</h2>
                 </div>
                 <div className="flex-1 grid grid-cols-1 gap-4 content-start">
-                  {categoryLinks.map((link) => (
-                    <a
-                      key={link.id}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group block p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-blue-50/30 transition-all"
-                    >
-                      <div className="flex justify-between items-start mb-1">
-                         <span className="font-bold text-gray-800 group-hover:text-primary transition-colors">{link.title}</span>
-                         <ExternalLink size={14} className="text-gray-300 group-hover:text-primary flex-shrink-0 mt-1 transition-colors" />
-                      </div>
-                      {link.description && (
-                        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">
-                           {link.description}
-                        </p>
-                      )}
-                      <div className="mt-2 text-[10px] text-gray-400 truncate flex items-center group-hover:text-primary/60 transition-colors">
-                         <Globe size={10} className="mr-1" /> {new URL(link.url).hostname}
-                      </div>
-                    </a>
-                  ))}
+                  {categoryLinks.map((link) => {
+                    let hostname = '';
+                    try {
+                        hostname = new URL(link.url).hostname;
+                    } catch (e) {
+                        hostname = link.url;
+                    }
+
+                    return (
+                      <a
+                        key={link.id}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group block p-4 rounded-xl border border-gray-100 hover:border-primary/30 hover:bg-blue-50/30 hover:shadow-sm transition-all bg-white"
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className="flex-shrink-0 pt-0.5">
+                              <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden p-1.5 group-hover:bg-white transition-colors">
+                                  <img 
+                                      src={`https://www.google.com/s2/favicons?domain=${hostname}&sz=128`} 
+                                      alt={link.title}
+                                      className="w-full h-full object-contain"
+                                      loading="lazy"
+                                  />
+                              </div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-start mb-1">
+                                  <span className="font-bold text-gray-800 group-hover:text-primary transition-colors truncate w-full">{link.title}</span>
+                                  <ExternalLink size={14} className="text-gray-300 group-hover:text-primary flex-shrink-0 mt-1 ml-2 opacity-0 group-hover:opacity-100 transition-all" />
+                              </div>
+                              {link.description && (
+                                <p className="text-xs text-gray-500 leading-relaxed line-clamp-2 mb-2 min-h-[2.5em]">
+                                  {link.description}
+                                </p>
+                              )}
+                              <div className="text-[10px] text-gray-400 truncate flex items-center group-hover:text-primary/60 transition-colors">
+                                  <Globe size={10} className="mr-1" /> {hostname}
+                              </div>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
                 </div>
               </motion.div>
              );
