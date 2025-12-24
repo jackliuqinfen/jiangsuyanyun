@@ -5,6 +5,8 @@ import { storageService } from '../../services/storageService';
 import { ArrowLeft, Lock, User, Loader2, ShieldCheck, KeyRound } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const MotionDiv = motion.div as any;
+
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -85,7 +87,7 @@ const Login: React.FC = () => {
         <div className="md:w-1/2 p-12 lg:p-16 flex flex-col justify-center">
            <AnimatePresence mode="wait">
              {step === 'credentials' ? (
-               <motion.div 
+               <MotionDiv 
                  key="cred"
                  initial={{ opacity: 0, x: 20 }}
                  animate={{ opacity: 1, x: 0 }}
@@ -98,9 +100,9 @@ const Login: React.FC = () => {
 
                  <form onSubmit={handleLogin} className="space-y-6">
                     {error && (
-                      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 text-red-600 p-4 rounded-xl text-xs font-bold border border-red-100 flex items-center">
+                      <MotionDiv initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 text-red-600 p-4 rounded-xl text-xs font-bold border border-red-100 flex items-center">
                          <ShieldCheck className="mr-2" size={16}/> {error}
-                      </motion.div>
+                      </MotionDiv>
                     )}
                     
                     <div className="space-y-1">
@@ -143,9 +145,9 @@ const Login: React.FC = () => {
                        {isLoading ? <Loader2 size={20} className="animate-spin" /> : '安全登录'}
                     </button>
                  </form>
-               </motion.div>
+               </MotionDiv>
              ) : (
-               <motion.div 
+               <MotionDiv 
                  key="mfa"
                  initial={{ opacity: 0, x: 20 }}
                  animate={{ opacity: 1, x: 0 }}
@@ -196,7 +198,7 @@ const Login: React.FC = () => {
                        返回账号登录
                     </button>
                  </form>
-               </motion.div>
+               </MotionDiv>
              )}
            </AnimatePresence>
            

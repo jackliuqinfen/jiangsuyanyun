@@ -256,7 +256,7 @@ const Home: React.FC = () => {
                            <div className="space-y-4">
                               {[80, 65, 90].map((w, i) => (
                                  <div key={i} className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                    <motion.div 
+                                    <MotionDiv 
                                        initial={{ width: 0 }}
                                        whileInView={{ width: `${w}%` }}
                                        transition={{ duration: 1.5, delay: i * 0.2 }}

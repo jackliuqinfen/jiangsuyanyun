@@ -5,6 +5,8 @@ import { storageService } from '../../services/storageService';
 import { AuditLog, SecurityConfig } from '../../types';
 import { motion } from 'framer-motion';
 
+const MotionDiv = motion.div as any;
+
 const SecuritySettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'policy' | 'logs'>('policy');
   const [config, setConfig] = useState<SecurityConfig>(storageService.getSecurityConfig());
@@ -64,7 +66,7 @@ const SecuritySettings: React.FC = () => {
       </div>
 
       {activeTab === 'policy' && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
+        <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl">
            <form onSubmit={handleConfigSave} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                  <div className="space-y-6">
@@ -116,11 +118,11 @@ const SecuritySettings: React.FC = () => {
                  </button>
               </div>
            </form>
-        </motion.div>
+        </MotionDiv>
       )}
 
       {activeTab === 'logs' && (
-         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col h-[600px]">
+         <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-sm border border-gray-200 flex flex-col h-[600px]">
             <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50 rounded-t-2xl">
                <div className="relative max-w-md w-full">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -177,7 +179,7 @@ const SecuritySettings: React.FC = () => {
             <div className="p-2 border-t border-gray-100 bg-gray-50 rounded-b-2xl text-center text-[10px] text-gray-400">
                Audit logs are immutable and retained for compliance purposes.
             </div>
-         </motion.div>
+         </MotionDiv>
       )}
     </div>
   );

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
-import { X, ChevronRight, Gift, Award } from 'lucide-react';
+import { X, Gift, Award } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -19,26 +19,30 @@ const AnniversaryPopup: React.FC = () => {
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const frameIdRef = useRef<number>(0);
   
-  // Fireworks System
+  // Fireworks System Refs
   const fireworksRef = useRef<any[]>([]);
   const particlesRef = useRef<THREE.Points | null>(null);
 
-  // Unique session key
+  // Unique session key to ensure it only shows once per session unless settings change
   const SESSION_KEY = 'yanyun_anniversary_oriental_v8';
 
   useEffect(() => {
+    // 1. Check Global Settings from Storage
     const currentSettings = storageService.getSettings();
     const hasSeen = sessionStorage.getItem(SESSION_KEY);
     
+    // Only open if enabled in Admin -> Settings AND hasn't been seen in this session
     if (currentSettings.enableAnniversary && !hasSeen) {
+       // Small delay for better UX upon page load
        const timer = setTimeout(() => setIsOpen(true), 1500); 
        return () => clearTimeout(timer);
     }
 
+    // Listener for real-time preview from Admin Panel
     const handleSettingsChange = () => {
        const newSettings = storageService.getSettings();
        if (newSettings.enableAnniversary) {
-          sessionStorage.removeItem(SESSION_KEY);
+          sessionStorage.removeItem(SESSION_KEY); // Reset seen state for preview
           setIsOpen(true);
        } else {
           setIsOpen(false);
@@ -54,7 +58,7 @@ const AnniversaryPopup: React.FC = () => {
 
     // --- THREE.JS SETUP ---
     const scene = new THREE.Scene();
-    // Background: Deep red/dark blend for Chinese celebration vibe
+    // Background: Deep red/dark blend for Chinese celebration vibe (Oriental Red/Black)
     scene.fog = new THREE.FogExp2(0x1a0505, 0.002); 
     sceneRef.current = scene;
 
@@ -309,7 +313,7 @@ const AnniversaryPopup: React.FC = () => {
               background: 'radial-gradient(circle at center, #2b0a0a 0%, #000000 100%)' 
           }}
       >
-        {/* Background Animation */}
+        {/* Background Animation (Three.js) */}
         <div ref={containerRef} className="absolute inset-0 pointer-events-none z-0" />
         
         {/* Main Card */}
@@ -362,14 +366,14 @@ const AnniversaryPopup: React.FC = () => {
                     </MotionH1>
                     
                     {/* Floating Text Overlay */}
-                    <motion.div 
+                    <MotionDiv 
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.7 }}
                         className="absolute bottom-6 right-[15%] bg-red-600 text-white text-xs font-bold px-3 py-1 rounded shadow-lg border border-red-400 rotate-[-5deg]"
                     >
                         周年庆典
-                    </motion.div>
+                    </MotionDiv>
                 </div>
 
                 {/* Headings - Chinese Typography */}

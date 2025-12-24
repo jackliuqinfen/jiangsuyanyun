@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ExternalLink, Building2, Gavel, Globe, MapPin, Search, ChevronRight, Calculator, BookOpen, Layers, Users, Briefcase, Hash, Navigation as NavIcon } from 'lucide-react';
 import { storageService } from '../services/storageService';
@@ -7,6 +8,8 @@ import { NavigationLink } from '../types';
 // Cast motion component to resolve property 'animate'/'initial' missing errors in TS
 const MotionDiv = motion.div as any;
 const MotionA = motion.a as any;
+const MotionH1 = motion.h1 as any;
+const MotionP = motion.p as any;
 
 const Navigation: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -86,23 +89,23 @@ const Navigation: React.FC = () => {
          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-blue-50 to-transparent opacity-60 pointer-events-none"></div>
          <div className="container mx-auto px-6 relative z-10">
             <div className="max-w-3xl">
-               <motion.div 
+               <MotionDiv 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="inline-flex items-center gap-2 px-3 py-1 bg-primary/5 text-primary text-xs font-bold rounded-full mb-6"
                >
                   <NavIcon size={14} />
                   <span>INDUSTRY RESOURCES</span>
-               </motion.div>
-               <motion.h1 
+               </MotionDiv>
+               <MotionH1 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
                   className="text-4xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight"
                >
                   行业资源导航
-               </motion.h1>
-               <motion.p 
+               </MotionH1>
+               <MotionP 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
@@ -110,10 +113,10 @@ const Navigation: React.FC = () => {
                >
                   汇集政府监管、招投标、造价信息及BIM技术等全方位行业权威网站，
                   助您快速获取政策红利与商业机会。
-               </motion.p>
+               </MotionP>
 
                {/* Search Bar */}
-               <motion.div 
+               <MotionDiv 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -138,7 +141,7 @@ const Navigation: React.FC = () => {
                         </button>
                      )}
                   </div>
-               </motion.div>
+               </MotionDiv>
             </div>
          </div>
       </div>
