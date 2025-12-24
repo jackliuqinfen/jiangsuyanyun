@@ -1,3 +1,4 @@
+
 import React, { useRef, useState } from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 
@@ -20,16 +21,21 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "上
   const processFile = (file?: File) => {
     if (!file) return;
 
-    // Simple size check (limit to ~2MB for LocalStorage safety)
-    if (file.size > 2 * 1024 * 1024) {
-      alert("图片过大，请上传 2MB 以内的图片（LocalStorage 限制）");
+    // Simple size check (limit to ~3MB for LocalStorage safety)
+    if (file.size > 3 * 1024 * 1024) {
+      alert("图片过大，请上传 3MB 以内的图片（LocalStorage 限制）");
       return;
     }
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      onChange(base64String);
+    reader.onload = (e) => {
+      const base64String = e.target?.result as string;
+      if (base64String) {
+          onChange(base64String);
+      }
+    };
+    reader.onerror = () => {
+        alert("图片读取失败");
     };
     reader.readAsDataURL(file);
   };
@@ -39,6 +45,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "上
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
     processFile(file);
+  };
+
+  const triggerFileSelect = () => {
+    if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset value to ensure onChange triggers even for same file
+        fileInputRef.current.click();
+    }
   };
 
   return (
@@ -51,7 +64,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "上
           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
              <button 
                type="button"
-               onClick={() => fileInputRef.current?.click()}
+               onClick={triggerFileSelect}
                className="p-2 bg-white rounded-full text-gray-700 hover:text-primary transition-colors"
                title="更换图片"
              >
@@ -69,7 +82,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "上
         </div>
       ) : (
         <div 
-          onClick={() => fileInputRef.current?.click()}
+          onClick={triggerFileSelect}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
@@ -81,7 +94,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, label = "上
              <ImageIcon size={24} />
           </div>
           <p className="text-sm font-medium text-gray-700">点击上传或拖拽图片至此</p>
-          <p className="text-xs text-gray-400 mt-1">支持 PNG, JPG (Max 2MB)</p>
+          <p className="text-xs text-gray-400 mt-1">支持 PNG, JPG (Max 3MB)</p>
         </div>
       )}
       

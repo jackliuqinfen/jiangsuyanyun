@@ -86,6 +86,15 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const triggerFileSelect = () => {
+    if (isUploading) return;
+    // Explicitly clear value before click to ensure change event fires even if same file selected
+    if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+        fileInputRef.current.click();
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -93,26 +102,32 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     // 增加文件大小限制 (3MB)
     if (file.size > 3 * 1024 * 1024) {
       alert("⚠️ 图片过大！\n\n由于浏览器缓存限制，请上传 3MB 以内的图片。\n建议使用 TinyPNG 等工具压缩后再上传。");
-      // Clean up input value so user can retry same file if needed (though size check blocks it)
-      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
 
+    setIsUploading(true); // Set state immediately before reading
     const reader = new FileReader();
-    reader.onloadstart = () => setIsUploading(true);
+    
+    reader.onload = (event) => {
+      const base64String = event.target?.result as string;
+      if (base64String) {
+        setUploadForm(prev => ({ 
+            ...prev, 
+            url: base64String,
+            name: prev.name || file.name.split('.')[0]
+        }));
+      }
+    };
+
     reader.onloadend = () => {
-      const base64String = reader.result as string;
-      setUploadForm(prev => ({ 
-        ...prev, 
-        url: base64String,
-        name: prev.name || file.name.split('.')[0]
-      }));
       setIsUploading(false);
     };
+
     reader.onerror = () => {
       alert("读取文件失败，请重试");
       setIsUploading(false);
     };
+
     reader.readAsDataURL(file);
   };
 
@@ -167,13 +182,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
       setSelectedId(item.id);
       if (onSelect) onSelect(item.url);
     }
-  };
-
-  // Reset file input on click to ensure onChange fires even for same file
-  const onFileInputClick = () => {
-      if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-      }
   };
 
   return (
@@ -428,7 +436,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <div>
                        <label className="block text-sm font-bold text-gray-700 mb-2">选择文件</label>
                        <div 
-                         onClick={() => !isUploading && fileInputRef.current?.click()}
+                         onClick={triggerFileSelect}
                          className={`border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors ${
                            isUploading ? 'bg-gray-50 cursor-not-allowed' : 'hover:bg-gray-50'
                          }`}
@@ -448,7 +456,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                           type="file" 
                           ref={fileInputRef} 
                           onChange={handleFileChange} 
-                          onClick={onFileInputClick}
                           className="hidden" 
                           accept="image/*" 
                        />
