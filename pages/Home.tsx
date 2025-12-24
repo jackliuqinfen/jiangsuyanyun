@@ -70,10 +70,10 @@ const Home: React.FC = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="text-5xl md:text-8xl font-black text-white leading-tight tracking-tighter mb-8"
+                className="text-5xl md:text-8xl font-black text-white leading-[1.1] tracking-tight mb-8"
              >
-                {content.hero.titleLine1} <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-white to-accent italic">
+                <span className="block mb-2">{content.hero.titleLine1}</span>
+                <span className="relative inline-block py-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-200 via-white to-accent italic drop-shadow-sm">
                   {content.hero.titleHighlight}
                 </span>
              </MotionH1>
@@ -104,14 +104,14 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 数字化管控中心展示 - 替换原本的 AI 搜索区块 */}
+      {/* 数字化管控中心展示 */}
       <section className="py-24 bg-surface overflow-hidden relative">
          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent"></div>
          <div className="container mx-auto px-6 relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
                <div className="lg:col-span-5">
                   <div className="p-3 bg-primary text-white rounded-2xl inline-block mb-6 shadow-xl shadow-primary/20"><Activity size={24}/></div>
-                  <h2 className="text-4xl font-black text-gray-900 tracking-tighter mb-6">全过程数字化<br/>管控系统 (Yy-PMS)</h2>
+                  <h2 className="text-4xl font-black text-gray-900 tracking-tighter mb-6 leading-tight">全过程数字化<br/>管控系统 (Yy-PMS)</h2>
                   <p className="text-gray-500 leading-relaxed font-medium mb-10">
                      我们将工程监理与项目管理深度集成于数字化底座，实现从“事后纠偏”向“事前预警”的范式转变，确保每一个关键节点皆在掌控之中。
                   </p>
@@ -137,7 +137,6 @@ const Home: React.FC = () => {
                
                <div className="lg:col-span-7">
                   <div className="bg-gray-900 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden border border-white/10 group">
-                     {/* 模拟仪表盘 UI */}
                      <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] opacity-50 -translate-y-1/2 translate-x-1/2"></div>
                      
                      <div className="relative z-10 flex flex-col gap-8">
@@ -200,7 +199,7 @@ const Home: React.FC = () => {
         <div className="container mx-auto px-6">
            <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20">
               <div className="max-w-2xl">
-                 <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter mb-6">超越传统的<br/>工程咨询标准</h2>
+                 <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter mb-6 leading-tight">超越传统的<br/>工程咨询标准</h2>
                  <p className="text-gray-500 font-medium">我们将数字化双胞胎与标准化现场管理相结合，确保每一个交付件都经得起时间的考验。</p>
               </div>
               <Link to="/services" className="px-8 py-3 bg-gray-50 text-gray-900 rounded-xl font-black uppercase tracking-widest border border-gray-100 hover:bg-gray-100 transition-colors flex items-center gap-2">
@@ -218,7 +217,7 @@ const Home: React.FC = () => {
                     <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-10 shadow-lg transition-transform group-hover:rotate-12 group-hover:scale-110">
                        <Zap className="text-primary" size={28} />
                     </div>
-                    <h3 className="text-xl font-black text-gray-900 group-hover:text-white mb-4 tracking-tight">{s.title}</h3>
+                    <h3 className="text-xl font-black text-gray-900 group-hover:text-white mb-4 tracking-tight leading-snug">{s.title}</h3>
                     <p className="text-sm text-gray-500 group-hover:text-blue-100 leading-relaxed font-medium mb-10">{s.description}</p>
                     <div className="pt-6 border-t border-gray-200 group-hover:border-white/20">
                        <span className="text-xs font-black text-primary group-hover:text-white uppercase tracking-widest">Detail Architecture</span>
@@ -229,7 +228,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 伙伴名单：滚动视觉优化 */}
+      {/* 伙伴名单 */}
       <section className="py-20 bg-gray-950 overflow-hidden border-y border-white/5">
          <div className="container mx-auto px-6 mb-12 flex justify-between items-center">
             <h3 className="text-white font-black uppercase tracking-[0.3em] text-xs">The Trusted Alliance</h3>
