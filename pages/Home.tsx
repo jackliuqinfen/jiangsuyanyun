@@ -1,19 +1,73 @@
 
-import React from 'react';
-import { motion, Variants } from 'framer-motion';
-import { ArrowRight, Zap, ArrowUpRight, Star, ShieldCheck, TrendingUp, Clock, Quote, Award } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { ArrowRight, Zap, ArrowUpRight, Star, ShieldCheck, TrendingUp, Clock, Quote, Award, X, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { storageService } from '../services/storageService';
 import { INITIAL_TESTIMONIALS } from '../constants';
 
+// --- 资深设计：物理仿真彩带系统 ---
+const CelebrationParticles = ({ count = 80 }) => {
+  const colors = ['#FFD700', '#FDB931', '#FF4D4D', '#FFFFFF', '#FF8C00'];
+  return (
+    <div className="absolute inset-0 pointer-events-none z-0">
+      {Array.from({ length: count }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ 
+            top: "50%", 
+            left: "50%", 
+            scale: 0,
+            rotate: 0,
+            opacity: 1 
+          }}
+          animate={{ 
+            top: [`50%`, `${10 + Math.random() * 80}%`], 
+            left: [`50%`, `${10 + Math.random() * 80}%`],
+            scale: [0, Math.random() * 1.2 + 0.4, 0],
+            rotate: Math.random() * 1440,
+            opacity: [1, 1, 0]
+          }}
+          transition={{ 
+            duration: 2.5 + Math.random() * 2, 
+            ease: [0.22, 1, 0.36, 1],
+            delay: Math.random() * 0.4,
+            repeat: Infinity,
+            repeatDelay: Math.random() * 3
+          }}
+          className="absolute"
+          style={{ 
+            width: Math.random() * 12 + 4, 
+            height: Math.random() * 12 + 4,
+            backgroundColor: colors[i % colors.length],
+            borderRadius: i % 3 === 0 ? '50%' : '2px',
+            boxShadow: '0 0 10px rgba(255,215,0,0.3)',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
 const Home: React.FC = () => {
+  const [showAnniversary, setShowAnniversary] = useState(false);
   const services = storageService.getServices().slice(0, 4);
   const projects = storageService.getProjects().filter(p => p.isFeatured).slice(0, 3);
   const partners = storageService.getPartners();
   const honors = storageService.getHonors().slice(0, 4);
   const content = storageService.getPageContent().home;
 
-  // Animations
+  useEffect(() => {
+    const hasShown = sessionStorage.getItem('yanyun_anniversary_luxury_v5');
+    if (!hasShown) {
+      const timer = setTimeout(() => {
+        setShowAnniversary(true);
+        sessionStorage.setItem('yanyun_anniversary_luxury_v5', 'true');
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   const fadeInUp: Variants = {
     hidden: { opacity: 0, y: 30 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
@@ -25,8 +79,145 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="overflow-hidden bg-white">
-      {/* 1. Hero Section - Value Proposition Focus */}
+    <div className="overflow-hidden bg-white font-sans">
+      {/* --- 8 周年“殿堂级”限定弹窗 (排版优化版) --- */}
+      <AnimatePresence>
+        {showAnniversary && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAnniversary(false)}
+              className="absolute inset-0 bg-gray-950/85 backdrop-blur-[12px]"
+            />
+            
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0, y: 40 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 150, delay: 0.1 }}
+              className="relative w-full max-w-lg bg-[#7A0000] rounded-[3.5rem] shadow-[0_50px_150px_rgba(0,0,0,0.9)] overflow-hidden border border-white/10"
+            >
+              <CelebrationParticles />
+
+              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+                <div className="absolute -top-1/2 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-radial from-yellow-500/25 to-transparent" />
+                <motion.div 
+                  animate={{ opacity: [0.2, 0.4, 0.2] }}
+                  transition={{ repeat: Infinity, duration: 5 }}
+                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dust.png')] opacity-15"
+                />
+              </div>
+
+              <div className="relative z-10 p-10 md:p-14 flex flex-col items-center">
+                {/* 仪式感核心：3D 金属质感数字 8 */}
+                <div className="relative mb-8 group">
+                  <motion.div
+                    initial={{ scale: 0.5, y: 20 }}
+                    animate={{ scale: 1, y: 0 }}
+                    transition={{ type: "spring", delay: 0.4, damping: 15 }}
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <span className="inline-block text-[140px] md:text-[180px] font-black leading-[1] select-none bg-gradient-to-b from-[#FFFBEB] via-[#FDE68A] via-[#D4AF37] via-[#B45309] to-[#451A03] bg-clip-text text-transparent filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)]">
+                        8
+                      </span>
+                      <motion.div 
+                        animate={{ x: [-250, 250], opacity: [0, 1, 0] }}
+                        transition={{ repeat: Infinity, duration: 2.5, delay: 1.5, ease: "easeInOut" }}
+                        className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-20deg] mix-blend-overlay"
+                      />
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7 }}
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#D4AF37] to-[#FDE68A] text-[#4A0000] px-8 py-2 rounded-full text-xs font-black tracking-[0.5em] shadow-[0_8px_20px_rgba(0,0,0,0.3)] border border-white/30 whitespace-nowrap"
+                  >
+                    ANNIVERSARY
+                  </motion.div>
+                </div>
+
+                <div className="text-center space-y-4">
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.9 }}
+                    className="text-yellow-400/70 font-bold tracking-[0.6em] text-[10px] uppercase"
+                  >
+                    八载峥嵘 · 筑梦未来
+                  </motion.p>
+                  
+                  {/* --- 优化后的换行排版 --- */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1.0 }}
+                    className="flex flex-col gap-2 md:gap-3"
+                  >
+                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-widest">
+                      热烈祝贺
+                    </h2>
+                    <h3 className="text-lg md:text-xl font-medium text-white/90 tracking-normal px-2">
+                      江苏盐韵工程项目管理有限公司
+                    </h3>
+                    <div className="text-2xl md:text-3xl font-black italic">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-yellow-500 drop-shadow-sm">成立 8 周年</span>
+                    </div>
+                  </motion.div>
+
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: 80 }}
+                    transition={{ delay: 1.2, duration: 1 }}
+                    className="h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mt-4"
+                  />
+
+                  <motion.p 
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.4 }}
+                    className="text-white/60 text-sm leading-relaxed max-w-[340px] mx-auto font-light mt-4"
+                  >
+                    始于 2016，我们以匠心致初心。<br/>
+                    感恩八年同行，携手共筑品质工程。
+                  </motion.p>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.7 }}
+                  className="mt-10"
+                >
+                  <button 
+                    onClick={() => setShowAnniversary(false)}
+                    className="relative group px-14 py-4 bg-gradient-to-b from-[#FDE68A] to-[#D4AF37] text-[#4A0000] rounded-2xl font-black text-lg transition-all transform hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_25px_60px_rgba(212,175,55,0.4)] overflow-hidden"
+                  >
+                    <span className="relative z-10 flex items-center">
+                      共庆华章 <Sparkles size={20} className="ml-3 text-[#4A0000] animate-pulse" />
+                    </span>
+                    <div className="absolute inset-0 bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </button>
+                </motion.div>
+              </div>
+
+              <div className="absolute inset-6 border border-white/5 rounded-[3rem] pointer-events-none" />
+              
+              <button 
+                onClick={() => setShowAnniversary(false)}
+                className="absolute top-8 right-8 p-3 text-white/30 hover:text-white transition-all z-20 hover:bg-white/10 rounded-full"
+              >
+                <X size={24} />
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Hero Section */}
       <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img 
@@ -67,7 +258,6 @@ const Home: React.FC = () => {
               </Link>
             </motion.div>
 
-            {/* Trust Badges */}
             <motion.div variants={fadeInUp} className="mt-16 flex items-center space-x-8 text-gray-400 text-sm font-medium">
                <div className="flex items-center"><ShieldCheck size={18} className="mr-2 text-primary" /> 国家甲级监理资质</div>
                <div className="flex items-center"><TrendingUp size={18} className="mr-2 text-primary" /> ISO9001 认证体系</div>
@@ -76,7 +266,6 @@ const Home: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Floating Stats Bar */}
         <div className="absolute bottom-0 left-0 w-full bg-white/10 backdrop-blur-md border-t border-white/10 py-6 hidden md:block">
            <div className="container mx-auto px-6 flex justify-between items-center text-white">
               {[content.stats.stat1, content.stats.stat2, content.stats.stat3, content.stats.stat4].map((stat, i) => (
@@ -92,7 +281,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 2. Partners - Marquee Infinite Scroll */}
+      {/* Partners Section */}
       <section className="py-16 bg-white border-b border-gray-100 overflow-hidden">
         <div className="container mx-auto px-6 mb-10 text-center">
             <h2 className="text-2xl font-bold text-gray-900">合作伙伴</h2>
@@ -100,31 +289,26 @@ const Home: React.FC = () => {
         </div>
 
         <div className="relative w-full max-w-[1920px] mx-auto">
-            {/* Gradient Masks */}
             <div className="absolute left-0 top-0 bottom-0 w-12 md:w-32 z-10 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
             <div className="absolute right-0 top-0 bottom-0 w-12 md:w-32 z-10 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
 
-            {/* Marquee Container */}
             <div className="flex overflow-hidden">
                 <motion.div
                     className="flex gap-8 md:gap-12 items-center flex-nowrap pl-16"
                     animate={{ x: ["0%", "-50%"] }}
                     transition={{
                         ease: "linear",
-                        duration: 60, // Slower scrolling for better visibility
+                        duration: 60,
                         repeat: Infinity,
                     }}
                 >
-                    {/* Render list twice for seamless loop */}
                     {[...partners, ...partners].map((partner, idx) => {
                         let logoSrc = partner.logoUrl;
                         if (partner.website) {
                             try {
                                 const hostname = new URL(partner.website).hostname;
                                 logoSrc = `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
-                            } catch (e) {
-                                // Fallback to logoUrl or placeholder is handled if logoSrc remains original
-                            }
+                            } catch (e) {}
                         }
 
                         return (
@@ -155,7 +339,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Solutions / Services - Problem Solving */}
+      {/* Services Section */}
       <section className="py-24 bg-surface">
         <div className="container mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16">
@@ -195,7 +379,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Process Section - Dynamic */}
+      {/* Process Section */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
            <div className="text-center mb-16">
@@ -204,7 +388,6 @@ const Home: React.FC = () => {
            </div>
            
            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-              {/* Connection Line */}
               <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 z-0"></div>
 
               {content.process.steps.map((item, i) => (
@@ -220,9 +403,8 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Honors & Qualifications */}
+      {/* Honors Section */}
       <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
-        {/* Abstract Background */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
            <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px]"></div>
            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[100px]"></div>
@@ -274,7 +456,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. Projects Section */}
+      {/* Projects Section */}
       <section className="py-24 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16 max-w-3xl mx-auto">
@@ -325,7 +507,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 7. Testimonials - Social Proof */}
+      {/* Testimonials */}
       <section className="py-24 bg-surface">
         <div className="container mx-auto px-6">
            <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">客户评价</h2>
@@ -347,7 +529,7 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section - Dynamic */}
+      {/* CTA Section */}
       <section className="bg-primary py-20 text-white overflow-hidden relative">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
         <div className="container mx-auto px-6 text-center relative z-10">
