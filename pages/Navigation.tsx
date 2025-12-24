@@ -1,12 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExternalLink, Building2, Gavel, FileText, Globe, MapPin, Search, ChevronRight, Calculator, BookOpen, Layers, Users, Briefcase } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { motion } from 'framer-motion';
+import { NavigationLink } from '../types';
+
+// Cast motion component to resolve property 'animate'/'initial' missing errors in TS
+const MotionDiv = motion.div as any;
 
 const Navigation: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const links = storageService.getLinks();
+  const [links, setLinks] = useState<NavigationLink[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLinks = async () => {
+      const data = await storageService.getLinks();
+      setLinks(data);
+      setLoading(false);
+    };
+    fetchLinks();
+  }, []);
   
   // Filter links based on search term
   const filteredLinks = links.filter(link => 
@@ -29,6 +43,14 @@ const Navigation: React.FC = () => {
       default: return Globe;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="py-20 flex justify-center">
+        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-16 bg-surface min-h-screen">
@@ -64,12 +86,12 @@ const Navigation: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Dynamic Categories */}
-          {categories.map((category, idx) => {
+          {categories.map((category: string, idx: number) => {
              const Icon = getCategoryIcon(category);
              const categoryLinks = filteredLinks.filter(l => l.category === category);
              
              return (
-              <motion.div 
+              <MotionDiv 
                 key={category} 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -129,13 +151,13 @@ const Navigation: React.FC = () => {
                     );
                   })}
                 </div>
-              </motion.div>
+              </MotionDiv>
              );
           })}
 
-          {/* Important Places Card (Always visible unless filtered out by stricter logic, but for now kept separate or could be data-driven too) */}
+          {/* Important Places Card (Always visible unless filtered out by stricter logic) */}
           {categories.length > 0 && searchTerm === '' && (
-            <motion.div 
+            <MotionDiv 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -168,10 +190,10 @@ const Navigation: React.FC = () => {
                       </a>
                    </div>
                 </div>
-            </motion.div>
+            </MotionDiv>
           )}
 
-          {filteredLinks.length === 0 && (
+          {filteredLinks.length === 0 && !loading && (
              <div className="col-span-full py-20 text-center">
                 <div className="inline-block p-4 bg-gray-100 rounded-full mb-4 text-gray-400">
                    <Search size={32} />

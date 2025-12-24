@@ -34,127 +34,164 @@ import {
 } from '../types';
 
 const KEYS = {
-  NEWS: 'yanyun_news',
-  PROJECTS: 'yanyun_projects',
-  SERVICES: 'yanyun_services',
-  BRANCHES: 'yanyun_branches',
-  LINKS: 'yanyun_links',
-  CURRENT_USER: 'yanyun_current_user',
-  USERS: 'yanyun_users',
-  ROLES: 'yanyun_roles',
-  PARTNERS: 'yanyun_partners',
-  HONORS: 'yanyun_honors',
-  SETTINGS: 'yanyun_settings',
-  MEDIA: 'yanyun_media',
-  MEDIA_CATEGORIES: 'yanyun_media_categories',
-  PAGE_CONTENT: 'yanyun_page_content',
-  TEAM: 'yanyun_team',
-  HISTORY: 'yanyun_history'
+  NEWS: 'yanyun_news_v2',
+  PROJECTS: 'yanyun_projects_v2',
+  SERVICES: 'yanyun_services_v2',
+  BRANCHES: 'yanyun_branches_v2',
+  LINKS: 'yanyun_links_v2',
+  PARTNERS: 'yanyun_partners_v2',
+  HONORS: 'yanyun_honors_v2',
+  AUTH_TOKEN: 'yanyun_auth_token',
+  CURRENT_USER: 'yanyun_current_user_v2',
+  USERS: 'yanyun_users_v2',
+  ROLES: 'yanyun_roles_v2',
+  SETTINGS: 'yanyun_settings_v2',
+  MEDIA: 'yanyun_media_v2',
+  PAGE_CONTENT: 'yanyun_page_content_v2',
+  TEAM: 'yanyun_team_v2',
+  HISTORY: 'yanyun_history_v2'
 };
 
-const DEFAULT_CATEGORIES: MediaCategory[] = [
-  { id: 'all', name: '全部素材', count: 0 },
-  { id: 'site', name: '网站基本素材', count: 0 },
-  { id: 'projects', name: '工程案例', count: 0 },
-  { id: 'news', name: '新闻动态', count: 0 },
-  { id: 'team', name: '团队风采', count: 0 },
-];
-
 const initStorage = () => {
-  if (!localStorage.getItem(KEYS.NEWS)) localStorage.setItem(KEYS.NEWS, JSON.stringify(INITIAL_NEWS));
-  if (!localStorage.getItem(KEYS.PROJECTS)) localStorage.setItem(KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS));
-  if (!localStorage.getItem(KEYS.SERVICES)) localStorage.setItem(KEYS.SERVICES, JSON.stringify(INITIAL_SERVICES));
-  if (!localStorage.getItem(KEYS.BRANCHES)) localStorage.setItem(KEYS.BRANCHES, JSON.stringify(INITIAL_BRANCHES));
-  if (!localStorage.getItem(KEYS.LINKS)) localStorage.setItem(KEYS.LINKS, JSON.stringify(INITIAL_LINKS));
-  if (!localStorage.getItem(KEYS.PARTNERS)) localStorage.setItem(KEYS.PARTNERS, JSON.stringify(INITIAL_PARTNERS));
-  if (!localStorage.getItem(KEYS.HONORS)) localStorage.setItem(KEYS.HONORS, JSON.stringify(INITIAL_HONORS));
-  if (!localStorage.getItem(KEYS.SETTINGS)) localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SITE_SETTINGS));
-  if (!localStorage.getItem(KEYS.ROLES)) localStorage.setItem(KEYS.ROLES, JSON.stringify(INITIAL_ROLES));
-  if (!localStorage.getItem(KEYS.USERS)) localStorage.setItem(KEYS.USERS, JSON.stringify(INITIAL_USERS));
-  if (!localStorage.getItem(KEYS.MEDIA)) localStorage.setItem(KEYS.MEDIA, JSON.stringify(INITIAL_MEDIA));
-  if (!localStorage.getItem(KEYS.MEDIA_CATEGORIES)) localStorage.setItem(KEYS.MEDIA_CATEGORIES, JSON.stringify(DEFAULT_CATEGORIES));
-  if (!localStorage.getItem(KEYS.PAGE_CONTENT)) localStorage.setItem(KEYS.PAGE_CONTENT, JSON.stringify(INITIAL_PAGE_CONTENT));
-  if (!localStorage.getItem(KEYS.TEAM)) localStorage.setItem(KEYS.TEAM, JSON.stringify(INITIAL_TEAM));
-  if (!localStorage.getItem(KEYS.HISTORY)) localStorage.setItem(KEYS.HISTORY, JSON.stringify(COMPANY_HISTORY));
+  const safeInit = <T>(key: string, initialData: T) => {
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, JSON.stringify(initialData));
+    }
+  };
+
+  safeInit(KEYS.NEWS, INITIAL_NEWS);
+  safeInit(KEYS.PROJECTS, INITIAL_PROJECTS);
+  safeInit(KEYS.SERVICES, INITIAL_SERVICES);
+  safeInit(KEYS.BRANCHES, INITIAL_BRANCHES);
+  safeInit(KEYS.LINKS, INITIAL_LINKS);
+  safeInit(KEYS.PARTNERS, INITIAL_PARTNERS);
+  safeInit(KEYS.HONORS, INITIAL_HONORS);
+  safeInit(KEYS.SETTINGS, DEFAULT_SITE_SETTINGS);
+  safeInit(KEYS.ROLES, INITIAL_ROLES);
+  safeInit(KEYS.USERS, INITIAL_USERS);
+  safeInit(KEYS.MEDIA, INITIAL_MEDIA);
+  safeInit(KEYS.PAGE_CONTENT, INITIAL_PAGE_CONTENT);
+  safeInit(KEYS.TEAM, INITIAL_TEAM);
+  safeInit(KEYS.HISTORY, COMPANY_HISTORY);
 };
 
 initStorage();
 
+// 模拟后端网络请求
+const delay = (ms: number = 300) => new Promise(res => setTimeout(res, ms));
+
 export const storageService = {
-  getItems: <T>(key: string): T[] => {
+  // 通用 CRUD 抽象
+  async get<T>(key: string): Promise<T[]> {
+    await delay();
     const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   },
 
-  saveItems: <T>(key: string, items: T[]) => {
-    localStorage.setItem(key, JSON.stringify(items));
+  async save<T>(key: string, items: T[]): Promise<void> {
+    await delay();
+    try {
+      localStorage.setItem(key, JSON.stringify(items));
+    } catch (e) {
+      throw new Error("存储限额已满，请清理后再试");
+    }
   },
 
-  getNews: () => storageService.getItems<NewsItem>(KEYS.NEWS),
-  saveNews: (items: NewsItem[]) => storageService.saveItems(KEYS.NEWS, items),
-  getNewsById: (id: string) => storageService.getNews().find(n => n.id === id),
-  getRelatedNews: (currentId: string, limit: number = 3) => 
-    storageService.getNews().filter(n => n.id !== currentId && n.published).slice(0, limit),
-
-  getProjects: () => storageService.getItems<ProjectCase>(KEYS.PROJECTS),
-  saveProjects: (items: ProjectCase[]) => storageService.saveItems(KEYS.PROJECTS, items),
-
-  getServices: () => storageService.getItems<Service>(KEYS.SERVICES),
-  saveServices: (items: Service[]) => storageService.saveItems(KEYS.SERVICES, items),
-
-  getBranches: () => storageService.getItems<Branch>(KEYS.BRANCHES),
-  saveBranches: (items: Branch[]) => storageService.saveItems(KEYS.BRANCHES, items),
-  
-  getLinks: () => storageService.getItems<NavigationLink>(KEYS.LINKS),
-  saveLinks: (items: NavigationLink[]) => storageService.saveItems(KEYS.LINKS, items),
-
-  getPartners: () => storageService.getItems<Partner>(KEYS.PARTNERS),
-  savePartners: (items: Partner[]) => storageService.saveItems(KEYS.PARTNERS, items),
-
-  getHonors: () => storageService.getItems<Honor>(KEYS.HONORS),
-  saveHonors: (items: Honor[]) => storageService.saveItems(KEYS.HONORS, items),
-
-  getSettings: (): SiteSettings => JSON.parse(localStorage.getItem(KEYS.SETTINGS) || JSON.stringify(DEFAULT_SITE_SETTINGS)),
-  saveSettings: (settings: SiteSettings) => localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings)),
-
-  getMedia: () => storageService.getItems<MediaItem>(KEYS.MEDIA),
-  saveMedia: (items: MediaItem[]) => storageService.saveItems(KEYS.MEDIA, items),
-
-  getMediaCategories: () => storageService.getItems<MediaCategory>(KEYS.MEDIA_CATEGORIES),
-  saveMediaCategories: (items: MediaCategory[]) => storageService.saveItems(KEYS.MEDIA_CATEGORIES, items),
-
-  getPageContent: (): PageContent => JSON.parse(localStorage.getItem(KEYS.PAGE_CONTENT) || JSON.stringify(INITIAL_PAGE_CONTENT)),
-  savePageContent: (content: PageContent) => localStorage.setItem(KEYS.PAGE_CONTENT, JSON.stringify(content)),
-
-  getTeam: () => storageService.getItems<TeamMember>(KEYS.TEAM),
-  saveTeam: (items: TeamMember[]) => storageService.saveItems(KEYS.TEAM, items),
-
-  getHistory: () => storageService.getItems<HistoryEvent>(KEYS.HISTORY),
-  saveHistory: (items: HistoryEvent[]) => storageService.saveItems(KEYS.HISTORY, items),
-
-  getUsers: () => storageService.getItems<User>(KEYS.USERS),
-  saveUsers: (users: User[]) => storageService.saveItems(KEYS.USERS, users),
-  getRoles: () => storageService.getItems<Role>(KEYS.ROLES),
-  saveRoles: (roles: Role[]) => storageService.saveItems(KEYS.ROLES, roles),
-  getRoleById: (id: string) => storageService.getRoles().find(r => r.id === id),
-
-  login: (username: string): boolean => {
-     const users = storageService.getUsers();
-     const user = users.find(u => u.username === username);
-     if (user) {
-        localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
-        return true;
-     }
-     return false;
+  // 认证与权限 (后端级模拟)
+  login: async (username: string): Promise<{success: boolean, token?: string}> => {
+    await delay(800);
+    const users = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+    const user = users.find((u: User) => u.username === username);
+    if (user) {
+      const mockToken = `ey-session-${Date.now()}`;
+      sessionStorage.setItem(KEYS.AUTH_TOKEN, mockToken);
+      localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
+      return { success: true, token: mockToken };
+    }
+    return { success: false };
   },
-  logout: () => localStorage.removeItem(KEYS.CURRENT_USER),
+
+  logout: () => {
+    sessionStorage.removeItem(KEYS.AUTH_TOKEN);
+    localStorage.removeItem(KEYS.CURRENT_USER);
+  },
+
+  isAuthenticated: () => !!sessionStorage.getItem(KEYS.AUTH_TOKEN),
+
   getCurrentUser: (): User | null => {
     const u = localStorage.getItem(KEYS.CURRENT_USER);
     return u ? JSON.parse(u) : null;
   },
+
   getCurrentUserRole: (): Role | null => {
     const user = storageService.getCurrentUser();
     if (!user) return null;
-    return storageService.getRoleById(user.roleId) || null;
-  }
+    const roles = JSON.parse(localStorage.getItem(KEYS.ROLES) || '[]');
+    return roles.find((r: Role) => r.id === user.roleId) || null;
+  },
+
+  // 业务模型访问层
+  getNews: () => storageService.get<NewsItem>(KEYS.NEWS),
+  saveNews: (items: NewsItem[]) => storageService.save(KEYS.NEWS, items),
+  getNewsById: async (id: string) => (await storageService.getNews()).find(n => n.id === id),
+  getRelatedNews: async (id: string) => {
+    const news = await storageService.getNews();
+    const current = news.find(n => n.id === id);
+    if (!current) return [];
+    return news.filter(n => n.id !== id && n.category === current.category).slice(0, 3);
+  },
+  
+  getProjects: () => storageService.get<ProjectCase>(KEYS.PROJECTS),
+  saveProjects: (items: ProjectCase[]) => storageService.save(KEYS.PROJECTS, items),
+
+  getServices: () => storageService.get<Service>(KEYS.SERVICES),
+  saveServices: (items: Service[]) => storageService.save(KEYS.SERVICES, items),
+  
+  getSettings: (): SiteSettings => {
+    const s = localStorage.getItem(KEYS.SETTINGS);
+    return s ? JSON.parse(s) : DEFAULT_SITE_SETTINGS;
+  },
+  saveSettings: (s: SiteSettings) => localStorage.setItem(KEYS.SETTINGS, JSON.stringify(s)),
+
+  getPageContent: (): PageContent => {
+    const c = localStorage.getItem(KEYS.PAGE_CONTENT);
+    return c ? JSON.parse(c) : INITIAL_PAGE_CONTENT;
+  },
+  savePageContent: (c: PageContent) => localStorage.setItem(KEYS.PAGE_CONTENT, JSON.stringify(c)),
+
+  getPartners: () => storageService.get<Partner>(KEYS.PARTNERS),
+  savePartners: (items: Partner[]) => storageService.save(KEYS.PARTNERS, items),
+  
+  getHistory: () => storageService.get<HistoryEvent>(KEYS.HISTORY),
+  saveHistory: (items: HistoryEvent[]) => storageService.save(KEYS.HISTORY, items),
+  
+  getTeam: () => storageService.getTeamMembers(),
+  getTeamMembers: () => storageService.get<TeamMember>(KEYS.TEAM),
+  saveTeam: (items: TeamMember[]) => storageService.save(KEYS.TEAM, items),
+  
+  getHonors: () => storageService.get<Honor>(KEYS.HONORS),
+  saveHonors: (items: Honor[]) => storageService.save(KEYS.HONORS, items),
+  
+  getLinks: () => storageService.get<NavigationLink>(KEYS.LINKS),
+  saveLinks: (items: NavigationLink[]) => storageService.save(KEYS.LINKS, items),
+  
+  getMedia: () => storageService.get<MediaItem>(KEYS.MEDIA),
+  saveMedia: (items: MediaItem[]) => storageService.save(KEYS.MEDIA, items),
+  getMediaCategories: (): MediaCategory[] => {
+    return [
+      { id: 'all', name: '全部素材', count: 0 },
+      { id: 'site', name: '站点资源', count: 0 },
+      { id: 'news', name: '新闻配图', count: 0 },
+      { id: 'project', name: '项目案例', count: 0 },
+    ];
+  },
+
+  getBranches: () => storageService.get<Branch>(KEYS.BRANCHES),
+  saveBranches: (items: Branch[]) => storageService.save(KEYS.BRANCHES, items),
+
+  getUsers: () => storageService.get<User>(KEYS.USERS),
+  saveUsers: (items: User[]) => storageService.save(KEYS.USERS, items),
+
+  getRoles: () => storageService.get<Role>(KEYS.ROLES),
+  saveRoles: (items: Role[]) => storageService.save(KEYS.ROLES, items),
 };

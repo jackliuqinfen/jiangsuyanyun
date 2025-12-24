@@ -25,9 +25,11 @@ const UserManager: React.FC = () => {
     refreshData();
   }, []);
 
-  const refreshData = () => {
-    setUsers(storageService.getUsers());
-    setRoles(storageService.getRoles());
+  const refreshData = async () => {
+    const u = await storageService.getUsers();
+    const r = await storageService.getRoles();
+    setUsers(u);
+    setRoles(r);
   };
 
   // --- User Logic ---
@@ -43,22 +45,22 @@ const UserManager: React.FC = () => {
     setIsUserModalOpen(true);
   };
 
-  const handleDeleteUser = (id: string) => {
+  const handleDeleteUser = async (id: string) => {
     if (window.confirm('确定要删除此用户吗？')) {
       const newUsers = users.filter(u => u.id !== id);
-      storageService.saveUsers(newUsers);
+      await storageService.saveUsers(newUsers);
       refreshData();
     }
   };
 
-  const submitUser = (e: React.FormEvent) => {
+  const submitUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingUser) {
       const updated = users.map(u => u.id === editingUser.id ? { ...u, ...userForm } as UserType : u);
-      storageService.saveUsers(updated);
+      await storageService.saveUsers(updated);
     } else {
       const newUser = { ...userForm, id: Date.now().toString() } as UserType;
-      storageService.saveUsers([...users, newUser]);
+      await storageService.saveUsers([...users, newUser]);
     }
     setIsUserModalOpen(false);
     refreshData();
@@ -87,14 +89,14 @@ const UserManager: React.FC = () => {
     setIsRoleModalOpen(true);
   };
 
-  const handleDeleteRole = (id: string) => {
+  const handleDeleteRole = async (id: string) => {
     if (users.some(u => u.roleId === id)) {
       alert('无法删除：仍有用户分配了此角色。请先修改用户角色。');
       return;
     }
     if (window.confirm('确定要删除此角色配置吗？')) {
       const newRoles = roles.filter(r => r.id !== id);
-      storageService.saveRoles(newRoles);
+      await storageService.saveRoles(newRoles);
       refreshData();
     }
   };
@@ -116,14 +118,14 @@ const UserManager: React.FC = () => {
     setRoleForm({ ...roleForm, permissions: newPerms });
   };
 
-  const submitRole = (e: React.FormEvent) => {
+  const submitRole = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingRole) {
       const updated = roles.map(r => r.id === editingRole.id ? { ...roleForm } : r);
-      storageService.saveRoles(updated);
+      await storageService.saveRoles(updated);
     } else {
       const newRole = { ...roleForm, id: `role_${Date.now()}` };
-      storageService.saveRoles([...roles, newRole]);
+      await storageService.saveRoles([...roles, newRole]);
     }
     setIsRoleModalOpen(false);
     refreshData();
@@ -179,7 +181,7 @@ const UserManager: React.FC = () => {
                           <tr key={user.id} className="hover:bg-gray-50">
                              <td className="px-6 py-4 flex items-center">
                                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center mr-3 overflow-hidden">
-                                   {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover"/> : <User size={16}/>}
+                                   {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt={user.name}/> : <User size={16}/>}
                                 </div>
                                 {user.name}
                              </td>
@@ -365,4 +367,3 @@ const UserManager: React.FC = () => {
 };
 
 export default UserManager;
-    

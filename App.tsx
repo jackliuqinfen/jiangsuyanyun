@@ -1,5 +1,6 @@
 
 import React from 'react';
+// Fix react-router-dom export errors by ensuring standard v6 imports
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import AdminLayout from './components/AdminLayout';

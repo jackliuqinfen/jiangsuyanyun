@@ -21,13 +21,13 @@ const NavigationManager: React.FC = () => {
   });
 
   useEffect(() => {
-    setLinks(storageService.getLinks());
+    storageService.getLinks().then(setLinks);
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('确定要删除此链接吗？')) {
       const updated = links.filter(l => l.id !== id);
-      storageService.saveLinks(updated);
+      await storageService.saveLinks(updated);
       setLinks(updated);
     }
   };
@@ -49,16 +49,16 @@ const NavigationManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
       const updated = links.map(l => l.id === editingItem.id ? { ...l, ...formData } as NavigationLink : l);
-      storageService.saveLinks(updated);
+      await storageService.saveLinks(updated);
       setLinks(updated);
     } else {
       const newItem: NavigationLink = { ...formData as NavigationLink, id: Date.now().toString() };
       const updated = [...links, newItem];
-      storageService.saveLinks(updated);
+      await storageService.saveLinks(updated);
       setLinks(updated);
     }
     setIsModalOpen(false);

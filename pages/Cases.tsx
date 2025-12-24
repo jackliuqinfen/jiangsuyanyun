@@ -1,14 +1,23 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, ArrowUpRight, Award } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { storageService } from '../services/storageService';
+import { ProjectCase } from '../types';
+
+// Cast motion component to bypass layout prop and animate prop missing errors
+const MotionDiv = motion.div as any;
 
 const Cases: React.FC = () => {
   const [filter, setFilter] = useState('全部');
-  const projects = storageService.getProjects();
+  const [projects, setProjects] = useState<ProjectCase[]>([]);
   const header = storageService.getPageContent().headers.cases;
+
+  useEffect(() => {
+    storageService.getProjects().then(setProjects);
+  }, []);
+
   const categories = ['全部', ...Array.from(new Set(projects.map(p => p.category)))];
 
   const filteredProjects = filter === '全部' 
@@ -28,27 +37,27 @@ const Cases: React.FC = () => {
         <div className="flex flex-wrap justify-center gap-4 mb-16">
           {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setFilter(cat)}
+              key={cat as string}
+              onClick={() => setFilter(cat as string)}
               className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${
                 filter === cat 
                   ? 'bg-primary text-white shadow-lg shadow-primary/30' 
                   : 'bg-white border border-gray-200 text-gray-600 hover:border-primary hover:text-primary'
               }`}
             >
-              {cat}
+              {cat as string}
             </button>
           ))}
         </div>
 
         {/* Grid */}
-        <motion.div 
+        <MotionDiv 
           layout
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         >
           <AnimatePresence>
-            {filteredProjects.map((project) => (
-              <motion.div
+            {filteredProjects.map((project: ProjectCase) => (
+              <MotionDiv
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -63,6 +72,7 @@ const Cases: React.FC = () => {
                     src={project.imageUrl} 
                     alt={project.title} 
                     className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                    loading="lazy"
                   />
                   <div className="absolute top-4 left-4 z-20">
                      <span className="px-3 py-1 bg-white/95 backdrop-blur-md text-primary text-xs font-bold rounded-md shadow-sm">
@@ -105,10 +115,10 @@ const Cases: React.FC = () => {
                      </div>
                   </div>
                 </div>
-              </motion.div>
+              </MotionDiv>
             ))}
           </AnimatePresence>
-        </motion.div>
+        </MotionDiv>
       </div>
     </div>
   );

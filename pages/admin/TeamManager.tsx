@@ -18,13 +18,13 @@ const TeamManager: React.FC = () => {
   });
 
   useEffect(() => {
-    setTeam(storageService.getTeam());
+    storageService.getTeamMembers().then(setTeam);
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('确定要删除该成员吗？')) {
       const updated = team.filter(t => t.id !== id);
-      storageService.saveTeam(updated);
+      await storageService.saveTeam(updated);
       setTeam(updated);
     }
   };
@@ -46,16 +46,16 @@ const TeamManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
       const updated = team.map(t => t.id === editingItem.id ? { ...t, ...formData } as TeamMember : t);
-      storageService.saveTeam(updated);
+      await storageService.saveTeam(updated);
       setTeam(updated);
     } else {
       const newItem: TeamMember = { ...formData as TeamMember, id: Date.now().toString() };
       const updated = [...team, newItem];
-      storageService.saveTeam(updated);
+      await storageService.saveTeam(updated);
       setTeam(updated);
     }
     setIsModalOpen(false);

@@ -1,9 +1,14 @@
+
 import React, { useEffect, useState } from 'react';
+// Fix react-router-dom export errors
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Tag, ArrowLeft, Share2, Clock, ChevronRight } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { NewsItem } from '../types';
+
+// Cast motion component to bypass type issues
+const MotionDiv = motion.div as any;
 
 const NewsDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,17 +21,23 @@ const NewsDetail: React.FC = () => {
     // Scroll to top when ID changes
     window.scrollTo(0, 0);
 
-    if (id) {
-      const item = storageService.getNewsById(id);
-      if (item) {
-        setNewsItem(item);
-        setRelatedNews(storageService.getRelatedNews(id));
-      } else {
-        // Handle not found
-        navigate('/news');
+    const fetchData = async () => {
+      if (id) {
+        setLoading(true);
+        const item = await storageService.getNewsById(id);
+        if (item) {
+          setNewsItem(item);
+          const related = await storageService.getRelatedNews(id);
+          setRelatedNews(related);
+        } else {
+          // Handle not found
+          navigate('/news');
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    fetchData();
   }, [id, navigate]);
 
   if (loading || !newsItem) {
@@ -46,14 +57,14 @@ const NewsDetail: React.FC = () => {
       <section className="bg-white pt-32 pb-12 border-b border-gray-100">
         <div className="container mx-auto px-6 max-w-5xl">
           <Link 
-            to="/" 
+            to="/news" 
             className="inline-flex items-center text-sm text-gray-500 hover:text-primary mb-8 transition-colors group"
           >
             <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
-            返回首页
+            返回列表
           </Link>
 
-          <motion.div
+          <MotionDiv
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -90,7 +101,7 @@ const NewsDetail: React.FC = () => {
                  <Share2 size={20} />
                </button>
             </div>
-          </motion.div>
+          </MotionDiv>
         </div>
       </section>
 
@@ -98,7 +109,7 @@ const NewsDetail: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           
           {/* Main Content */}
-          <motion.div 
+          <MotionDiv 
             className="lg:col-span-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -132,7 +143,7 @@ const NewsDetail: React.FC = () => {
                   "工程质量是企业的生命线，我们必须以工匠精神对待每一个细节。" —— 公司总经理
                 </blockquote>
                 <p>
-                  未来，我们将继续加大技术创新投入，引进更多高素质人才，为客户提供更加优质、高效的工程项目管理服务，为江苏省的城市建设贡献更多力量。
+                  未来，我们将 continue 加大技术创新投入，引进更多高素质人才，为客户提供更加优质、高效的工程项目管理服务，为江苏省的城市建设贡献更多力量。
                 </p>
               </div>
             </div>
@@ -145,7 +156,7 @@ const NewsDetail: React.FC = () => {
                 <span className="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full hover:bg-gray-200 cursor-pointer transition-colors">盐城</span>
               </div>
             </div>
-          </motion.div>
+          </MotionDiv>
 
           {/* Sidebar - Related News */}
           <aside className="lg:col-span-4">
@@ -168,6 +179,7 @@ const NewsDetail: React.FC = () => {
                           src={item.imageUrl} 
                           alt={item.title} 
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          loading="lazy"
                         />
                       </div>
                       <div className="flex-1">

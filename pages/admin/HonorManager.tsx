@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { storageService } from '../../services/storageService';
@@ -17,13 +18,13 @@ const HonorManager: React.FC = () => {
   });
 
   useEffect(() => {
-    setHonors(storageService.getHonors());
+    storageService.getHonors().then(setHonors);
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('确定要删除该荣誉吗？')) {
       const updated = honors.filter(h => h.id !== id);
-      storageService.saveHonors(updated);
+      await storageService.saveHonors(updated);
       setHonors(updated);
     }
   };
@@ -45,16 +46,16 @@ const HonorManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
       const updated = honors.map(h => h.id === editingItem.id ? { ...h, ...formData } as Honor : h);
-      storageService.saveHonors(updated);
+      await storageService.saveHonors(updated);
       setHonors(updated);
     } else {
       const newItem: Honor = { ...formData as Honor, id: Date.now().toString() };
       const updated = [...honors, newItem];
-      storageService.saveHonors(updated);
+      await storageService.saveHonors(updated);
       setHonors(updated);
     }
     setIsModalOpen(false);

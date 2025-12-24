@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import { storageService } from '../../services/storageService';
@@ -16,13 +17,13 @@ const PartnerManager: React.FC = () => {
   });
 
   useEffect(() => {
-    setPartners(storageService.getPartners());
+    storageService.getPartners().then(setPartners);
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('确定要删除该合作伙伴吗？')) {
       const updated = partners.filter(p => p.id !== id);
-      storageService.savePartners(updated);
+      await storageService.savePartners(updated);
       setPartners(updated);
     }
   };
@@ -43,16 +44,16 @@ const PartnerManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
       const updated = partners.map(p => p.id === editingItem.id ? { ...p, ...formData } as Partner : p);
-      storageService.savePartners(updated);
+      await storageService.savePartners(updated);
       setPartners(updated);
     } else {
       const newItem: Partner = { ...formData as Partner, id: Date.now().toString() };
       const updated = [...partners, newItem];
-      storageService.savePartners(updated);
+      await storageService.savePartners(updated);
       setPartners(updated);
     }
     setIsModalOpen(false);

@@ -4,6 +4,9 @@ import { Image as ImageIcon, Plus, X, Eye, RefreshCw } from 'lucide-react';
 import MediaLibrary from './MediaLibrary';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Cast motion component to avoid type mismatch on 'animate' or 'initial' properties
+const MotionDiv = motion.div as any;
+
 interface MediaSelectorProps {
   label?: string;
   value?: string;
@@ -65,14 +68,14 @@ const MediaSelector: React.FC<MediaSelectorProps> = ({
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-8">
-            <motion.div 
+            <MotionDiv 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/60 backdrop-blur-md"
               onClick={() => setIsModalOpen(false)}
             />
-            <motion.div 
+            <MotionDiv 
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -107,7 +110,7 @@ const MediaSelector: React.FC<MediaSelectorProps> = ({
                   }}
                 />
               </div>
-            </motion.div>
+            </MotionDiv>
           </div>
         )}
       </AnimatePresence>

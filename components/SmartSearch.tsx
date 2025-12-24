@@ -1,7 +1,11 @@
+
 import React, { useState } from 'react';
 import { geminiService, SearchResult } from '../services/geminiService';
 import { Search, Loader2, Sparkles, ExternalLink, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Cast motion component to resolve type mismatch on properties like 'animate'
+const MotionDiv = motion.div as any;
 
 const SmartSearch: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -64,7 +68,7 @@ const SmartSearch: React.FC = () => {
 
           <AnimatePresence>
             {result && (
-              <motion.div
+              <MotionDiv
                 initial={{ opacity: 0, height: 0, marginTop: 0 }}
                 animate={{ opacity: 1, height: 'auto', marginTop: 24 }}
                 exit={{ opacity: 0, height: 0, marginTop: 0 }}
@@ -97,7 +101,7 @@ const SmartSearch: React.FC = () => {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </div>

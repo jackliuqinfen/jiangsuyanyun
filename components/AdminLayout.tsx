@@ -1,16 +1,23 @@
 
 import React, { useEffect, useState } from 'react';
+// Fix react-router-dom export errors
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck } from 'lucide-react';
+import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, Database, ChevronRight, Clock, Menu, X } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { SiteSettings, ResourceType } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Cast motion components to any to resolve property 'animate'/'initial' etc. missing errors
+const MotionDiv = motion.div as any;
+const MotionAside = motion.aside as any;
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(storageService.getSettings());
   const [currentUser, setCurrentUser] = useState(storageService.getCurrentUser());
   const [currentRole, setCurrentRole] = useState(storageService.getCurrentUserRole());
+  const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const user = storageService.getCurrentUser();
@@ -20,98 +27,195 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       setCurrentUser(user);
       setCurrentRole(storageService.getCurrentUserRole());
     }
+
+    const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
+    return () => clearInterval(timer);
   }, [navigate]);
 
+  // 关闭移动端菜单
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
-    storageService.logout();
-    navigate('/admin/login');
+    if (window.confirm('确定要退出管理系统吗？')) {
+      storageService.logout();
+      navigate('/admin/login');
+    }
   };
 
-  const menuItems: { name: string; path: string; icon: any; resource?: ResourceType }[] = [
-    { name: '仪表盘', path: '/admin/dashboard', icon: LayoutDashboard }, // No resource needed, open to all valid users
-    { name: '页面内容', path: '/admin/pages', icon: Layout, resource: 'pages' },
-    { name: '新闻管理', path: '/admin/news', icon: FileText, resource: 'news' },
-    { name: '项目管理', path: '/admin/projects', icon: Briefcase, resource: 'projects' },
-    { name: '服务管理', path: '/admin/services', icon: Hexagon, resource: 'services' }, 
-    { name: '分支机构', path: '/admin/branches', icon: Building, resource: 'branches' },
-    { name: '合作伙伴', path: '/admin/partners', icon: Users, resource: 'partners' },
-    { name: '核心团队', path: '/admin/team', icon: UserCheck, resource: 'team' },
-    { name: '发展历程', path: '/admin/history', icon: History, resource: 'history' },
-    { name: '荣誉资质', path: '/admin/honors', icon: Award, resource: 'honors' },
-    { name: '网址导航', path: '/admin/navigation', icon: Compass, resource: 'navigation' },
-    { name: '媒体资源', path: '/admin/media', icon: Image, resource: 'media' },
-    { name: '全局设置', path: '/admin/settings', icon: Settings, resource: 'settings' },
-    { name: '用户与权限', path: '/admin/users', icon: Users, resource: 'users' },
+  const groups = [
+    {
+      label: '概览',
+      items: [{ name: '仪表盘', path: '/admin/dashboard', icon: LayoutDashboard }]
+    },
+    {
+      label: '内容建设',
+      items: [
+        { name: '页面文案', path: '/admin/pages', icon: Layout, resource: 'pages' as ResourceType },
+        { name: '新闻动态', path: '/admin/news', icon: FileText, resource: 'news' as ResourceType },
+        { name: '项目案例', path: '/admin/projects', icon: Briefcase, resource: 'projects' as ResourceType },
+        { name: '业务领域', path: '/admin/services', icon: Hexagon, resource: 'services' as ResourceType },
+      ]
+    },
+    {
+      label: '品牌资产',
+      items: [
+        { name: '核心团队', path: '/admin/team', icon: UserCheck, resource: 'team' as ResourceType },
+        { name: '发展历程', path: '/admin/history', icon: History, resource: 'history' as ResourceType },
+        { name: '荣誉资质', path: '/admin/honors', icon: Award, resource: 'honors' as ResourceType },
+        { name: '分支机构', path: '/admin/branches', icon: Building, resource: 'branches' as ResourceType },
+        { name: '合作伙伴', path: '/admin/partners', icon: Users, resource: 'partners' as ResourceType },
+      ]
+    },
+    {
+      label: '资源与系统',
+      items: [
+        { name: '媒体库', path: '/admin/media', icon: Image, resource: 'media' as ResourceType },
+        { name: '外部导航', path: '/admin/navigation', icon: Compass, resource: 'navigation' as ResourceType },
+        { name: '权限用户', path: '/admin/users', icon: ShieldCheck, resource: 'users' as ResourceType },
+        { name: '站点设置', path: '/admin/settings', icon: Settings, resource: 'settings' as ResourceType },
+      ]
+    }
   ];
 
+  const getBreadcrumbs = () => {
+    const path = location.pathname.split('/').filter(Boolean);
+    return path.map((p, i) => ({
+      name: p === 'admin' ? '管理中枢' : (groups.flatMap(g => g.items).find(item => item.path.includes(p))?.name || p),
+      path: '/' + path.slice(0, i + 1).join('/')
+    }));
+  };
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="p-8">
+        <div className="flex items-center gap-3">
+           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold text-lg shadow-glow">Y</div>
+           <h2 className="text-lg font-black tracking-tighter uppercase italic">Yanyun OS</h2>
+        </div>
+        <p className="text-[10px] text-white/30 mt-1 font-bold tracking-widest uppercase">Professional Edition</p>
+      </div>
+      
+      <nav className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pb-10">
+        {groups.map((group, groupIdx) => (
+          <div key={groupIdx}>
+            <h3 className="px-4 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3">{group.label}</h3>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                if (item.resource && currentRole && !currentRole.permissions[item.resource]?.read) return null;
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group touch-manipulation ${
+                      isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}
+                  >
+                    <Icon size={18} className={`${isActive ? 'text-white' : 'text-gray-500 group-hover:text-white'}`} />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </nav>
+
+      <div className="p-4 bg-black/20 m-4 rounded-2xl border border-white/5">
+         <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-blue-400 p-0.5">
+               <img src={currentUser?.avatar || 'https://placehold.co/100'} className="w-full h-full object-cover rounded-[10px]" alt="user" />
+            </div>
+            <div className="min-w-0">
+               <p className="text-xs font-bold truncate">{currentUser?.name}</p>
+               <p className="text-[10px] text-white/40 truncate">{currentRole?.name}</p>
+            </div>
+         </div>
+         <button onClick={handleLogout} className="w-full py-3 bg-white/5 hover:bg-red-500/20 hover:text-red-400 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95">
+            <LogOut size={12} /> 安全退出
+         </button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-primary text-white hidden md:flex flex-col shadow-xl z-20" style={{ backgroundColor: siteSettings.themeColor }}>
-        <div className="p-6">
-          <h2 className="text-xl font-bold tracking-tight">后台管理系统</h2>
-          <p className="text-xs text-white/60 mt-1">{siteSettings.siteName}</p>
-        </div>
-        
-        {/* User Profile Snippet */}
-        <div className="px-6 pb-6 mb-2 border-b border-white/10 flex items-center">
-           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold mr-3 overflow-hidden">
-             {currentUser?.avatar ? <img src={currentUser.avatar} alt="Avatar" className="w-full h-full object-cover"/> : currentUser?.name?.charAt(0)}
-           </div>
-           <div>
-              <div className="text-sm font-bold truncate w-32">{currentUser?.name}</div>
-              <div className="text-xs text-white/50">{currentRole?.name}</div>
-           </div>
-        </div>
-
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
-          {menuItems.map((item) => {
-            // Permission Check
-            if (item.resource && currentRole) {
-               if (!currentRole.permissions[item.resource]?.read) return null;
-            }
-
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all ${
-                  isActive ? 'bg-white text-primary font-bold shadow-md' : 'text-gray-300 hover:bg-white/10 hover:text-white'
-                }`}
-                style={isActive ? { color: siteSettings.themeColor } : {}}
-              >
-                <Icon size={18} />
-                <span>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="p-4 border-t border-white/10">
-          <Link to="/" target="_blank" className="flex items-center space-x-3 px-4 py-3 text-gray-300 hover:text-white mb-2 rounded-lg hover:bg-white/5">
-             <Globe size={18} />
-             <span>访问前台</span>
-          </Link>
-          <button
-            onClick={handleLogout}
-            className="flex items-center space-x-3 px-4 py-3 w-full text-left text-red-300 hover:text-red-100 hover:bg-red-500/20 rounded-lg transition-colors"
-          >
-            <LogOut size={18} />
-            <span>退出登录</span>
-          </button>
-        </div>
+    <div className="flex h-screen bg-[#F1F5F9]">
+      {/* Desktop Sidebar */}
+      <aside className="w-64 bg-gray-900 text-white hidden lg:flex flex-col shadow-2xl z-20">
+        <SidebarContent />
       </aside>
 
-      {/* Main Content */}
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <MotionDiv 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            <MotionAside 
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-y-0 left-0 w-[280px] bg-gray-900 text-white z-[70] lg:hidden flex flex-col shadow-2xl"
+            >
+              <SidebarContent />
+              <button 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="absolute top-6 right-6 p-2 text-white/40 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </MotionAside>
+          </>
+        )}
+      </AnimatePresence>
+
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm h-16 flex items-center justify-between px-6 md:hidden z-10">
-          <span className="font-bold text-gray-800">管理后台</span>
-          <button onClick={handleLogout} className="text-gray-600">
-            <LogOut size={20} />
-          </button>
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 h-16 md:h-20 flex items-center justify-between px-4 md:px-8 z-10">
+          <div className="flex items-center gap-4">
+             {/* Hamburger for mobile */}
+             <button 
+               onClick={() => setIsMobileMenuOpen(true)}
+               className="p-2 -ml-2 text-gray-500 lg:hidden hover:bg-gray-100 rounded-lg active:scale-90 transition-transform"
+             >
+               <Menu size={24} />
+             </button>
+
+             <div className="hidden sm:flex items-center gap-1 text-xs text-gray-400">
+                {getBreadcrumbs().map((crumb, idx) => (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && <ChevronRight size={12} />}
+                    <Link to={crumb.path} className={`hover:text-primary transition-colors py-2 px-1 ${idx === getBreadcrumbs().length - 1 ? 'text-gray-900 font-bold' : ''}`}>
+                      {crumb.name}
+                    </Link>
+                  </React.Fragment>
+                ))}
+             </div>
+             {/* Mobile view showing only the current page title */}
+             <div className="sm:hidden text-sm font-bold text-gray-900">
+                {getBreadcrumbs().pop()?.name || '管理系统'}
+             </div>
+          </div>
+          
+          <div className="flex items-center gap-3 md:gap-6">
+             <div className="hidden xl:flex items-center gap-2 text-xs font-bold text-gray-400 border-r pr-6 border-gray-100">
+                <Clock size={14} className="text-primary" /> {currentTime}
+             </div>
+             <Link to="/" target="_blank" className="flex items-center gap-2 text-xs font-bold text-primary hover:bg-blue-50 px-3 py-2.5 rounded-lg transition-all active:scale-95">
+                <Globe size={16} /> <span className="hidden xs:inline">访问官网</span>
+             </Link>
+          </div>
         </header>
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6 relative">
+        
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-8 custom-scrollbar bg-gray-50/50">
           {children}
         </main>
       </div>

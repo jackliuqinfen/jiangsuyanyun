@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { storageService } from '../../services/storageService';
@@ -17,13 +18,15 @@ const ServiceManager: React.FC = () => {
   });
 
   useEffect(() => {
-    setServices(storageService.getServices().sort((a, b) => a.order - b.order));
+    storageService.getServices().then(data => {
+      setServices(data.sort((a, b) => a.order - b.order));
+    });
   }, []);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('确定要删除此服务吗？')) {
       const updated = services.filter(s => s.id !== id);
-      storageService.saveServices(updated);
+      await storageService.saveServices(updated);
       setServices(updated);
     }
   };
@@ -46,13 +49,13 @@ const ServiceManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanFeatures = formData.features?.filter(f => f.trim() !== '') || [];
     
     if (editingItem) {
       const updated = services.map(s => s.id === editingItem.id ? { ...s, ...formData, features: cleanFeatures } as Service : s);
-      storageService.saveServices(updated);
+      await storageService.saveServices(updated);
       setServices(updated);
     } else {
       const newItem: Service = { 
@@ -61,7 +64,7 @@ const ServiceManager: React.FC = () => {
          features: cleanFeatures 
       };
       const updated = [...services, newItem];
-      storageService.saveServices(updated);
+      await storageService.saveServices(updated);
       setServices(updated);
     }
     setIsModalOpen(false);

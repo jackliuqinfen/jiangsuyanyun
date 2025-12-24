@@ -1,12 +1,17 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Building, Phone, User } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { storageService } from '../services/storageService';
+import { Branch } from '../types';
 
 const Branches: React.FC = () => {
-  const branches = storageService.getBranches();
+  const [branches, setBranches] = useState<Branch[]>([]);
   const header = storageService.getPageContent().headers.branches;
+
+  useEffect(() => {
+    storageService.getBranches().then(setBranches);
+  }, []);
 
   return (
     <div className="bg-surface min-h-screen">

@@ -1,15 +1,23 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, ChevronDown, ChevronUp, Shield, Clock, TrendingUp, Users } from 'lucide-react';
 import PageHeader from '../components/PageHeader';
 import { storageService } from '../services/storageService';
+import { Service } from '../types';
+
+// Cast motion component to avoid type errors on framer-motion props
+const MotionDiv = motion.div as any;
 
 const Services: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
-  const services = storageService.getServices();
+  const [services, setServices] = useState<Service[]>([]);
   const content = storageService.getPageContent().services;
   const header = storageService.getPageContent().headers.services;
+
+  useEffect(() => {
+    storageService.getServices().then(setServices);
+  }, []);
 
   const toggleFaq = (idx: number) => {
     setOpenFaq(openFaq === idx ? null : idx);
@@ -57,7 +65,7 @@ const Services: React.FC = () => {
       <div className="container mx-auto px-6 py-24">
         <div className="space-y-32">
           {services.map((service, idx) => (
-            <motion.div 
+            <MotionDiv 
               key={service.id}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -73,6 +81,7 @@ const Services: React.FC = () => {
                     src={`https://images.unsplash.com/photo-${idx % 2 === 0 ? '1541888946425-d81bb19240f5' : '1504307651254-35680f356dfd'}?q=80&w=1000&auto=format&fit=crop`}
                     alt={service.title}
                     className="rounded-2xl shadow-xl w-full h-[400px] object-cover relative z-10"
+                    loading="lazy"
                   />
                   {/* Floating Badge */}
                   <div className="absolute bottom-8 left-8 z-20 bg-white/90 backdrop-blur shadow-lg py-3 px-5 rounded-lg border-l-4 border-primary">
@@ -108,7 +117,7 @@ const Services: React.FC = () => {
                    下载服务白皮书 <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-            </motion.div>
+            </MotionDiv>
           ))}
         </div>
       </div>
@@ -132,7 +141,7 @@ const Services: React.FC = () => {
                      </button>
                      <AnimatePresence>
                         {openFaq === idx && (
-                           <motion.div 
+                           <MotionDiv 
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: "auto", opacity: 1 }}
                               exit={{ height: 0, opacity: 0 }}
@@ -141,7 +150,7 @@ const Services: React.FC = () => {
                               <div className="p-6 text-gray-600 leading-relaxed">
                                  {faq.a}
                               </div>
-                           </motion.div>
+                           </MotionDiv>
                         )}
                      </AnimatePresence>
                   </div>

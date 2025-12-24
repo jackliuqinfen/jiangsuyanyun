@@ -27,14 +27,15 @@ const NewsManager: React.FC = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    setNews(storageService.getNews());
+  const loadData = async () => {
+    const data = await storageService.getNews();
+    setNews(data);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('确定要删除这条新闻吗？')) {
       const updated = news.filter(n => n.id !== id);
-      storageService.saveNews(updated);
+      await storageService.saveNews(updated);
       setNews(updated);
     }
   };
@@ -59,11 +60,11 @@ const NewsManager: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingItem) {
       const updated = news.map(n => n.id === editingItem.id ? { ...n, ...formData } as NewsItem : n);
-      storageService.saveNews(updated);
+      await storageService.saveNews(updated);
       setNews(updated);
     } else {
       const newItem: NewsItem = {
@@ -71,7 +72,7 @@ const NewsManager: React.FC = () => {
         id: Date.now().toString(),
       };
       const updated = [newItem, ...news];
-      storageService.saveNews(updated);
+      await storageService.saveNews(updated);
       setNews(updated);
     }
     setIsModalOpen(false);

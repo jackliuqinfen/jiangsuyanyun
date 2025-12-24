@@ -1,14 +1,23 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, ArrowRight } from 'lucide-react';
+// Fix react-router-dom export error
 import { Link } from 'react-router-dom';
 import PageHeader from '../components/PageHeader';
 import { storageService } from '../services/storageService';
+import { NewsItem } from '../types';
+
+// Cast motion component to bypass property missing errors
+const MotionDiv = motion.div as any;
 
 const News: React.FC = () => {
-  const news = storageService.getNews();
+  const [news, setNews] = useState<NewsItem[]>([]);
   const header = storageService.getPageContent().headers.news;
+
+  useEffect(() => {
+    storageService.getNews().then(setNews);
+  }, []);
 
   return (
     <div className="bg-surface min-h-screen">
@@ -21,7 +30,7 @@ const News: React.FC = () => {
       <div className="container mx-auto px-6 py-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {news.map((item, idx) => (
-            <motion.div
+            <MotionDiv
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -34,6 +43,7 @@ const News: React.FC = () => {
                     src={item.imageUrl} 
                     alt={item.title} 
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" 
+                    loading="lazy"
                   />
                 </div>
                 <div className="p-8 flex flex-col flex-grow">
@@ -57,7 +67,7 @@ const News: React.FC = () => {
                   </Link>
                 </div>
               </article>
-            </motion.div>
+            </MotionDiv>
           ))}
         </div>
       </div>

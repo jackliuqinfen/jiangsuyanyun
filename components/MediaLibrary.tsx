@@ -5,6 +5,9 @@ import { storageService } from '../services/storageService';
 import { MediaItem, MediaCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Cast motion components to resolve missing prop errors in TSX
+const MotionDiv = motion.div as any;
+
 interface MediaLibraryProps {
   mode?: 'manage' | 'select';
   onSelect?: (url: string) => void;
@@ -41,8 +44,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     loadData();
   }, []);
 
-  const loadData = () => {
-    const allMedia = storageService.getMedia();
+  const loadData = async () => {
+    const allMedia = await storageService.getMedia();
     const allCats = storageService.getMediaCategories();
     
     // Update counts
@@ -66,11 +69,11 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     });
   }, [media, searchTerm, activeCategory, allowedTypes]);
 
-  const handleDelete = (id: string, e: React.MouseEvent) => {
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm('确定要删除此资源吗？')) {
       const updated = media.filter(m => m.id !== id);
-      storageService.saveMedia(updated);
+      await storageService.saveMedia(updated);
       loadData();
     }
   };
@@ -93,16 +96,17 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
     const reader = new FileReader();
     reader.onloadend = () => {
+      const base64String = reader.result as string;
       setUploadForm(prev => ({ 
         ...prev, 
-        url: reader.result as string,
+        url: base64String,
         name: prev.name || file.name.split('.')[0]
       }));
     };
     reader.readAsDataURL(file);
   };
 
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newItem: MediaItem = {
       id: Date.now().toString(),
@@ -115,7 +119,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     };
 
     const updated = [newItem, ...media];
-    storageService.saveMedia(updated);
+    await storageService.saveMedia(updated);
     loadData();
     setIsUploadModalOpen(false);
     setUploadForm({ name: '', type: 'image', category: 'site', url: '' });
@@ -203,7 +207,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
             viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
                 {filteredMedia.map(item => (
-                  <motion.div 
+                  <MotionDiv 
                     layout
                     key={item.id}
                     onClick={() => handleItemClick(item)}
@@ -212,7 +216,12 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     }`}
                   >
                     {item.type === 'image' ? (
-                      <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
+                      <img 
+                        src={item.url} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover" 
+                        loading="lazy"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white">
                         <Video size={32} />
@@ -250,7 +259,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
                       <p className="text-[10px] text-white font-medium truncate">{item.name}</p>
                     </div>
-                  </motion.div>
+                  </MotionDiv>
                 ))}
               </div>
             ) : (
@@ -262,7 +271,18 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedId === item.id ? 'bg-blue-50' : ''}`}
                   >
                      <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-4 flex-shrink-0">
-                        {item.type === 'image' ? <img src={item.url} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-900 flex items-center justify-center text-white"><Video size={20}/></div>}
+                        {item.type === 'image' ? (
+                          <img 
+                            src={item.url} 
+                            className="w-full h-full object-cover" 
+                            loading="lazy"
+                            alt={item.name}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-900 flex items-center justify-center text-white">
+                            <Video size={20}/>
+                          </div>
+                        )}
                      </div>
                      <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-bold text-gray-900 truncate">{item.name}</h4>
@@ -302,14 +322,14 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
       <AnimatePresence>
         {isUploadModalOpen && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <motion.div 
+            <MotionDiv 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-black/50 backdrop-blur-sm"
               onClick={() => setIsUploadModalOpen(false)}
             />
-            <motion.div 
+            <MotionDiv 
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -365,7 +385,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                          className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                        >
                           {uploadForm.url ? (
-                            <img src={uploadForm.url} className="h-32 w-full object-contain mb-2" />
+                            <img src={uploadForm.url} className="h-32 w-full object-contain mb-2" alt="upload-preview" />
                           ) : (
                             <Upload className="text-gray-300 mb-2" size={32} />
                           )}
@@ -395,7 +415,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                     <button type="submit" className="px-8 py-2 bg-primary text-white rounded-lg font-bold shadow-lg hover:shadow-primary/30 transition-all">确认上传并存库</button>
                  </div>
               </form>
-            </motion.div>
+            </MotionDiv>
           </div>
         )}
       </AnimatePresence>
