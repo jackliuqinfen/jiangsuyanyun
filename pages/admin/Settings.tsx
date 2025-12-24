@@ -76,21 +76,58 @@ const Settings: React.FC = () => {
               <h2 className="text-lg font-bold text-gray-900">营销与活动配置</h2>
            </div>
            
-           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <div>
-                 <span className="block font-bold text-gray-800">8 周年庆典弹窗</span>
-                 <span className="text-xs text-gray-500">开启后，用户访问首页时将看到全屏庆祝动画（每位访客仅显示一次）</span>
+           <div className="space-y-6">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
+                 <div>
+                    <span className="block font-bold text-gray-800">8 周年庆典弹窗</span>
+                    <span className="text-xs text-gray-500">开启后，用户访问首页时将看到全屏庆祝动画（每位访客仅显示一次）</span>
+                 </div>
+                 <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                       type="checkbox" 
+                       name="enableAnniversary" 
+                       className="sr-only peer" 
+                       checked={settings.enableAnniversary || false} 
+                       onChange={handleToggle} 
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                 </label>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                 <input 
-                    type="checkbox" 
-                    name="enableAnniversary" 
-                    className="sr-only peer" 
-                    checked={settings.enableAnniversary || false} 
-                    onChange={handleToggle} 
-                 />
-                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
-              </label>
+
+              {settings.enableAnniversary && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border-l-4 border-amber-200 bg-amber-50/30 rounded-r-xl">
+                    <div className="col-span-2 md:col-span-1">
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">庆典主标题</label>
+                       <input 
+                          type="text" 
+                          name="anniversaryTitle" 
+                          value={settings.anniversaryTitle || '辉煌八载 · 智绘未来'} 
+                          onChange={handleChange} 
+                          className="w-full px-3 py-2 border border-amber-200 rounded-lg outline-none focus:ring-2 focus:ring-amber-400"
+                       />
+                    </div>
+                    <div className="col-span-2 md:col-span-1">
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">顶部徽章年份</label>
+                       <input 
+                          type="text" 
+                          name="anniversaryBadgeLabel" 
+                          value={settings.anniversaryBadgeLabel || '2017 - 2025'} 
+                          onChange={handleChange} 
+                          className="w-full px-3 py-2 border border-amber-200 rounded-lg outline-none focus:ring-2 focus:ring-amber-400"
+                       />
+                    </div>
+                    <div className="col-span-2">
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">副标题 / 描述</label>
+                       <input 
+                          type="text" 
+                          name="anniversarySubtitle" 
+                          value={settings.anniversarySubtitle || '感恩一路同行，共鉴品质工程'} 
+                          onChange={handleChange} 
+                          className="w-full px-3 py-2 border border-amber-200 rounded-lg outline-none focus:ring-2 focus:ring-amber-400"
+                       />
+                    </div>
+                 </div>
+              )}
            </div>
         </div>
 

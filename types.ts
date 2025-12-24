@@ -172,13 +172,17 @@ export interface SiteSettings {
   logoUrl: string;
   graphicLogoUrl: string;
   textLogoUrl: string;
-  faviconUrl: string; // Added faviconUrl
+  faviconUrl: string; 
   themeColor: string;
   contactPhone: string;
   contactEmail: string;
   contactAddress: string;
   copyrightText: string;
-  enableAnniversary?: boolean; // New Field: Enable 8th Anniversary Popup
+  // Anniversary Popup Settings
+  enableAnniversary?: boolean; 
+  anniversaryTitle?: string;
+  anniversarySubtitle?: string;
+  anniversaryBadgeLabel?: string;
 }
 
 export interface MediaItem {

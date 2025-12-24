@@ -13,6 +13,7 @@ const MotionButton = motion.button as any;
 
 const AnniversaryPopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [settings, setSettings] = useState(storageService.getSettings());
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -29,6 +30,7 @@ const AnniversaryPopup: React.FC = () => {
   useEffect(() => {
     // 1. Check Global Settings from Storage
     const currentSettings = storageService.getSettings();
+    setSettings(currentSettings); // Update local state for text binding
     const hasSeen = sessionStorage.getItem(SESSION_KEY);
     
     // Only open if enabled in Admin -> Settings AND hasn't been seen in this session
@@ -41,6 +43,7 @@ const AnniversaryPopup: React.FC = () => {
     // Listener for real-time preview from Admin Panel
     const handleSettingsChange = () => {
        const newSettings = storageService.getSettings();
+       setSettings(newSettings);
        if (newSettings.enableAnniversary) {
           sessionStorage.removeItem(SESSION_KEY); // Reset seen state for preview
           setIsOpen(true);
@@ -58,7 +61,7 @@ const AnniversaryPopup: React.FC = () => {
 
     // --- THREE.JS SETUP ---
     const scene = new THREE.Scene();
-    // Background: Deep red/dark blend for Chinese celebration vibe (Oriental Red/Black)
+    // Background: Deep dark red/purple blend for night sky feel
     scene.fog = new THREE.FogExp2(0x1a0505, 0.002); 
     sceneRef.current = scene;
 
@@ -83,7 +86,8 @@ const AnniversaryPopup: React.FC = () => {
         if (ctx) {
             const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
             grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            grad.addColorStop(0.4, 'rgba(255, 230, 200, 0.6)');
+            grad.addColorStop(0.2, 'rgba(255, 255, 255, 0.8)');
+            grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
             grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 32, 32);
@@ -113,7 +117,7 @@ const AnniversaryPopup: React.FC = () => {
         size: 1.5,
         map: particleTexture,
         transparent: true,
-        opacity: 0.5,
+        opacity: 0.3,
         blending: THREE.AdditiveBlending,
         depthWrite: false
     });
@@ -122,25 +126,28 @@ const AnniversaryPopup: React.FC = () => {
     particlesRef.current = dustSystem;
 
     // --- 2. FIREWORKS ENGINE ---
+    const vibrantColors = [
+        new THREE.Color(0xFF00FF), // Neon Magenta
+        new THREE.Color(0x00FFFF), // Cyan
+        new THREE.Color(0x00FF00), // Lime Green
+        new THREE.Color(0xFFDD00), // Bright Gold
+        new THREE.Color(0xFF4500), // Orange Red
+        new THREE.Color(0x9D00FF), // Electric Purple
+    ];
+
     const createFirework = () => {
-        const x = (Math.random() - 0.5) * 160;
-        const y = -80;
-        const targetY = 10 + Math.random() * 40;
+        // Start much lower to simulate launch from ground
+        const x = (Math.random() - 0.5) * 180;
+        const y = -120; 
+        const targetY = 20 + Math.random() * 50; // Explode in the upper half
         
-        // Colors: Luxury Gold, Chinese Red, Pure White
-        const colors = [
-            new THREE.Color(0xFFD700), // Gold
-            new THREE.Color(0xFFCC00), // Light Gold
-            new THREE.Color(0xD93025), // Festive Red
-            new THREE.Color(0xFFFFFF), // Sparkle White
-        ];
-        const color = colors[Math.floor(Math.random() * colors.length)];
+        const color = vibrantColors[Math.floor(Math.random() * vibrantColors.length)];
         
         const geometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([x, y, 0]), 3));
         
         const material = new THREE.PointsMaterial({
-            size: 4, // Larger start
+            size: 3, // Rocket head size
             color: color,
             map: particleTexture,
             transparent: true,
@@ -155,7 +162,7 @@ const AnniversaryPopup: React.FC = () => {
         return {
             mesh: points,
             phase: 'launch',
-            velocity: new THREE.Vector3(0, 1.8 + Math.random() * 0.5, 0),
+            velocity: new THREE.Vector3(0, 3.5 + Math.random() * 1.5, 0), // Higher launch velocity
             targetY: targetY,
             color: color,
             age: 0,
@@ -167,7 +174,7 @@ const AnniversaryPopup: React.FC = () => {
         scene.remove(fw.mesh);
         fw.mesh.geometry.dispose();
         
-        const particleCount = 100 + Math.floor(Math.random() * 50);
+        const particleCount = 150 + Math.floor(Math.random() * 100);
         const geo = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const launchPos = fw.mesh.geometry.attributes.position.array;
@@ -179,10 +186,10 @@ const AnniversaryPopup: React.FC = () => {
             positions[i*3+1] = launchPos[1];
             positions[i*3+2] = launchPos[2];
 
-            // Explosion pattern: Sphere
+            // Explosion pattern: Sphere with random magnitude
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos((Math.random() * 2) - 1);
-            const speed = 0.5 + Math.random() * 1.0;
+            const speed = 0.8 + Math.random() * 2.0; // Higher explosive speed
             
             velocities.push({
                 x: speed * Math.sin(phi) * Math.cos(theta),
@@ -193,7 +200,7 @@ const AnniversaryPopup: React.FC = () => {
 
         geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         const mat = new THREE.PointsMaterial({
-            size: 3,
+            size: 2.5,
             color: fw.color,
             map: particleTexture,
             transparent: true,
@@ -217,7 +224,8 @@ const AnniversaryPopup: React.FC = () => {
         frameIdRef.current = requestAnimationFrame(animate);
         frameCount++;
 
-        if (frameCount % 50 === 0 && fireworksRef.current.length < 8) {
+        // Launch frequency
+        if (frameCount % 40 === 0 && fireworksRef.current.length < 12) {
             fireworksRef.current.push(createFirework());
         }
 
@@ -238,10 +246,15 @@ const AnniversaryPopup: React.FC = () => {
             if (fw.phase === 'launch') {
                 const positions = fw.mesh.geometry.attributes.position.array;
                 positions[1] += fw.velocity.y;
-                fw.velocity.y *= 0.96; // Drag
+                
+                // Slow down slightly as it reaches apex, but mostly keep momentum for "high energy" feel
+                fw.velocity.y *= 0.98; 
                 fw.mesh.geometry.attributes.position.needsUpdate = true;
 
-                if (positions[1] >= fw.targetY || fw.velocity.y < 0.2) {
+                // Scale down size as it goes up (perspective trick)
+                fw.mesh.material.size = Math.max(1, fw.mesh.material.size * 0.99);
+
+                if (positions[1] >= fw.targetY || fw.velocity.y < 0.5) {
                     explodeFirework(fw);
                 }
             } else if (fw.phase === 'explode') {
@@ -253,18 +266,17 @@ const AnniversaryPopup: React.FC = () => {
                     positions[j*3+1] += fw.velocities[j].y;
                     positions[j*3+2] += fw.velocities[j].z;
                     
-                    fw.velocities[j].y -= 0.015; // Gravity
-                    fw.velocities[j].x *= 0.94; // Air resistance
-                    fw.velocities[j].y *= 0.94;
-                    fw.velocities[j].z *= 0.94;
+                    fw.velocities[j].y -= 0.02; // Gravity
+                    fw.velocities[j].x *= 0.96; // Air resistance
+                    fw.velocities[j].y *= 0.96;
+                    fw.velocities[j].z *= 0.96;
                 }
                 fw.mesh.geometry.attributes.position.needsUpdate = true;
                 
                 // Fade out
-                fw.mesh.material.opacity = Math.max(0, 1 - (fw.age / 90));
-                fw.mesh.material.size *= 0.98;
-
-                if (fw.age > 90) {
+                fw.mesh.material.opacity = Math.max(0, 1 - (fw.age / 80));
+                
+                if (fw.age > 80) {
                     scene.remove(fw.mesh);
                     fw.mesh.geometry.dispose();
                     fw.mesh.material.dispose();
@@ -342,7 +354,7 @@ const AnniversaryPopup: React.FC = () => {
                     className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-800/50 to-red-900/50 border border-yellow-500/30 mb-8"
                 >
                     <Award size={14} className="text-yellow-400" />
-                    <span className="text-xs font-bold text-yellow-100 tracking-widest">2017 - 2025</span>
+                    <span className="text-xs font-bold text-yellow-100 tracking-widest">{settings.anniversaryBadgeLabel || '2017 - 2025'}</span>
                 </MotionDiv>
 
                 {/* The "8" Composition */}
@@ -384,7 +396,7 @@ const AnniversaryPopup: React.FC = () => {
                         transition={{ delay: 0.6 }}
                         className="text-3xl font-serif font-bold text-white tracking-widest"
                     >
-                        辉煌八载 · 智绘未来
+                        {settings.anniversaryTitle || '辉煌八载 · 智绘未来'}
                     </MotionH1>
                     
                     <MotionP 
@@ -393,7 +405,7 @@ const AnniversaryPopup: React.FC = () => {
                         transition={{ delay: 0.8 }}
                         className="text-sm text-yellow-100/60 font-light tracking-wider"
                     >
-                        感恩一路同行，共鉴品质工程
+                        {settings.anniversarySubtitle || '感恩一路同行，共鉴品质工程'}
                     </MotionP>
                 </div>
 

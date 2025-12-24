@@ -129,7 +129,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   contactEmail: 'contact@yanyun.com',
   contactAddress: '江苏省盐城市盐都区世纪大道99号金融城',
   copyrightText: '© 2025 Jiangsu Yanyun Project Management Co., Ltd. All rights reserved.',
-  enableAnniversary: true, // Default to true for celebration
+  enableAnniversary: true, 
+  anniversaryTitle: '辉煌八载 · 智绘未来',
+  anniversarySubtitle: '感恩一路同行，共鉴品质工程',
+  anniversaryBadgeLabel: '2017 - 2025'
 };
 
 export const INITIAL_MEDIA: MediaItem[] = [
