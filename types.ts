@@ -123,6 +123,8 @@ export interface Honor {
 export interface SiteSettings {
   siteName: string;
   logoUrl: string;
+  graphicLogoUrl: string; // 图形 Logo
+  textLogoUrl: string;    // 文本 Logo
   themeColor: string; // Hex code
   contactPhone: string;
   contactEmail: string;

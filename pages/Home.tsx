@@ -1,53 +1,101 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, Variants, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Zap, ArrowUpRight, Star, ShieldCheck, TrendingUp, Clock, Quote, Award, X, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { storageService } from '../services/storageService';
 import { INITIAL_TESTIMONIALS } from '../constants';
 
-// --- 资深设计：物理仿真彩带系统 ---
-const CelebrationParticles = ({ count = 80 }) => {
-  const colors = ['#FFD700', '#FDB931', '#FF4D4D', '#FFFFFF', '#FF8C00'];
+// --- 高级视觉：景深仿真烟花 (Bokeh Firework) ---
+const BokehFirework = ({ delay = 0, color = "#FFD700", size = "small" }) => {
+  const count = size === "large" ? 45 : 30;
+  const particles = useMemo(() => Array.from({ length: count }), [count]);
+  const [pos, setPos] = useState({ x: 50, y: 50 });
+  const isBlurry = useMemo(() => Math.random() > 0.4, []); 
+
+  useEffect(() => {
+    setPos({ x: 5 + Math.random() * 90, y: 10 + Math.random() * 60 });
+  }, []);
+
   return (
-    <div className="absolute inset-0 pointer-events-none z-0">
+    <div className={`absolute ${isBlurry ? 'blur-[5px] opacity-30 scale-75' : 'z-10'}`} style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>
+      {particles.map((_, i) => {
+        const angle = (i * (360 / count)) * (Math.PI / 180);
+        const distance = size === "large" ? 180 : 120;
+        const velocity = (distance * 0.8) + Math.random() * (distance * 0.4);
+        return (
+          <motion.div
+            key={i}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
+            animate={{
+              x: Math.cos(angle) * velocity,
+              y: Math.sin(angle) * velocity + 50, 
+              opacity: 0,
+              scale: [1, 1.8, 0]
+            }}
+            transition={{
+              duration: 3.5,
+              ease: [0.1, 0.8, 0.2, 1],
+              delay: delay,
+              repeat: Infinity,
+              repeatDelay: 2 + Math.random() * 4
+            }}
+            className="absolute rounded-full"
+            style={{ 
+              width: size === "large" ? '3px' : '2px',
+              height: size === "large" ? '3px' : '2px',
+              backgroundColor: color,
+              boxShadow: `0 0 15px ${color}, 0 0 30px ${color}` 
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+// --- 高级礼花：高分子彩带系统 (Confetti Rain) ---
+const ConfettiRain = ({ count = 50 }) => {
+  const colors = ['#D4AF37', '#FDE68A', '#FFFFFF', '#FFD700', '#B45309'];
+  return (
+    <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
       {Array.from({ length: count }).map((_, i) => (
         <motion.div
           key={i}
-          initial={{ 
-            top: "50%", 
-            left: "50%", 
-            scale: 0,
-            rotate: 0,
-            opacity: 1 
-          }}
+          initial={{ top: -20, left: `${Math.random() * 100}%`, rotate: 0, opacity: 0 }}
           animate={{ 
-            top: [`50%`, `${10 + Math.random() * 80}%`], 
-            left: [`50%`, `${10 + Math.random() * 80}%`],
-            scale: [0, Math.random() * 1.2 + 0.4, 0],
-            rotate: Math.random() * 1440,
-            opacity: [1, 1, 0]
+            top: '110%', 
+            rotate: 1080,
+            x: [0, Math.random() * 100 - 50, 0],
+            opacity: [0, 1, 1, 0]
           }}
           transition={{ 
-            duration: 2.5 + Math.random() * 2, 
-            ease: [0.22, 1, 0.36, 1],
-            delay: Math.random() * 0.4,
+            duration: 4 + Math.random() * 3, 
             repeat: Infinity,
-            repeatDelay: Math.random() * 3
+            delay: Math.random() * 6,
+            ease: "easeInOut"
           }}
-          className="absolute"
+          className="absolute w-2 h-4 sm:w-3 sm:h-5"
           style={{ 
-            width: Math.random() * 12 + 4, 
-            height: Math.random() * 12 + 4,
             backgroundColor: colors[i % colors.length],
-            borderRadius: i % 3 === 0 ? '50%' : '2px',
-            boxShadow: '0 0 10px rgba(255,215,0,0.3)',
+            borderRadius: '2px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
           }}
         />
       ))}
     </div>
   );
 };
+
+// --- 建筑纹理：极细测绘背纹 ---
+const ArchitecturalGrid = () => (
+  <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
+    style={{ 
+      backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
+      backgroundSize: '30px 30px'
+    }} 
+  />
+);
 
 const Home: React.FC = () => {
   const [showAnniversary, setShowAnniversary] = useState(false);
@@ -58,12 +106,12 @@ const Home: React.FC = () => {
   const content = storageService.getPageContent().home;
 
   useEffect(() => {
-    const hasShown = sessionStorage.getItem('yanyun_anniversary_luxury_v5');
+    const hasShown = sessionStorage.getItem('yanyun_anniversary_v12_ultra_final');
     if (!hasShown) {
       const timer = setTimeout(() => {
         setShowAnniversary(true);
-        sessionStorage.setItem('yanyun_anniversary_luxury_v5', 'true');
-      }, 1000);
+        sessionStorage.setItem('yanyun_anniversary_v12_ultra_final', 'true');
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -80,137 +128,180 @@ const Home: React.FC = () => {
 
   return (
     <div className="overflow-hidden bg-white font-sans">
-      {/* --- 8 周年“殿堂级”限定弹窗 (排版优化版) --- */}
+      {/* --- 8 周年【金石筑梦 · 极境流光】终极庆典弹窗 --- */}
       <AnimatePresence>
         {showAnniversary && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-hidden">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
+            {/* 背景置灰层 + 景深烟花 */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-gradient-to-tr from-[#020617] via-[#0f172a] to-[#020617] z-0"
               onClick={() => setShowAnniversary(false)}
-              className="absolute inset-0 bg-gray-950/85 backdrop-blur-[12px]"
-            />
-            
-            <motion.div 
-              initial={{ scale: 0.8, opacity: 0, y: 40 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 150, delay: 0.1 }}
-              className="relative w-full max-w-lg bg-[#7A0000] rounded-[3.5rem] shadow-[0_50px_150px_rgba(0,0,0,0.9)] overflow-hidden border border-white/10"
             >
-              <CelebrationParticles />
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-[15px]" />
+              <BokehFirework delay={0.2} color="#D4AF37" size="large" />
+              <BokehFirework delay={1.8} color="#FFFBEB" size="small" />
+              <BokehFirework delay={3.5} color="#F59E0B" size="large" />
+              <BokehFirework delay={0.8} color="#FFFFFF" size="small" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(44,56,139,0.15),transparent_70%)]" />
+            </motion.div>
+            
+            {/* 弹窗主体：高奢材质容器 */}
+            <motion.div 
+              initial={{ scale: 0.7, opacity: 0, y: 60, rotateX: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 30, transition: { duration: 0.4, ease: "backIn" } }}
+              transition={{ type: "spring", damping: 22, stiffness: 120, delay: 0.1 }}
+              className="relative w-full max-w-2xl bg-gradient-to-br from-[#4c0519] via-[#881337] to-[#1e1b4b] rounded-[3.5rem] shadow-[0_100px_200px_rgba(0,0,0,0.9),inset_0_2px_40px_rgba(255,255,255,0.1)] overflow-hidden border border-white/10 z-10"
+              style={{ perspective: "1200px" }}
+            >
+              <ArchitecturalGrid />
+              <ConfettiRain />
 
-              <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-                <div className="absolute -top-1/2 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-radial from-yellow-500/25 to-transparent" />
-                <motion.div 
-                  animate={{ opacity: [0.2, 0.4, 0.2] }}
-                  transition={{ repeat: Infinity, duration: 5 }}
-                  className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dust.png')] opacity-15"
-                />
-              </div>
+              {/* 弹窗内部光效爆发 */}
+              <motion.div
+                initial={{ scale: 0, opacity: 1 }}
+                animate={{ scale: 4, opacity: 0 }}
+                transition={{ duration: 2, ease: "easeOut", delay: 0.2 }}
+                className="absolute inset-0 rounded-full border-[3px] border-yellow-500/20 pointer-events-none z-0"
+              />
 
-              <div className="relative z-10 p-10 md:p-14 flex flex-col items-center">
-                {/* 仪式感核心：3D 金属质感数字 8 */}
-                <div className="relative mb-8 group">
+              <div className="relative z-10 p-12 md:p-16 flex flex-col items-center">
+                {/* 视觉核心：【液态金】3D 数字 8 */}
+                <div className="relative mb-16 select-none group">
                   <motion.div
-                    initial={{ scale: 0.5, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    transition={{ type: "spring", delay: 0.4, damping: 15 }}
+                    initial={{ y: 50, opacity: 0, scale: 0.5, rotateY: -30 }}
+                    animate={{ y: 0, opacity: 1, scale: 1, rotateY: 0 }}
+                    transition={{ delay: 0.4, type: "spring", stiffness: 90 }}
+                    className="relative"
                   >
-                    <div className="relative flex items-center justify-center">
-                      <span className="inline-block text-[140px] md:text-[180px] font-black leading-[1] select-none bg-gradient-to-b from-[#FFFBEB] via-[#FDE68A] via-[#D4AF37] via-[#B45309] to-[#451A03] bg-clip-text text-transparent filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)]">
-                        8
-                      </span>
-                      <motion.div 
-                        animate={{ x: [-250, 250], opacity: [0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 2.5, delay: 1.5, ease: "easeInOut" }}
-                        className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-20deg] mix-blend-overlay"
-                      />
-                    </div>
+                    {/* 环境遮蔽阴影 */}
+                    <span className="absolute inset-0 text-[200px] md:text-[260px] font-black leading-[0.8] text-black/60 translate-y-6 blur-2xl">8</span>
+                    
+                    {/* 数字本体：多层渐变模拟厚重金属 */}
+                    <span className="relative inline-block text-[200px] md:text-[260px] font-black leading-[0.8] bg-gradient-to-b from-[#FFFBEB] via-[#D4AF37] via-[#92400E] to-[#451A03] bg-clip-text text-transparent filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] tracking-tighter">
+                      8
+                    </span>
+
+                    {/* 铂金冷光扫光 (Specular Flow) */}
+                    <motion.div 
+                      animate={{ 
+                        left: ['-150%', '250%'],
+                      }}
+                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-35deg] pointer-events-none mix-blend-overlay"
+                    />
                   </motion.div>
                   
+                  {/* 周年浮雕勋章 */}
                   <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 }}
-                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#D4AF37] to-[#FDE68A] text-[#4A0000] px-8 py-2 rounded-full text-xs font-black tracking-[0.5em] shadow-[0_8px_20px_rgba(0,0,0,0.3)] border border-white/30 whitespace-nowrap"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.9, type: "spring" }}
+                    className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center"
                   >
-                    ANNIVERSARY
+                    <div className="bg-gradient-to-r from-[#D4AF37] via-[#FDE68A] to-[#D4AF37] p-[1px] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
+                      <div className="bg-[#450a0a] px-12 py-3 rounded-2xl border border-white/10">
+                        <span className="text-white text-[11px] font-black tracking-[0.9em] uppercase flex items-center">
+                          <Star size={12} className="mr-3 text-yellow-400 fill-yellow-400" />
+                          Anniversary
+                          <Star size={12} className="ml-3 text-yellow-400 fill-yellow-400" />
+                        </span>
+                      </div>
+                    </div>
                   </motion.div>
                 </div>
 
-                <div className="text-center space-y-4">
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.9 }}
-                    className="text-yellow-400/70 font-bold tracking-[0.6em] text-[10px] uppercase"
-                  >
-                    八载峥嵘 · 筑梦未来
-                  </motion.p>
-                  
-                  {/* --- 优化后的换行排版 --- */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.0 }}
-                    className="flex flex-col gap-2 md:gap-3"
-                  >
-                    <h2 className="text-2xl md:text-3xl font-bold text-white tracking-widest">
-                      热烈祝贺
-                    </h2>
-                    <h3 className="text-lg md:text-xl font-medium text-white/90 tracking-normal px-2">
-                      江苏盐韵工程项目管理有限公司
-                    </h3>
-                    <div className="text-2xl md:text-3xl font-black italic">
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-yellow-500 drop-shadow-sm">成立 8 周年</span>
+                {/* 艺术排版：生长感动效 */}
+                <div className="text-center space-y-10">
+                  <div className="space-y-4">
+                    <motion.p 
+                      initial={{ opacity: 0, letterSpacing: "0.2em" }}
+                      animate={{ opacity: 1, letterSpacing: "0.6em" }}
+                      transition={{ delay: 1.1, duration: 1.2 }}
+                      className="text-yellow-500/90 font-bold text-xs uppercase"
+                    >
+                      八载峥嵘 · 韵筑精品
+                    </motion.p>
+                    
+                    <div className="overflow-hidden">
+                      <motion.h2 
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        transition={{ delay: 1.3, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                        className="text-4xl md:text-6xl font-bold text-white tracking-[0.05em] drop-shadow-lg"
+                      >
+                        热烈祝贺
+                      </motion.h2>
                     </div>
-                  </motion.div>
+
+                    <div className="overflow-hidden">
+                      <motion.p 
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        transition={{ delay: 1.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                        className="text-xl md:text-2xl font-light text-white/90"
+                      >
+                        江苏盐韵工程项目管理有限公司
+                      </motion.p>
+                    </div>
+                  </div>
 
                   <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: 80 }}
-                    transition={{ delay: 1.2, duration: 1 }}
-                    className="h-[2px] bg-gradient-to-r from-transparent via-yellow-500 to-transparent mx-auto mt-4"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: 1 }}
+                    transition={{ delay: 1.7, duration: 1.2, ease: "circOut" }}
+                    className="h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto w-3/4"
                   />
 
-                  <motion.p 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.4 }}
-                    className="text-white/60 text-sm leading-relaxed max-w-[340px] mx-auto font-light mt-4"
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 2.0 }}
+                    className="text-white/60 text-sm leading-loose max-w-[420px] mx-auto font-light"
                   >
-                    始于 2016，我们以匠心致初心。<br/>
-                    感恩八年同行，携手共筑品质工程。
-                  </motion.p>
+                    始于 2017，以匠心筑造时代丰碑。<br/>
+                    感恩八载同行，每一份托付，我们必全力以赴。
+                  </motion.div>
                 </div>
 
+                {/* 交互按钮：液态金动效 */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.7 }}
-                  className="mt-10"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 2.4, type: "spring" }}
+                  className="mt-16"
                 >
                   <button 
                     onClick={() => setShowAnniversary(false)}
-                    className="relative group px-14 py-4 bg-gradient-to-b from-[#FDE68A] to-[#D4AF37] text-[#4A0000] rounded-2xl font-black text-lg transition-all transform hover:scale-105 active:scale-95 shadow-[0_20px_50px_rgba(0,0,0,0.4)] hover:shadow-[0_25px_60px_rgba(212,175,55,0.4)] overflow-hidden"
+                    className="relative group px-16 py-5 rounded-2xl overflow-hidden transition-all transform hover:scale-[1.05] active:scale-[0.96]"
                   >
-                    <span className="relative z-10 flex items-center">
-                      共庆华章 <Sparkles size={20} className="ml-3 text-[#4A0000] animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] via-[#FDE68A] to-[#D4AF37] transition-all duration-500 group-hover:brightness-110 shadow-[0_20px_60px_rgba(212,175,55,0.4)]" />
+                    <span className="relative z-10 flex items-center text-[#4A0000] font-black text-2xl tracking-widest">
+                      携手共进 <Sparkles size={24} className="ml-4 animate-pulse" />
                     </span>
-                    <div className="absolute inset-0 bg-white/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    
+                    {/* 按钮微光扫过 */}
+                    <motion.div 
+                       animate={{ x: [-200, 400] }}
+                       transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                       className="absolute inset-0 w-24 h-full bg-white/40 skew-x-[-30deg] pointer-events-none"
+                    />
                   </button>
                 </motion.div>
               </div>
 
+              {/* 装饰细节：极细铂金双边框 */}
               <div className="absolute inset-6 border border-white/5 rounded-[3rem] pointer-events-none" />
+              <div className="absolute inset-8 border border-white/[0.03] rounded-[2.8rem] pointer-events-none" />
               
               <button 
                 onClick={() => setShowAnniversary(false)}
-                className="absolute top-8 right-8 p-3 text-white/30 hover:text-white transition-all z-20 hover:bg-white/10 rounded-full"
+                className="absolute top-10 right-10 p-3 text-white/30 hover:text-white/100 hover:bg-white/10 rounded-full transition-all z-30"
               >
-                <X size={24} />
+                <X size={32} strokeWidth={1.5} />
               </button>
             </motion.div>
           </div>
@@ -375,134 +466,6 @@ const Home: React.FC = () => {
                 </div>
               </motion.div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Process Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-           <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">{content.process.title}</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">{content.process.description}</p>
-           </div>
-           
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 relative">
-              <div className="hidden md:block absolute top-1/2 left-0 w-full h-1 bg-gray-100 -translate-y-1/2 z-0"></div>
-
-              {content.process.steps.map((item, i) => (
-                 <div key={i} className="relative z-10 bg-white p-6 rounded-xl border border-gray-100 text-center hover:border-primary transition-colors group">
-                    <div className="w-12 h-12 bg-gray-50 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4 font-bold text-xl group-hover:bg-primary group-hover:text-white transition-colors">
-                       0{i + 1}
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
-                    <p className="text-sm text-gray-500">{item.desc}</p>
-                 </div>
-              ))}
-           </div>
-        </div>
-      </section>
-
-      {/* Honors Section */}
-      <section className="py-24 bg-gray-900 text-white relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-           <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px]"></div>
-           <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-[100px]"></div>
-        </div>
-
-        <div className="container mx-auto px-6 relative z-10">
-          <div className="text-center mb-16">
-            <span className="inline-flex items-center px-3 py-1 rounded-full border border-white/20 bg-white/5 text-xs font-medium tracking-wider mb-4">
-              <Star size={12} className="mr-2 text-accent" /> 资质荣誉
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">实力见证 品质保障</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-               多年来，我们始终坚持高标准、严要求，获得了行业内多项权威认证与荣誉表彰。
-            </p>
-          </div>
-
-          <motion.div 
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-          >
-            {honors.map((honor) => (
-              <motion.div 
-                key={honor.id}
-                variants={fadeInUp}
-                className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-colors"
-              >
-                <div className="aspect-[3/4] overflow-hidden rounded-lg mb-6 relative">
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
-                  <img 
-                    src={honor.imageUrl} 
-                    alt={honor.title} 
-                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute bottom-3 left-3 z-20">
-                     <Award className="text-accent mb-1" size={24} />
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2 line-clamp-2 min-h-[3.5rem]">{honor.title}</h3>
-                <div className="flex justify-between items-center text-xs text-gray-400">
-                  <span>{honor.issuingAuthority}</span>
-                  <span>{honor.issueDate}</span>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Projects Section */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-16 max-w-3xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">精选案例展示</h2>
-            <p className="text-gray-500">
-              从市政公用到商业地产，我们以严谨的态度见证每一个地标的诞生。
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {projects.map((project, idx) => (
-              <motion.div 
-                key={project.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className={`group relative overflow-hidden rounded-2xl shadow-lg cursor-pointer ${idx === 0 ? 'md:col-span-2 aspect-[16/9]' : 'aspect-[4/3] md:aspect-auto'}`}
-              >
-                <div className="absolute inset-0 bg-gray-900 z-0">
-                   <img 
-                    src={project.imageUrl} 
-                    alt={project.title} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-90 group-hover:opacity-80 transition-opacity"></div>
-                
-                <div className="absolute bottom-0 left-0 p-8 w-full transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                  <div className="flex items-center space-x-2 text-accent text-xs font-bold uppercase tracking-wider mb-2">
-                    <span className="w-2 h-2 rounded-full bg-accent"></span>
-                    <span>{project.category}</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">{project.title}</h3>
-                  <p className="text-gray-300 text-sm line-clamp-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                    {project.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-             <Link to="/cases" className="inline-flex items-center justify-center px-8 py-3 border border-gray-200 text-gray-700 rounded-lg hover:border-primary hover:text-primary hover:bg-blue-50 transition-all font-medium">
-              浏览所有案例
-            </Link>
           </div>
         </div>
       </section>

@@ -94,18 +94,21 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       >
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
-            {/* Logo with Intelligent Contrast Filter */}
-            <Link to="/" className="flex items-center space-x-3 group min-w-[200px]">
+            {/* Split Logo with Adaptive Color */}
+            <Link to="/" className="flex items-center space-x-3 group">
+              {/* Graphic Logo - Always in color */}
               <img 
-                src={settings.logoUrl} 
+                src={settings.graphicLogoUrl} 
+                alt="Logo Graphic" 
+                className="h-9 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+              />
+              {/* Text Logo - Adaptive black/white */}
+              <img 
+                src={settings.textLogoUrl} 
                 alt={settings.siteName} 
-                className={`h-10 md:h-12 w-auto object-contain transition-all duration-500 ease-in-out ${
-                  isLightHeader ? 'brightness-0 opacity-90' : 'brightness-100'
+                className={`h-5 md:h-6 w-auto object-contain transition-all duration-500 ease-in-out ${
+                  isLightHeader ? 'brightness-0' : 'brightness-100'
                 }`}
-                style={{ 
-                  // 这种混合模式在白色 Logo 遇到白色背景时效果最佳
-                  // 但 brightness-0 是最稳妥的方案，它将 Logo 强制转为黑色
-                }}
               />
             </Link>
 
@@ -179,25 +182,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 >
                   立即咨询
                 </Link>
-                <div className="pt-4 border-t mt-2 text-left">
-                   <p className="px-4 text-xs text-gray-400 mb-2 font-bold uppercase">员工通道</p>
-                   <a
-                    href="http://106.14.157.201:8088/login"
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  >
-                    OA办公系统
-                  </a>
-                  <Link
-                    to="/admin/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block px-4 py-3 rounded-lg text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"
-                  >
-                    后台管理系统
-                  </Link>
-                </div>
               </div>
             </motion.div>
           )}
@@ -215,9 +199,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
                  <img 
-                    src={settings.logoUrl} 
+                    src={settings.graphicLogoUrl} 
+                    alt="Logo Graphic" 
+                    className="h-10 w-auto object-contain"
+                  />
+                  <img 
+                    src={settings.textLogoUrl} 
                     alt={settings.siteName} 
-                    className="h-10 w-auto object-contain brightness-0 invert"
+                    className="h-6 w-auto object-contain brightness-100"
                   />
               </div>
               <p className="text-gray-400 text-sm leading-7">

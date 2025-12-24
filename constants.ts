@@ -99,8 +99,6 @@ export const INITIAL_USERS: User[] = [
   }
 ];
 
-// ... existing constants ...
-
 export const INITIAL_NEWS: NewsItem[] = [
   {
     id: '1',
@@ -229,7 +227,7 @@ export const INITIAL_BRANCHES: Branch[] = [
 ];
 
 export const INITIAL_LINKS: NavigationLink[] = [
-  // 1. 政府监管平台
+  // ... existing links ...
   { id: '1', title: '江苏省住房和城乡建设厅', url: 'http://jsszfhcxjst.jiangsu.gov.cn/', category: '政府监管平台', description: '全省住建政策发布、企业资质查询、人员资格管理' },
   { id: '2', title: '盐城市住房和城乡建设局', url: 'http://zfhcxjsj.yancheng.gov.cn/', category: '政府监管平台', description: '本地住建政策、工程审批、市场监管、安全质量监督' },
   { id: '3', title: '江苏省公共资源交易网', url: 'http://jsggzy.jszwfw.gov.cn/', category: '政府监管平台', description: '全省工程招投标、政府采购、土地出让信息发布与交易' },
@@ -240,8 +238,6 @@ export const INITIAL_LINKS: NavigationLink[] = [
   { id: '8', title: '盐城市自然资源和规划局', url: 'http://zrzy.jiangsu.gov.cn/yc/', category: '政府监管平台', description: '土地出让、规划许可、不动产登记、地质勘察监管' },
   { id: '9', title: '江苏省建设工程质量监督网', url: 'http://www.jszljd.com', category: '政府监管平台', description: '工程质量监督、检测机构管理、质量事故通报' },
   { id: '10', title: '江苏省建设工程安全监督网', url: 'http://www.jscin.gov.cn/jsaj', category: '政府监管平台', description: '工程安全监管、安全生产许可证管理、安全事故通报' },
-
-  // 2. 招投标与采购平台
   { id: '11', title: '江苏建设工程招标网', url: 'http://www.jszb.com.cn/', category: '招投标与采购平台', description: '全省建设工程招投标信息发布、招标文件下载、中标公示' },
   { id: '12', title: '江苏政府采购网', url: 'http://www.ccgp-jiangsu.gov.cn/', category: '招投标与采购平台', description: '政府投资项目采购信息发布、采购文件下载、合同备案' },
   { id: '13', title: '盐城市建设工程招投标网', url: 'https://ycggzy.jszwfw.gov.cn/gb-web/#/login', category: '招投标与采购平台', description: '盐城市建设工程招投标信息发布、投标、开标、评标' },
@@ -252,8 +248,6 @@ export const INITIAL_LINKS: NavigationLink[] = [
   { id: '18', title: '中国通用招标网', url: 'https://www.china-tender.com.cn/', category: '招投标与采购平台', description: '工程、货物、服务招标代理，招投标全流程服务' },
   { id: '19', title: '江苏省水利工程建设招投标平台', url: 'https://jswater.jiangsu.gov.cn/col/col80020/', category: '招投标与采购平台', description: '全省水利工程招投标信息发布与监管' },
   { id: '20', title: '盐城市政府采购网', url: 'http://zfcg.yancheng.gov.cn/', category: '招投标与采购平台', description: '盐城市政府采购信息发布、采购文件下载、合同备案' },
-
-  // 3. 工程造价与材料信息
   { id: '21', title: '江苏省工程造价信息网', url: 'http://www.jszj.com.cn/', category: '工程造价与材料信息', description: '全省工程计价依据、材料价格信息、造价政策发布' },
   { id: '22', title: '盐城市工程造价信息网', url: 'https://www.costku.com/yancheng/', category: '工程造价与材料信息', description: '盐城市材料价格信息、工程造价政策、信息价查询下载' },
   { id: '23', title: '造价通(江苏站)', url: 'http://js.zjtcn.com', category: '工程造价与材料信息', description: '材料价格查询、询价、云造价服务、工程造价咨询' },
@@ -262,31 +256,23 @@ export const INITIAL_LINKS: NavigationLink[] = [
   { id: '26', title: '江苏省交通工程定额站', url: 'http://jtyst.jiangsu.gov.cn/', category: '工程造价与材料信息', description: '交通工程造价依据、公路水运工程材料价格发布' },
   { id: '27', title: '江苏省水利工程造价管理网', url: 'https://jswater.jiangsu.gov.cn/col/col80021/', category: '工程造价与材料信息', description: '水利工程造价依据、水利工程材料价格发布' },
   { id: '28', title: '江苏造价信息网(速得材价)', url: 'https://www.jszjxh.com/', category: '工程造价与材料信息', description: '全省材料价格查询系统、"速得"材价APP下载' },
-
-  // 4. 工程技术资料与标准
   { id: '29', title: '建标知网', url: 'https://www.kscecs.com/', category: '工程技术资料与标准', description: '工程建设法律法规、标准规范检索、在线阅读、下载' },
   { id: '30', title: '中国建筑标准设计研究院', url: 'http://www.cbsd.cn/', category: '工程技术资料与标准', description: '国家标准图集、设计规范、施工标准发布与下载' },
   { id: '31', title: '江苏省工程建设标准网', url: 'https://pan.clooo.cn/', category: '工程技术资料与标准', description: '江苏省工程建设地方标准发布、下载、查询' },
   { id: '32', title: '筑龙网', url: 'https://www.zhulong.com/', category: '工程技术资料与标准', description: '工程资料下载、施工方案、技术交底、行业论坛交流' },
   { id: '33', title: '建库网', url: 'https://www.jianku.com/', category: '工程技术资料与标准', description: '建筑图纸、设计方案、施工组织设计免费下载' },
   { id: '34', title: '中国建筑技术网', url: 'https://www.building.hc360.com/', category: '工程技术资料与标准', description: '建筑技术资料、施工工艺、工程案例、技术标准查询' },
-
-  // 5. BIM与工程技术应用
   { id: '35', title: '中国BIM门户', url: 'https://www.bimcn.org/', category: 'BIM与工程技术应用', description: 'BIM技术资讯、软件教程、应用案例、行业标准发布' },
   { id: '36', title: 'BIM建筑网', url: 'https://www.bimii.com/', category: 'BIM与工程技术应用', description: 'BIM技术推广、软件培训、项目咨询、行业交流平台' },
   { id: '37', title: '广联达BIM平台', url: 'https://bim.glodon.com/', category: 'BIM与工程技术应用', description: 'BIM软件下载、培训、项目协同、造价一体化解决方案' },
   { id: '38', title: '鲁班工程管理数字平台', url: 'https://www.luban.com/', category: 'BIM与工程技术应用', description: 'BIM模型管理、施工模拟、碰撞检测、进度控制' },
   { id: '39', title: '万间云-BIM数字建造平台', url: 'https://www.vanjian.com/', category: 'BIM与工程技术应用', description: 'BIM+IoT全生命周期管理、智慧工地、数字孪生应用' },
-
-  // 6. 工程人才与企业服务
   { id: '40', title: '江苏建设人才网', url: 'https://www.jsjsrc.com/', category: '工程人才与企业服务', description: '建筑人才招聘、求职、培训、证书挂靠、猎头服务' },
   { id: '41', title: '盐城市建筑人才网', url: 'https://www.ycjsrc.com/', category: '工程人才与企业服务', description: '盐城市本地建筑人才招聘、求职信息发布' },
   { id: '42', title: '江苏省人才服务云平台', url: 'https://www.jssrcfwypt.org.cn/', category: '工程人才与企业服务', description: '全省建筑人才招聘、人事代理、职称评定服务' },
   { id: '43', title: '建筑英才网(江苏站)', url: 'https://www.buildhr.com/jiangsu/', category: '工程人才与企业服务', description: '建筑行业专业人才招聘、求职、人才测评服务' },
   { id: '44', title: '江苏省工程咨询中心', url: 'https://www.cnjecc.com/', category: '工程人才与企业服务', description: '工程咨询、造价咨询、招标代理、项目管理、评估咨询' },
   { id: '45', title: '江苏省规划设计集团', url: 'https://www.jspdg.com/', category: '工程人才与企业服务', description: '规划设计、建筑设计、市政设计、工程总承包服务' },
-
-  // 7. 工程管理与施工服务
   { id: '46', title: '乐建宝工程项目管理平台', url: 'https://www.gcb365.com/', category: '工程管理与施工服务', description: '施工项目管理、移动办公、智慧工地、劳务管理、数据分析' },
   { id: '47', title: '斗栱云工程管理系统', url: 'https://www.dougongyun.com/', category: '工程管理与施工服务', description: '建筑总包、装饰、电力工程全流程管理解决方案' },
   { id: '48', title: '筑云科技-BIMCC数字建造平台', url: 'https://www.bimcc.net/', category: '工程管理与施工服务', description: 'BIM+GIS+BIMVR多引擎技术、智慧工地、进度质量安全管理' },
@@ -355,6 +341,8 @@ export const INITIAL_TESTIMONIALS: Testimonial[] = [
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   siteName: '江苏盐韵工程项目管理有限公司',
   logoUrl: 'https://placehold.co/538x96/2C388B/ffffff?text=Jiangsu+Yanyun',
+  graphicLogoUrl: 'https://placehold.co/100x100/2C388B/ffffff?text=YY', // 默认占位符
+  textLogoUrl: 'https://placehold.co/400x100/ffffff/000000?text=江苏盐韵工程项目管理', // 默认白色
   themeColor: '#2C388B',
   contactPhone: '0515-88888888',
   contactEmail: 'info@yanyun.com',
@@ -376,7 +364,7 @@ export const INITIAL_PAGE_CONTENT: PageContent = {
     news: { title: '新闻动态', subtitle: '关注盐韵动态，了解行业资讯', backgroundImage: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070&auto=format&fit=crop' },
     branches: { title: '分支机构', subtitle: '服务网络覆盖全省，快速响应客户需求', backgroundImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop' },
     contact: { title: '联系我们', subtitle: '期待与您的合作，共创美好未来', backgroundImage: 'https://images.unsplash.com/photo-1423666639041-f56000c27a9a?q=80&w=2074&auto=format&fit=crop' },
-    navigation: { title: '行业资源导航', subtitle: '汇集权威网站，助您快速获取行业政策与商机', backgroundImage: '' }, // Nav page often has custom header or simple one
+    navigation: { title: '行业资源导航', subtitle: '汇集权威网站，助您快速获取行业政策与商机', backgroundImage: '' }, 
   },
   home: {
     hero: {
