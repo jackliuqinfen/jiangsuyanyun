@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Save, CheckCircle2 } from 'lucide-react';
+import { Save, CheckCircle2, Eye } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { SiteSettings } from '../../types';
 import ImageUpload from '../../components/ImageUpload';
@@ -48,6 +48,29 @@ const Settings: React.FC = () => {
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
           <h2 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">视觉识别系统 (Logo 分离)</h2>
           
+          {/* Logo Combination Live Preview */}
+          <div className="mb-10 bg-gray-950 p-8 rounded-2xl relative overflow-hidden group">
+             <div className="absolute top-4 left-4 flex items-center gap-2 text-white/40 text-[10px] uppercase font-bold tracking-widest">
+                <Eye size={12} /> 实时组合预览 (深色模式)
+             </div>
+             <div className="flex items-center justify-center space-x-4 h-16 md:h-20 border border-white/5 rounded-xl bg-white/[0.02]">
+                {settings.graphicLogoUrl ? (
+                  <img src={settings.graphicLogoUrl} alt="G-Logo" className="h-full w-auto object-contain" />
+                ) : (
+                  <div className="h-12 w-12 bg-white/10 rounded-full animate-pulse" />
+                )}
+                
+                {settings.textLogoUrl ? (
+                  <img src={settings.textLogoUrl} alt="T-Logo" className="h-[60%] w-auto object-contain brightness-100" />
+                ) : (
+                  <div className="h-6 w-32 bg-white/10 rounded-lg animate-pulse" />
+                )}
+             </div>
+             <p className="mt-4 text-center text-white/30 text-xs italic">
+                光学平衡算法已启用：文字部分自动按 65% 比例缩放并垂直居中。
+             </p>
+          </div>
+
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-6">
@@ -93,7 +116,7 @@ const Settings: React.FC = () => {
                  />
                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                     <p className="text-xs text-gray-500 leading-relaxed italic">
-                      提示：图形 Logo 通常是您的品牌徽标。
+                      提示：建议上传正方形或比例接近 1:1 的图形徽标。
                     </p>
                  </div>
               </div>
@@ -110,7 +133,7 @@ const Settings: React.FC = () => {
                   <h4 className="text-sm font-bold text-primary mb-1">智能变色说明：</h4>
                   <p className="text-xs text-blue-700 leading-relaxed">
                     为了确保最佳视觉效果，请务必上传<b>纯白色且背景透明</b>的文本部分。
-                    系统在深色背景下将显示原色（白色），在白色背景下会自动将其渲染为黑色。
+                    系统在深色背景下将显示原色（白色），在白色背景下会自动将其渲染为黑色（反色处理）。
                   </p>
                </div>
             </div>

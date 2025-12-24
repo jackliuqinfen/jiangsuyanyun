@@ -94,19 +94,19 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       >
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
-            {/* Split Logo with Adaptive Color */}
-            <Link to="/" className="flex items-center space-x-3 group">
-              {/* Graphic Logo - Always in color */}
+            {/* Split Logo with Adaptive Color & Optical Balance */}
+            <Link to="/" className="flex items-center space-x-2 md:space-x-3 group h-10 md:h-12">
+              {/* Graphic Logo - 100% Height of container */}
               <img 
                 src={settings.graphicLogoUrl} 
                 alt="Logo Graphic" 
-                className="h-9 md:h-11 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                className="h-full w-auto object-contain transition-transform duration-300 group-hover:scale-105"
               />
-              {/* Text Logo - Adaptive black/white */}
+              {/* Text Logo - Optically balanced (approx 65% of graphic height) */}
               <img 
                 src={settings.textLogoUrl} 
                 alt={settings.siteName} 
-                className={`h-5 md:h-6 w-auto object-contain transition-all duration-500 ease-in-out ${
+                className={`h-[60%] md:h-[65%] w-auto object-contain transition-all duration-500 ease-in-out ${
                   isLightHeader ? 'brightness-0' : 'brightness-100'
                 }`}
               />
@@ -197,16 +197,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
             <div className="space-y-6">
-              <div className="flex items-center space-x-3">
+              {/* Footer Logo Optical Balance */}
+              <div className="flex items-center space-x-2 md:space-x-3 h-10 md:h-12">
                  <img 
                     src={settings.graphicLogoUrl} 
                     alt="Logo Graphic" 
-                    className="h-10 w-auto object-contain"
+                    className="h-full w-auto object-contain"
                   />
                   <img 
                     src={settings.textLogoUrl} 
                     alt={settings.siteName} 
-                    className="h-6 w-auto object-contain brightness-100"
+                    className="h-[60%] md:h-[65%] w-auto object-contain brightness-100"
                   />
               </div>
               <p className="text-gray-400 text-sm leading-7">
