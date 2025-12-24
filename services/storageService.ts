@@ -85,7 +85,18 @@ const initStorage = () => {
   safeInit(KEYS.PARTNERS, INITIAL_PARTNERS);
   safeInit(KEYS.HONORS, INITIAL_HONORS);
   safeInit(KEYS.HONOR_CATEGORIES, INITIAL_HONOR_CATEGORIES);
-  safeInit(KEYS.SETTINGS, DEFAULT_SITE_SETTINGS);
+  
+  // Special Handling for Settings to ensure Anniversary is enabled
+  const storedSettings = localStorage.getItem(KEYS.SETTINGS);
+  if (storedSettings) {
+    const parsed = JSON.parse(storedSettings);
+    // Force enableAnniversary to true for this update
+    const merged = { ...DEFAULT_SITE_SETTINGS, ...parsed, enableAnniversary: true };
+    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(merged));
+  } else {
+    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SITE_SETTINGS));
+  }
+
   safeInit(KEYS.ROLES, INITIAL_ROLES);
   safeInit(KEYS.USERS, INITIAL_USERS);
   safeInit(KEYS.MEDIA, INITIAL_MEDIA);

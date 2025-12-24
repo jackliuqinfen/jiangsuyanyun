@@ -1,138 +1,46 @@
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as THREE from 'three';
+import { X, ChevronRight, Gift, Award } from 'lucide-react';
 import { storageService } from '../services/storageService';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// --- Visual Components ---
-
-// 1. Firework Particle Engine (Enhanced for "Delicate" & "Many" effect)
-const FireworkParticle: React.FC<{ delay: number; x: string; y: string; color: string }> = ({ delay, x, y, color }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-    animate={{
-      opacity: [0, 1, 1, 0],
-      scale: [0, 1, 0.8, 0.5],
-      x: [0, (Math.random() - 0.5) * 300], // Increased spread
-      y: [0, (Math.random() - 0.5) * 300],
-    }}
-    transition={{
-      duration: 2,
-      delay: delay,
-      ease: "easeOut",
-      repeat: Infinity,
-      repeatDelay: Math.random() * 2 // More frequent repeats
-    }}
-    style={{ left: x, top: y, backgroundColor: color, boxShadow: `0 0 10px 2px ${color}` }}
-    className="absolute w-1 h-1 md:w-1.5 md:h-1.5 rounded-full"
-  />
-);
-
-const BackgroundFireworks = () => {
-  // Increased burst count significantly
-  const bursts = Array.from({ length: 15 }).map((_, i) => ({
-    id: i,
-    x: `${Math.random() * 90 + 5}%`,
-    y: `${Math.random() * 90 + 5}%`,
-    color: ['#FBBF24', '#F472B6', '#60A5FA', '#34D399', '#A78BFA', '#FB7185'][Math.floor(Math.random() * 6)],
-    delay: Math.random() * 3
-  }));
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {bursts.map(burst => (
-        <div key={burst.id} className="absolute" style={{ left: burst.x, top: burst.y }}>
-           {/* More particles per burst */}
-           {Array.from({ length: 16 }).map((_, i) => (
-             <FireworkParticle key={i} delay={burst.delay} x="0" y="0" color={burst.color} />
-           ))}
-        </div>
-      ))}
-    </div>
-  );
-};
-
-// 2. Liquid Glowing "8" SVG Component
-const LiquidEight = () => {
-  const pathVariants = {
-    hidden: { pathLength: 0, opacity: 0 },
-    visible: { 
-      pathLength: 1, 
-      opacity: 1,
-      transition: { 
-        duration: 3, 
-        ease: "easeInOut",
-        repeat: Infinity,
-        repeatType: "reverse" as const
-      } 
-    }
-  };
-
-  return (
-    <div className="relative w-48 h-48 flex items-center justify-center">
-      {/* Background Glow */}
-      <div className="absolute inset-0 bg-amber-500/30 blur-[80px] rounded-full animate-pulse"></div>
-      
-      <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]" style={{ overflow: 'visible' }}>
-        <defs>
-          <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#FDE68A" />
-            <stop offset="50%" stopColor="#F59E0B" />
-            <stop offset="100%" stopColor="#FFF" />
-          </linearGradient>
-        </defs>
-        
-        {/* The Figure 8 Path - Infinite Loop Shape */}
-        <motion.path
-          d="M50 75 C 80 75, 90 40, 50 40 C 10 40, 20 75, 50 75 C 80 75, 90 110, 50 110 C 10 110, 20 75, 50 75 Z"
-          fill="none"
-          stroke="url(#goldGradient)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          variants={pathVariants}
-          initial="hidden"
-          animate="visible"
-        />
-        
-        {/* Shine Overlay */}
-        <motion.path
-          d="M50 75 C 80 75, 90 40, 50 40 C 10 40, 20 75, 50 75 C 80 75, 90 110, 50 110 C 10 110, 20 75, 50 75 Z"
-          fill="none"
-          stroke="white"
-          strokeWidth="2"
-          strokeOpacity="0.8"
-          initial={{ pathLength: 0, opacity: 0, strokeDashoffset: 100 }}
-          animate={{ pathLength: 0.3, opacity: 1, strokeDashoffset: 0 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        />
-      </svg>
-    </div>
-  );
-};
-
-// --- Main Component ---
+// Cast motion component for TS
+const MotionDiv = motion.div as any;
+const MotionH1 = motion.h1 as any;
+const MotionP = motion.p as any;
+const MotionButton = motion.button as any;
 
 const AnniversaryPopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const frameIdRef = useRef<number>(0);
+  
+  // Fireworks System
+  const fireworksRef = useRef<any[]>([]);
+  const particlesRef = useRef<THREE.Points | null>(null);
+
+  // Unique session key
+  const SESSION_KEY = 'yanyun_anniversary_oriental_v8';
 
   useEffect(() => {
-    // 1. Check initial state
     const currentSettings = storageService.getSettings();
-    const hasSeen = sessionStorage.getItem('yanyun_anniversary_seen');
+    const hasSeen = sessionStorage.getItem(SESSION_KEY);
+    
     if (currentSettings.enableAnniversary && !hasSeen) {
-       setTimeout(() => setIsOpen(true), 1000);
+       const timer = setTimeout(() => setIsOpen(true), 1500); 
+       return () => clearTimeout(timer);
     }
 
-    // 2. Listen for settings updates (Real-time Preview)
     const handleSettingsChange = () => {
        const newSettings = storageService.getSettings();
-       
        if (newSettings.enableAnniversary) {
-          // If toggled ON, force show it (reset seen status for preview)
-          sessionStorage.removeItem('yanyun_anniversary_seen');
+          sessionStorage.removeItem(SESSION_KEY);
           setIsOpen(true);
        } else {
-          // If toggled OFF, close immediately
           setIsOpen(false);
        }
     };
@@ -141,98 +49,376 @@ const AnniversaryPopup: React.FC = () => {
     return () => window.removeEventListener('settingsChanged', handleSettingsChange);
   }, []);
 
+  useEffect(() => {
+    if (!isOpen || !containerRef.current) return;
+
+    // --- THREE.JS SETUP ---
+    const scene = new THREE.Scene();
+    // Background: Deep red/dark blend for Chinese celebration vibe
+    scene.fog = new THREE.FogExp2(0x1a0505, 0.002); 
+    sceneRef.current = scene;
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+    camera.position.set(0, 0, 100);
+    camera.lookAt(0, 0, 0);
+    cameraRef.current = camera;
+
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x000000, 0); 
+    containerRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+
+    // --- TEXTURES ---
+    const getParticleTexture = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 32;
+        canvas.height = 32;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16);
+            grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            grad.addColorStop(0.4, 'rgba(255, 230, 200, 0.6)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 32, 32);
+        }
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+    };
+    const particleTexture = getParticleTexture();
+
+    // --- 1. AMBIENT PARTICLES (Rising Gold Dust) ---
+    const dustCount = 200;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPos = [];
+    const dustSpeeds = [];
+    
+    for(let i=0; i<dustCount; i++) {
+        dustPos.push((Math.random() - 0.5) * 300);
+        dustPos.push((Math.random() - 0.5) * 200);
+        dustPos.push((Math.random() - 0.5) * 150);
+        dustSpeeds.push(0.02 + Math.random() * 0.05);
+    }
+    dustGeo.setAttribute('position', new THREE.Float32BufferAttribute(dustPos, 3));
+    
+    const dustMat = new THREE.PointsMaterial({
+        color: 0xFFD700, // Gold
+        size: 1.5,
+        map: particleTexture,
+        transparent: true,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+    const dustSystem = new THREE.Points(dustGeo, dustMat);
+    scene.add(dustSystem);
+    particlesRef.current = dustSystem;
+
+    // --- 2. FIREWORKS ENGINE ---
+    const createFirework = () => {
+        const x = (Math.random() - 0.5) * 160;
+        const y = -80;
+        const targetY = 10 + Math.random() * 40;
+        
+        // Colors: Luxury Gold, Chinese Red, Pure White
+        const colors = [
+            new THREE.Color(0xFFD700), // Gold
+            new THREE.Color(0xFFCC00), // Light Gold
+            new THREE.Color(0xD93025), // Festive Red
+            new THREE.Color(0xFFFFFF), // Sparkle White
+        ];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([x, y, 0]), 3));
+        
+        const material = new THREE.PointsMaterial({
+            size: 4, // Larger start
+            color: color,
+            map: particleTexture,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 1
+        });
+
+        const points = new THREE.Points(geometry, material);
+        scene.add(points);
+
+        return {
+            mesh: points,
+            phase: 'launch',
+            velocity: new THREE.Vector3(0, 1.8 + Math.random() * 0.5, 0),
+            targetY: targetY,
+            color: color,
+            age: 0,
+            velocities: [] as any[]
+        };
+    };
+
+    const explodeFirework = (fw: any) => {
+        scene.remove(fw.mesh);
+        fw.mesh.geometry.dispose();
+        
+        const particleCount = 100 + Math.floor(Math.random() * 50);
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const launchPos = fw.mesh.geometry.attributes.position.array;
+        
+        const velocities = [];
+
+        for(let i=0; i<particleCount; i++) {
+            positions[i*3] = launchPos[0];
+            positions[i*3+1] = launchPos[1];
+            positions[i*3+2] = launchPos[2];
+
+            // Explosion pattern: Sphere
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos((Math.random() * 2) - 1);
+            const speed = 0.5 + Math.random() * 1.0;
+            
+            velocities.push({
+                x: speed * Math.sin(phi) * Math.cos(theta),
+                y: speed * Math.sin(phi) * Math.sin(theta),
+                z: speed * Math.cos(phi)
+            });
+        }
+
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const mat = new THREE.PointsMaterial({
+            size: 3,
+            color: fw.color,
+            map: particleTexture,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 1
+        });
+
+        const explosionMesh = new THREE.Points(geo, mat);
+        scene.add(explosionMesh);
+
+        fw.mesh = explosionMesh;
+        fw.phase = 'explode';
+        fw.velocities = velocities;
+        fw.age = 0;
+    };
+
+    // --- ANIMATION LOOP ---
+    let frameCount = 0;
+    const animate = () => {
+        frameIdRef.current = requestAnimationFrame(animate);
+        frameCount++;
+
+        if (frameCount % 50 === 0 && fireworksRef.current.length < 8) {
+            fireworksRef.current.push(createFirework());
+        }
+
+        // Ambient Particles Rising
+        if (particlesRef.current) {
+            const positions = particlesRef.current.geometry.attributes.position.array as Float32Array;
+            for(let i=0; i<dustCount; i++) {
+                positions[i*3+1] += dustSpeeds[i];
+                if (positions[i*3+1] > 80) positions[i*3+1] = -80;
+            }
+            particlesRef.current.geometry.attributes.position.needsUpdate = true;
+        }
+
+        // Fireworks Update
+        for (let i = fireworksRef.current.length - 1; i >= 0; i--) {
+            const fw = fireworksRef.current[i];
+
+            if (fw.phase === 'launch') {
+                const positions = fw.mesh.geometry.attributes.position.array;
+                positions[1] += fw.velocity.y;
+                fw.velocity.y *= 0.96; // Drag
+                fw.mesh.geometry.attributes.position.needsUpdate = true;
+
+                if (positions[1] >= fw.targetY || fw.velocity.y < 0.2) {
+                    explodeFirework(fw);
+                }
+            } else if (fw.phase === 'explode') {
+                fw.age++;
+                const positions = fw.mesh.geometry.attributes.position.array;
+                
+                for(let j=0; j<fw.velocities.length; j++) {
+                    positions[j*3] += fw.velocities[j].x;
+                    positions[j*3+1] += fw.velocities[j].y;
+                    positions[j*3+2] += fw.velocities[j].z;
+                    
+                    fw.velocities[j].y -= 0.015; // Gravity
+                    fw.velocities[j].x *= 0.94; // Air resistance
+                    fw.velocities[j].y *= 0.94;
+                    fw.velocities[j].z *= 0.94;
+                }
+                fw.mesh.geometry.attributes.position.needsUpdate = true;
+                
+                // Fade out
+                fw.mesh.material.opacity = Math.max(0, 1 - (fw.age / 90));
+                fw.mesh.material.size *= 0.98;
+
+                if (fw.age > 90) {
+                    scene.remove(fw.mesh);
+                    fw.mesh.geometry.dispose();
+                    fw.mesh.material.dispose();
+                    fireworksRef.current.splice(i, 1);
+                }
+            }
+        }
+
+        renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+        window.removeEventListener('resize', handleResize);
+        cancelAnimationFrame(frameIdRef.current);
+        if (rendererRef.current) {
+            rendererRef.current.dispose();
+            containerRef.current?.removeChild(rendererRef.current.domElement);
+        }
+    };
+  }, [isOpen]);
+
   const handleClose = () => {
     setIsOpen(false);
-    sessionStorage.setItem('yanyun_anniversary_seen', 'true');
+    sessionStorage.setItem(SESSION_KEY, 'true');
   };
+
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          {/* 1. Backdrop with heavy blur and particles */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
-            className="absolute inset-0 bg-gray-900/90 backdrop-blur-lg"
-            onClick={handleClose}
-          >
-             <BackgroundFireworks />
-          </motion.div>
+      <MotionDiv 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.8 }}
+          className="fixed inset-0 z-[9999] overflow-hidden flex items-center justify-center font-sans"
+          style={{ 
+              background: 'radial-gradient(circle at center, #2b0a0a 0%, #000000 100%)' 
+          }}
+      >
+        {/* Background Animation */}
+        <div ref={containerRef} className="absolute inset-0 pointer-events-none z-0" />
+        
+        {/* Main Card */}
+        <MotionDiv 
+            initial={{ scale: 0.85, opacity: 0, y: 40 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 40 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.2 }}
+            className="relative z-10 w-[90%] max-w-[480px]"
+        >
+           {/* Card Container: Deep Blur Glass with Red Glow */}
+           <div className="absolute inset-0 bg-red-950/40 backdrop-blur-3xl rounded-3xl border border-white/10 shadow-[0_0_60px_-15px_rgba(220,38,38,0.3)]"></div>
+           
+           {/* Decorative Border (Double Line - Premium Print Style) */}
+           <div className="absolute inset-3 border border-yellow-500/30 rounded-2xl pointer-events-none"></div>
+           <div className="absolute inset-4 border border-dashed border-yellow-500/10 rounded-xl pointer-events-none"></div>
 
-          {/* 2. Main Card */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 100, rotateX: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
-            exit={{ scale: 0.5, opacity: 0, y: -100 }}
-            transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.2 }}
-            className="relative z-10 w-full max-w-md bg-black/40 backdrop-blur-2xl border border-white/10 rounded-[3rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
-          >
-             {/* Gradient Borders */}
-             <div className="absolute inset-0 rounded-[3rem] border border-transparent [mask:linear-gradient(#fff_0_0) padding-box,linear-gradient(#fff_0_0)]" style={{ background: 'linear-gradient(135deg, rgba(251,191,36,0.5), transparent, rgba(251,191,36,0.2)) border-box' }}></div>
-
-             {/* Close Button */}
-             <button 
-                onClick={handleClose}
-                className="absolute top-6 right-6 z-20 text-white/50 hover:text-white transition-colors bg-white/5 hover:bg-white/10 p-2 rounded-full backdrop-blur-md"
-             >
-                <X size={24} />
-             </button>
-
-             <div className="relative z-10 px-8 py-12 flex flex-col items-center text-center">
+           {/* Inner Content */}
+           <div className="relative p-10 text-center flex flex-col items-center">
                 
-                {/* Hero Graphic */}
-                <motion.div 
-                   initial={{ scale: 0, rotate: -180 }}
-                   animate={{ scale: 1, rotate: 0 }}
-                   transition={{ type: "spring", duration: 1.5, bounce: 0.5 }}
-                   className="mb-8"
+                {/* Top Badge */}
+                <MotionDiv 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-red-800/50 to-red-900/50 border border-yellow-500/30 mb-8"
                 >
-                   <LiquidEight />
-                </motion.div>
+                    <Award size={14} className="text-yellow-400" />
+                    <span className="text-xs font-bold text-yellow-100 tracking-widest">2017 - 2025</span>
+                </MotionDiv>
 
-                {/* Text Content */}
-                <motion.div
-                   initial={{ opacity: 0, y: 20 }}
-                   animate={{ opacity: 1, y: 0 }}
-                   transition={{ delay: 0.6, duration: 0.8 }}
-                >
-                   <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase tracking-widest mb-6 shadow-glow">
-                      <Sparkles size={12} className="fill-current" /> Anniversary Celebration
-                   </div>
-                   
-                   <h2 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter drop-shadow-lg">
-                      辉煌八载 <br/> 
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600">感恩同行</span>
-                   </h2>
-                   
-                   <p className="text-gray-300 text-base leading-relaxed mb-10 max-w-xs mx-auto font-medium">
-                      从 2017 到 2025，每一个里程碑都凝聚着您的信任。
-                   </p>
-                </motion.div>
+                {/* The "8" Composition */}
+                <div className="relative mb-6 w-full flex justify-center items-center py-4">
+                    {/* Glowing Aura behind number */}
+                    <div className="absolute w-40 h-40 bg-yellow-600/20 blur-[50px] rounded-full animate-pulse"></div>
+                    
+                    <MotionH1 
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: 'spring', damping: 12, stiffness: 100, delay: 0.4 }}
+                        className="text-[160px] leading-none font-serif font-medium relative z-10"
+                        style={{ 
+                            background: 'linear-gradient(180deg, #FFF8E7 0%, #FFD700 45%, #E6B800 100%)',
+                            WebkitBackgroundClip: 'text',
+                            WebkitTextFillColor: 'transparent',
+                            filter: 'drop-shadow(0 10px 30px rgba(255, 215, 0, 0.2))'
+                        }}
+                    >
+                        8
+                    </MotionH1>
+                    
+                    {/* Floating Text Overlay */}
+                    <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="absolute bottom-6 right-[15%] bg-red-600 text-white text-xs font-bold px-3 py-1 rounded shadow-lg border border-red-400 rotate-[-5deg]"
+                    >
+                        周年庆典
+                    </motion.div>
+                </div>
+
+                {/* Headings - Chinese Typography */}
+                <div className="space-y-3 mb-10">
+                    <MotionH1 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="text-3xl font-serif font-bold text-white tracking-widest"
+                    >
+                        辉煌八载 · 智绘未来
+                    </MotionH1>
+                    
+                    <MotionP 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.8 }}
+                        className="text-sm text-yellow-100/60 font-light tracking-wider"
+                    >
+                        感恩一路同行，共鉴品质工程
+                    </MotionP>
+                </div>
+
+                {/* Divider */}
+                <div className="w-16 h-0.5 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent mb-10"></div>
 
                 {/* CTA Button */}
-                <motion.button
-                   initial={{ opacity: 0, scale: 0.9 }}
-                   animate={{ opacity: 1, scale: 1 }}
-                   transition={{ delay: 0.9, type: "spring" }}
-                   whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(245,158,11,0.6)" }}
-                   whileTap={{ scale: 0.95 }}
-                   onClick={handleClose}
-                   className="group relative w-full py-4 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-2xl font-bold text-white shadow-2xl shadow-amber-500/30 overflow-hidden text-lg"
+                <MotionButton
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleClose}
+                    className="group relative w-full py-3.5 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white rounded-xl shadow-lg shadow-yellow-900/40 overflow-hidden"
                 >
-                   <span className="relative z-10 flex items-center justify-center gap-2">
-                      开启新篇章 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform"/>
-                   </span>
-                   {/* Shimmer Effect */}
-                   <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-[-20deg]"></div>
-                </motion.button>
-             </div>
-          </motion.div>
-        </div>
-      )}
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <span className="relative flex items-center justify-center gap-2 font-bold tracking-[0.2em] text-sm">
+                        <Gift size={16} /> 开启新篇章
+                    </span>
+                </MotionButton>
+
+                {/* Close Button */}
+                <button 
+                    onClick={handleClose}
+                    className="absolute top-5 right-5 p-2 text-white/30 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                >
+                    <X size={20} />
+                </button>
+           </div>
+        </MotionDiv>
+      </MotionDiv>
     </AnimatePresence>
   );
 };
