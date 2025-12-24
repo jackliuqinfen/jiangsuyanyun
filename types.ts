@@ -1,6 +1,6 @@
 
 export enum UserRole {
-  ADMIN = 'ADMIN', // Legacy support
+  ADMIN = 'ADMIN',
 }
 
 export type ResourceType = 
@@ -16,11 +16,11 @@ export type ResourceType =
   | 'navigation'
   | 'team'
   | 'history'
-  | 'pages'; // For generic page content
+  | 'pages';
 
 export interface Permission {
   read: boolean;
-  write: boolean; // Create and Update
+  write: boolean;
   delete: boolean;
 }
 
@@ -28,7 +28,7 @@ export interface Role {
   id: string;
   name: string;
   description: string;
-  isSystem?: boolean; // If true, cannot be deleted (e.g., Super Admin)
+  isSystem?: boolean;
   permissions: Record<ResourceType, Permission>;
 }
 
@@ -36,7 +36,7 @@ export interface User {
   id: string;
   username: string;
   name: string;
-  roleId: string; // Links to Role
+  roleId: string;
   avatar?: string;
   lastLogin?: string;
 }
@@ -90,7 +90,7 @@ export interface NavigationLink {
 }
 
 export interface HistoryEvent {
-  id: string; // Added ID for CRUD
+  id: string;
   year: string;
   title: string;
   description: string;
@@ -120,18 +120,7 @@ export interface Honor {
   imageUrl: string;
 }
 
-export interface SiteSettings {
-  siteName: string;
-  logoUrl: string;
-  graphicLogoUrl: string; // 图形 Logo
-  textLogoUrl: string;    // 文本 Logo
-  themeColor: string; // Hex code
-  contactPhone: string;
-  contactEmail: string;
-  contactAddress: string;
-  copyrightText: string;
-}
-
+// Added missing Testimonial interface to match constants.ts exports
 export interface Testimonial {
   id: string;
   content: string;
@@ -139,6 +128,18 @@ export interface Testimonial {
   position: string;
   company: string;
   avatarUrl: string;
+}
+
+export interface SiteSettings {
+  siteName: string;
+  logoUrl: string;
+  graphicLogoUrl: string;
+  textLogoUrl: string;
+  themeColor: string;
+  contactPhone: string;
+  contactEmail: string;
+  contactAddress: string;
+  copyrightText: string;
 }
 
 export interface MediaItem {
@@ -151,20 +152,13 @@ export interface MediaItem {
   size?: string;
 }
 
-export interface FAQItem {
-  q: string;
-  a: string;
-}
-
-// Global Content Structure
-export interface PageHeaderConfig {
-  title: string;
-  subtitle: string;
-  backgroundImage: string;
+export interface MediaCategory {
+  id: string;
+  name: string;
+  count: number;
 }
 
 export interface PageContent {
-  // Headers for all subpages
   headers: {
     about: PageHeaderConfig;
     services: PageHeaderConfig;
@@ -174,7 +168,6 @@ export interface PageContent {
     contact: PageHeaderConfig;
     navigation: PageHeaderConfig;
   };
-  // Home Page Specifics
   home: {
     hero: {
       badge: string;
@@ -192,14 +185,13 @@ export interface PageContent {
     process: {
       title: string;
       description: string;
-      steps: { title: string; desc: string }[]; // Array of 4
+      steps: { title: string; desc: string }[];
     };
     cta: {
       title: string;
       description: string;
     };
   };
-  // About Page Specifics
   about: {
     intro: {
       title: string;
@@ -213,9 +205,14 @@ export interface PageContent {
       management: string;
     };
   };
-  // Services Page Specifics
   services: {
-    introStats: { icon: string; label: string; desc: string }[]; // Array of 4
-    faqs: FAQItem[];
+    introStats: { icon: string; label: string; desc: string }[];
+    faqs: { q: string; a: string }[];
   };
+}
+
+export interface PageHeaderConfig {
+  title: string;
+  subtitle: string;
+  backgroundImage: string;
 }

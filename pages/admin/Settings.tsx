@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Save, CheckCircle2, Eye } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { SiteSettings } from '../../types';
-import ImageUpload from '../../components/ImageUpload';
+import MediaSelector from '../../components/MediaSelector';
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
@@ -12,14 +12,6 @@ const Settings: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setSettings(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleGraphicLogoChange = (base64: string) => {
-    setSettings(prev => ({ ...prev, graphicLogoUrl: base64 }));
-  };
-
-  const handleTextLogoChange = (base64: string) => {
-    setSettings(prev => ({ ...prev, textLogoUrl: base64 }));
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -34,168 +26,57 @@ const Settings: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
            <h1 className="text-2xl font-bold text-gray-800">全局系统设置</h1>
-           <p className="text-gray-500 text-sm mt-1">配置网站的基本信息、品牌标识及联系方式</p>
+           <p className="text-gray-500 text-sm mt-1">配置网站品牌标识及联系方式，集成全站媒体库</p>
         </div>
         {isSaved && (
-          <span className="text-green-600 font-medium flex items-center bg-green-50 px-3 py-1 rounded animate-in fade-in slide-in-from-top-2">
+          <span className="text-green-600 font-medium flex items-center bg-green-50 px-3 py-1 rounded">
              <CheckCircle2 size={16} className="mr-2"/> 保存成功
           </span>
         )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">
-        {/* Visual Identity */}
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">视觉识别系统 (Logo 分离)</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">品牌视觉识别 (Logo 系统)</h2>
           
-          {/* Logo Combination Live Preview */}
           <div className="mb-10 bg-gray-950 p-8 rounded-2xl relative overflow-hidden group">
              <div className="absolute top-4 left-4 flex items-center gap-2 text-white/40 text-[10px] uppercase font-bold tracking-widest">
-                <Eye size={12} /> 实时组合预览 (深色模式)
+                <Eye size={12} /> 实时组合预览 (Dark Mode Preview)
              </div>
              <div className="flex items-center justify-center space-x-4 h-16 md:h-20 border border-white/5 rounded-xl bg-white/[0.02]">
-                {settings.graphicLogoUrl ? (
-                  <img src={settings.graphicLogoUrl} alt="G-Logo" className="h-full w-auto object-contain" />
-                ) : (
-                  <div className="h-12 w-12 bg-white/10 rounded-full animate-pulse" />
-                )}
-                
-                {settings.textLogoUrl ? (
-                  <img src={settings.textLogoUrl} alt="T-Logo" className="h-[60%] w-auto object-contain brightness-100" />
-                ) : (
-                  <div className="h-6 w-32 bg-white/10 rounded-lg animate-pulse" />
-                )}
+                {settings.graphicLogoUrl ? <img src={settings.graphicLogoUrl} alt="G-Logo" className="h-full w-auto object-contain" /> : <div className="h-12 w-12 bg-white/10 rounded-full animate-pulse" />}
+                {settings.textLogoUrl ? <img src={settings.textLogoUrl} alt="T-Logo" className="h-[60%] w-auto object-contain brightness-100" /> : <div className="h-6 w-32 bg-white/10 rounded-lg animate-pulse" />}
              </div>
-             <p className="mt-4 text-center text-white/30 text-xs italic">
-                光学平衡算法已启用：文字部分自动按 65% 比例缩放并垂直居中。
-             </p>
           </div>
 
-          <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">网站名称</label>
-                  <input
-                    type="text"
-                    name="siteName"
-                    value={settings.siteName}
-                    onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-shadow"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">主题主色调</label>
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <input
-                        type="color"
-                        name="themeColor"
-                        value={settings.themeColor}
-                        onChange={handleChange}
-                        className="h-12 w-12 p-1 border border-gray-300 rounded-lg cursor-pointer"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      name="themeColor"
-                      value={settings.themeColor}
-                      onChange={handleChange}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none uppercase font-mono"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                 <ImageUpload 
-                    label="图形 Logo (始终保持彩色)" 
-                    value={settings.graphicLogoUrl} 
-                    onChange={handleGraphicLogoChange} 
-                 />
-                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-xs text-gray-500 leading-relaxed italic">
-                      提示：建议上传正方形或比例接近 1:1 的图形徽标。
-                    </p>
-                 </div>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+               <MediaSelector label="图形 Logo" value={settings.graphicLogoUrl} onChange={url => setSettings({...settings, graphicLogoUrl: url})} />
             </div>
-
-            <div className="grid grid-cols-1 gap-6 pt-6 border-t border-gray-100">
-               <ImageUpload 
-                  label="文本 Logo (上传白色，系统将根据背景自动反色)" 
-                  value={settings.textLogoUrl} 
-                  onChange={handleTextLogoChange} 
-                  className="max-w-md"
-               />
-               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                  <h4 className="text-sm font-bold text-primary mb-1">智能变色说明：</h4>
-                  <p className="text-xs text-blue-700 leading-relaxed">
-                    为了确保最佳视觉效果，请务必上传<b>纯白色且背景透明</b>的文本部分。
-                    系统在深色背景下将显示原色（白色），在白色背景下会自动将其渲染为黑色（反色处理）。
-                  </p>
-               </div>
+            <div className="space-y-6">
+               <MediaSelector label="文本 Logo (建议白色底透明背景)" value={settings.textLogoUrl} onChange={url => setSettings({...settings, textLogoUrl: url})} />
             </div>
           </div>
         </div>
 
-        {/* Contact Information */}
-        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">联系信息配置</h2>
-          
+        <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 space-y-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6 pb-4 border-b border-gray-100">基本信息</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">联系电话</label>
-              <input
-                type="text"
-                name="contactPhone"
-                value={settings.contactPhone}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-              />
+              <label className="block text-sm font-bold text-gray-700 mb-2">网站名称</label>
+              <input type="text" name="siteName" value={settings.siteName} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">联系邮箱</label>
-              <input
-                type="text"
-                name="contactEmail"
-                value={settings.contactEmail}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">公司地址</label>
-              <textarea
-                name="contactAddress"
-                rows={2}
-                value={settings.contactAddress}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none resize-none"
-              />
-            </div>
-             <div className="md:col-span-2">
-              <label className="block text-sm font-bold text-gray-700 mb-2">版权信息</label>
-              <input
-                type="text"
-                name="copyrightText"
-                value={settings.copyrightText}
-                onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none"
-              />
+              <label className="block text-sm font-bold text-gray-700 mb-2">联系电话</label>
+              <input type="text" name="contactPhone" value={settings.contactPhone} onChange={handleChange} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-primary" />
             </div>
           </div>
         </div>
 
         <div className="flex justify-end pt-4">
-          <button
-            type="submit"
-            className="flex items-center space-x-2 bg-primary text-white px-8 py-3 rounded-lg hover:bg-primary-dark transition-all transform hover:-translate-y-0.5 font-bold shadow-lg shadow-primary/30"
-            style={{ backgroundColor: settings.themeColor }}
-          >
+          <button type="submit" className="flex items-center space-x-2 bg-primary text-white px-10 py-4 rounded-xl hover:bg-primary-dark transition-all font-bold shadow-xl shadow-primary/30">
             <Save size={20} />
-            <span>保存全局更改</span>
+            <span>发布全局设置</span>
           </button>
         </div>
       </form>

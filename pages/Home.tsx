@@ -6,112 +6,166 @@ import { Link } from 'react-router-dom';
 import { storageService } from '../services/storageService';
 import { INITIAL_TESTIMONIALS } from '../constants';
 
-// --- 高级视觉：景深仿真烟花 (Bokeh Firework) ---
-const BokehFirework = ({ delay = 0, color = "#FFD700", size = "small" }) => {
-  const count = size === "large" ? 45 : 30;
-  const particles = useMemo(() => Array.from({ length: count }), [count]);
-  const [pos, setPos] = useState({ x: 50, y: 50 });
-  const isBlurry = useMemo(() => Math.random() > 0.4, []); 
-
-  useEffect(() => {
-    setPos({ x: 5 + Math.random() * 90, y: 10 + Math.random() * 60 });
-  }, []);
-
+// --- 极致细节：电影级噪点背景 (Cinematic Noise & Depth) ---
+const CinematicOverlay = () => {
   return (
-    <div className={`absolute ${isBlurry ? 'blur-[5px] opacity-30 scale-75' : 'z-10'}`} style={{ left: `${pos.x}%`, top: `${pos.y}%` }}>
-      {particles.map((_, i) => {
-        const angle = (i * (360 / count)) * (Math.PI / 180);
-        const distance = size === "large" ? 180 : 120;
-        const velocity = (distance * 0.8) + Math.random() * (distance * 0.4);
-        return (
-          <motion.div
-            key={i}
-            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-            animate={{
-              x: Math.cos(angle) * velocity,
-              y: Math.sin(angle) * velocity + 50, 
-              opacity: 0,
-              scale: [1, 1.8, 0]
-            }}
-            transition={{
-              duration: 3.5,
-              ease: [0.1, 0.8, 0.2, 1],
-              delay: delay,
-              repeat: Infinity,
-              repeatDelay: 2 + Math.random() * 4
-            }}
-            className="absolute rounded-full"
-            style={{ 
-              width: size === "large" ? '3px' : '2px',
-              height: size === "large" ? '3px' : '2px',
-              backgroundColor: color,
-              boxShadow: `0 0 15px ${color}, 0 0 30px ${color}` 
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-};
-
-// --- 高级礼花：高分子彩带系统 (Confetti Rain) ---
-const ConfettiRain = ({ count = 50 }) => {
-  const colors = ['#D4AF37', '#FDE68A', '#FFFFFF', '#FFD700', '#B45309'];
-  return (
-    <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-      {Array.from({ length: count }).map((_, i) => (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      {/* 动态流体色块：模拟深空极光 */}
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.2, 1],
+          rotate: [0, 5, 0],
+          opacity: [0.1, 0.2, 0.1]
+        }}
+        transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[-20%] left-[-10%] w-[120%] h-[120%] bg-gradient-radial from-blue-900/40 via-transparent to-transparent"
+      />
+      
+      {/* 极细微星尘粒子 */}
+      {Array.from({ length: 120 }).map((_, i) => (
         <motion.div
           key={i}
-          initial={{ top: -20, left: `${Math.random() * 100}%`, rotate: 0, opacity: 0 }}
-          animate={{ 
-            top: '110%', 
-            rotate: 1080,
-            x: [0, Math.random() * 100 - 50, 0],
-            opacity: [0, 1, 1, 0]
-          }}
-          transition={{ 
-            duration: 4 + Math.random() * 3, 
-            repeat: Infinity,
-            delay: Math.random() * 6,
-            ease: "easeInOut"
-          }}
-          className="absolute w-2 h-4 sm:w-3 sm:h-5"
+          className="absolute rounded-full bg-white/40"
           style={{ 
-            backgroundColor: colors[i % colors.length],
-            borderRadius: '2px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            width: Math.random() * 1.5 + 0.5, 
+            height: Math.random() * 1.5 + 0.5, 
+            left: `${Math.random() * 100}%`, 
+            top: `${Math.random() * 100}%`,
+          }}
+          animate={{
+            opacity: [0.1, 0.6, 0.1],
+          }}
+          transition={{
+            duration: 2 + Math.random() * 4,
+            repeat: Infinity,
+            delay: Math.random() * 5,
           }}
         />
       ))}
+
+      {/* Awwwards 风格必备：全局噪点滤镜层 */}
+      <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay pointer-events-none" 
+           style={{ backgroundImage: `url('https://www.transparenttextures.com/patterns/stardust.png')` }}></div>
     </div>
   );
 };
 
-// --- 建筑纹理：极细测绘背纹 ---
-const ArchitecturalGrid = () => (
-  <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
-    style={{ 
-      backgroundImage: `linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)`,
-      backgroundSize: '30px 30px'
-    }} 
-  />
-);
+// --- Awwwards 设计：分形交织数字 8 ---
+const FractalEight = () => {
+  const pathData = "M50 40 C65 40 75 50 75 60 C75 75 50 80 50 80 C50 80 25 85 25 100 C25 115 40 125 50 125 C65 125 75 115 75 100 C75 85 50 80 50 80 C50 80 25 75 25 60 C25 45 35 40 50 40 Z";
+
+  return (
+    <div className="relative w-64 h-80 md:w-80 md:h-96">
+      <svg viewBox="0 0 100 140" className="w-full h-full filter drop-shadow-[0_0_40px_rgba(212,175,55,0.4)]">
+        <defs>
+          <linearGradient id="luxuryGold" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FBDF93" />
+            <stop offset="25%" stopColor="#D4AF37" />
+            <stop offset="50%" stopColor="#FFFBEB" />
+            <stop offset="75%" stopColor="#C5A028" />
+            <stop offset="100%" stopColor="#854D0E" />
+          </linearGradient>
+          
+          {/* 复杂光效滤镜 */}
+          <filter id="metalGlow">
+            <feGaussianBlur stdDeviation="1.5" result="blur" />
+            <feSpecularLighting in="blur" surfaceScale="5" specularConstant="1" specularExponent="20" lightingColor="#FFFBEB" result="specOut">
+              <fePointLight x="-5000" y="-10000" z="20000" />
+            </feSpecularLighting>
+            <feComposite in="specOut" in2="SourceGraphic" operator="in" result="specOut" />
+            <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" />
+          </filter>
+        </defs>
+
+        {/* 1. 底层：深色建筑线条，提供体积感 */}
+        <path d={pathData} fill="none" stroke="rgba(212,175,55,0.1)" strokeWidth="12" strokeLinecap="round" />
+
+        {/* 2. 中层：多重交织纤维路径 */}
+        {[0, 2, 4].map((offset, i) => (
+          <motion.path
+            key={i}
+            d={pathData}
+            fill="none"
+            stroke="url(#luxuryGold)"
+            strokeWidth={10 - i * 2}
+            strokeLinecap="round"
+            initial={{ pathLength: 0, pathOffset: 1 }}
+            animate={{ pathLength: 1, pathOffset: 0 }}
+            transition={{ 
+              duration: 3 + i, 
+              ease: [0.16, 1, 0.3, 1], // Expo Out
+              delay: 0.2 + i * 0.1 
+            }}
+            filter="url(#metalGlow)"
+            style={{ opacity: 0.8 - i * 0.2 }}
+          />
+        ))}
+
+        {/* 3. 顶层：流金填充，带有“呼吸”不透明度 */}
+        <motion.path
+          d={pathData}
+          fill="url(#luxuryGold)"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 2, delay: 2.2, ease: "easeOut" }}
+          style={{ mixBlendMode: 'soft-light' }}
+        />
+
+        {/* 4. 动态掠过光束 */}
+        <motion.path
+          d={pathData}
+          fill="none"
+          stroke="white"
+          strokeWidth="1"
+          strokeLinecap="round"
+          initial={{ pathLength: 0.1, pathOffset: 0, opacity: 0 }}
+          animate={{ pathOffset: [0, 1.5], opacity: [0, 0.8, 0] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 1 }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+// --- 文字高级呈现：字符级浮现 ---
+const StaggeredText = ({ text, delay = 0, className = "" }) => {
+  const letters = text.split("");
+  return (
+    <h2 className={className}>
+      {letters.map((char, i) => (
+        <motion.span
+          key={i}
+          initial={{ opacity: 0, filter: 'blur(10px)', y: 10 }}
+          animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+          transition={{ 
+            duration: 1, 
+            delay: delay + i * 0.05,
+            ease: [0.16, 1, 0.3, 1] 
+          }}
+          className="inline-block"
+        >
+          {char}
+        </motion.span>
+      ))}
+    </h2>
+  );
+};
 
 const Home: React.FC = () => {
   const [showAnniversary, setShowAnniversary] = useState(false);
-  const services = storageService.getServices().slice(0, 4);
-  const projects = storageService.getProjects().filter(p => p.isFeatured).slice(0, 3);
-  const partners = storageService.getPartners();
-  const honors = storageService.getHonors().slice(0, 4);
+  const settings = storageService.getSettings();
   const content = storageService.getPageContent().home;
+  const partners = storageService.getPartners();
+  const services = storageService.getServices().slice(0, 4);
 
   useEffect(() => {
-    const hasShown = sessionStorage.getItem('yanyun_anniversary_v12_ultra_final');
+    // 采用更具辨识度的缓存版本号，确保重新设计的视觉能被用户看到
+    const hasShown = sessionStorage.getItem('yanyun_8th_grand_v3');
     if (!hasShown) {
       const timer = setTimeout(() => {
         setShowAnniversary(true);
-        sessionStorage.setItem('yanyun_anniversary_v12_ultra_final', 'true');
-      }, 800);
+        sessionStorage.setItem('yanyun_8th_grand_v3', 'true');
+      }, 1200);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -128,180 +182,122 @@ const Home: React.FC = () => {
 
   return (
     <div className="overflow-hidden bg-white font-sans">
-      {/* --- 8 周年【金石筑梦 · 极境流光】终极庆典弹窗 --- */}
+      {/* --- 8 周年【金石重构 · 极境艺术】庆典弹窗 --- */}
       <AnimatePresence>
         {showAnniversary && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden">
-            {/* 背景置灰层 + 景深烟花 */}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* 全屏背景引力场 */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-gradient-to-tr from-[#020617] via-[#0f172a] to-[#020617] z-0"
+              className="absolute inset-0 bg-black/80 backdrop-blur-[20px] z-0"
               onClick={() => setShowAnniversary(false)}
             >
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-[15px]" />
-              <BokehFirework delay={0.2} color="#D4AF37" size="large" />
-              <BokehFirework delay={1.8} color="#FFFBEB" size="small" />
-              <BokehFirework delay={3.5} color="#F59E0B" size="large" />
-              <BokehFirework delay={0.8} color="#FFFFFF" size="small" />
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(44,56,139,0.15),transparent_70%)]" />
+              <CinematicOverlay />
+              
+              {/* 引力波环 */}
+              <motion.div 
+                animate={{ scale: [1, 1.5], opacity: [0.3, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full border border-white/10"
+              />
             </motion.div>
             
-            {/* 弹窗主体：高奢材质容器 */}
+            {/* 弹窗主体：采用了 Awwwards 偏爱的卡片设计，不对称的光影与极致的排版 */}
             <motion.div 
-              initial={{ scale: 0.7, opacity: 0, y: 60, rotateX: 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0, rotateX: 0 }}
-              exit={{ scale: 0.8, opacity: 0, y: 30, transition: { duration: 0.4, ease: "backIn" } }}
-              transition={{ type: "spring", damping: 22, stiffness: 120, delay: 0.1 }}
-              className="relative w-full max-w-2xl bg-gradient-to-br from-[#4c0519] via-[#881337] to-[#1e1b4b] rounded-[3.5rem] shadow-[0_100px_200px_rgba(0,0,0,0.9),inset_0_2px_40px_rgba(255,255,255,0.1)] overflow-hidden border border-white/10 z-10"
-              style={{ perspective: "1200px" }}
+              initial={{ y: 100, opacity: 0, scale: 0.9, rotateX: 15 }}
+              animate={{ y: 0, opacity: 1, scale: 1, rotateX: 0 }}
+              exit={{ y: 50, opacity: 0, scale: 0.95, transition: { duration: 0.4 } }}
+              transition={{ type: "spring", damping: 30, stiffness: 80 }}
+              className="relative w-full max-w-2xl bg-[#0a0a0a] rounded-[3rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] overflow-hidden border border-white/5 z-10"
+              style={{ perspective: "2000px" }}
             >
-              <ArchitecturalGrid />
-              <ConfettiRain />
-
-              {/* 弹窗内部光效爆发 */}
-              <motion.div
-                initial={{ scale: 0, opacity: 1 }}
-                animate={{ scale: 4, opacity: 0 }}
-                transition={{ duration: 2, ease: "easeOut", delay: 0.2 }}
-                className="absolute inset-0 rounded-full border-[3px] border-yellow-500/20 pointer-events-none z-0"
-              />
-
-              <div className="relative z-10 p-12 md:p-16 flex flex-col items-center">
-                {/* 视觉核心：【液态金】3D 数字 8 */}
-                <div className="relative mb-16 select-none group">
-                  <motion.div
-                    initial={{ y: 50, opacity: 0, scale: 0.5, rotateY: -30 }}
-                    animate={{ y: 0, opacity: 1, scale: 1, rotateY: 0 }}
-                    transition={{ delay: 0.4, type: "spring", stiffness: 90 }}
-                    className="relative"
-                  >
-                    {/* 环境遮蔽阴影 */}
-                    <span className="absolute inset-0 text-[200px] md:text-[260px] font-black leading-[0.8] text-black/60 translate-y-6 blur-2xl">8</span>
-                    
-                    {/* 数字本体：多层渐变模拟厚重金属 */}
-                    <span className="relative inline-block text-[200px] md:text-[260px] font-black leading-[0.8] bg-gradient-to-b from-[#FFFBEB] via-[#D4AF37] via-[#92400E] to-[#451A03] bg-clip-text text-transparent filter drop-shadow-[0_15px_30px_rgba(0,0,0,0.6)] tracking-tighter">
-                      8
-                    </span>
-
-                    {/* 铂金冷光扫光 (Specular Flow) */}
-                    <motion.div 
-                      animate={{ 
-                        left: ['-150%', '250%'],
-                      }}
-                      transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
-                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent skew-x-[-35deg] pointer-events-none mix-blend-overlay"
-                    />
-                  </motion.div>
+              <div className="relative z-10 p-12 md:p-20 flex flex-col items-center">
+                {/* 核心艺术：分形数字 8 */}
+                <div className="relative mb-14">
+                  <FractalEight />
                   
                   {/* 周年浮雕勋章 */}
                   <motion.div 
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.9, type: "spring" }}
-                    className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 2.8, duration: 1 }}
+                    className="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-white/5 backdrop-blur-xl px-8 py-2 rounded-full border border-white/10 shadow-2xl"
                   >
-                    <div className="bg-gradient-to-r from-[#D4AF37] via-[#FDE68A] to-[#D4AF37] p-[1px] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)]">
-                      <div className="bg-[#450a0a] px-12 py-3 rounded-2xl border border-white/10">
-                        <span className="text-white text-[11px] font-black tracking-[0.9em] uppercase flex items-center">
-                          <Star size={12} className="mr-3 text-yellow-400 fill-yellow-400" />
-                          Anniversary
-                          <Star size={12} className="ml-3 text-yellow-400 fill-yellow-400" />
-                        </span>
-                      </div>
-                    </div>
+                    <span className="text-[#D4AF37] text-[11px] font-black tracking-[0.5em] uppercase">
+                       8th ANNIVERSARY
+                    </span>
                   </motion.div>
                 </div>
 
-                {/* 艺术排版：生长感动效 */}
+                {/* 文字艺术排版：不再使用普通段落，通过间距与字重营造高级感 */}
                 <div className="text-center space-y-10">
                   <div className="space-y-4">
-                    <motion.p 
-                      initial={{ opacity: 0, letterSpacing: "0.2em" }}
-                      animate={{ opacity: 1, letterSpacing: "0.6em" }}
-                      transition={{ delay: 1.1, duration: 1.2 }}
-                      className="text-yellow-500/90 font-bold text-xs uppercase"
-                    >
-                      八载峥嵘 · 韵筑精品
-                    </motion.p>
+                    <motion.div 
+                      initial={{ opacity: 0, scaleX: 0 }}
+                      animate={{ opacity: 1, scaleX: 1 }}
+                      transition={{ delay: 2.5, duration: 1.5 }}
+                      className="w-12 h-[1px] bg-[#D4AF37] mx-auto mb-6"
+                    />
                     
-                    <div className="overflow-hidden">
-                      <motion.h2 
-                        initial={{ y: "100%" }}
-                        animate={{ y: 0 }}
-                        transition={{ delay: 1.3, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                        className="text-4xl md:text-6xl font-bold text-white tracking-[0.05em] drop-shadow-lg"
-                      >
-                        热烈祝贺
-                      </motion.h2>
-                    </div>
-
-                    <div className="overflow-hidden">
-                      <motion.p 
-                        initial={{ y: "100%" }}
-                        animate={{ y: 0 }}
-                        transition={{ delay: 1.5, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                        className="text-xl md:text-2xl font-light text-white/90"
-                      >
-                        江苏盐韵工程项目管理有限公司
-                      </motion.p>
-                    </div>
+                    <StaggeredText 
+                      text="热烈祝贺" 
+                      delay={2.6} 
+                      className="text-4xl md:text-5xl font-bold text-white tracking-widest"
+                    />
+                    
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 3.2, duration: 1.5 }}
+                      className="text-white/40 font-light text-lg tracking-[0.2em]"
+                    >
+                      江苏盐韵工程项目管理有限公司
+                    </motion.p>
                   </div>
 
                   <motion.div 
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 1.7, duration: 1.2, ease: "circOut" }}
-                    className="h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto w-3/4"
-                  />
-
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 2.0 }}
-                    className="text-white/60 text-sm leading-loose max-w-[420px] mx-auto font-light"
+                    transition={{ delay: 3.5, duration: 1 }}
+                    className="space-y-2"
                   >
-                    始于 2017，以匠心筑造时代丰碑。<br/>
-                    感恩八载同行，每一份托付，我们必全力以赴。
+                    <p className="text-[#D4AF37] font-bold text-sm tracking-[0.4em] uppercase">八载峥嵘 · 韵筑精品</p>
+                    <div className="text-white/30 text-xs leading-relaxed max-w-[360px] mx-auto font-light">
+                       于时光中雕琢工程艺术，于细节中守护基石承诺。<br/>
+                       感恩八载同行，每一份托付皆是荣光。
+                    </div>
                   </motion.div>
                 </div>
 
-                {/* 交互按钮：液态金动效 */}
+                {/* 交互按钮：极简设计，通过微小的 Hover 效果传达品质 */}
                 <motion.div
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 2.4, type: "spring" }}
-                  className="mt-16"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 4 }}
+                  className="mt-14"
                 >
                   <button 
                     onClick={() => setShowAnniversary(false)}
-                    className="relative group px-16 py-5 rounded-2xl overflow-hidden transition-all transform hover:scale-[1.05] active:scale-[0.96]"
+                    className="group relative px-12 py-4 rounded-xl overflow-hidden transition-all"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37] via-[#FDE68A] to-[#D4AF37] transition-all duration-500 group-hover:brightness-110 shadow-[0_20px_60px_rgba(212,175,55,0.4)]" />
-                    <span className="relative z-10 flex items-center text-[#4A0000] font-black text-2xl tracking-widest">
-                      携手共进 <Sparkles size={24} className="ml-4 animate-pulse" />
+                    <div className="absolute inset-0 bg-[#D4AF37] group-hover:bg-white transition-colors duration-500" />
+                    <span className="relative z-10 text-black font-bold tracking-[0.3em] text-sm uppercase group-hover:text-black transition-colors">
+                      携手启新 <ArrowRight size={14} className="inline-block ml-2 group-hover:translate-x-1 transition-transform" />
                     </span>
-                    
-                    {/* 按钮微光扫过 */}
-                    <motion.div 
-                       animate={{ x: [-200, 400] }}
-                       transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-                       className="absolute inset-0 w-24 h-full bg-white/40 skew-x-[-30deg] pointer-events-none"
-                    />
                   </button>
                 </motion.div>
               </div>
 
-              {/* 装饰细节：极细铂金双边框 */}
-              <div className="absolute inset-6 border border-white/5 rounded-[3rem] pointer-events-none" />
-              <div className="absolute inset-8 border border-white/[0.03] rounded-[2.8rem] pointer-events-none" />
+              {/* 装饰边线：增加层次感 */}
+              <div className="absolute inset-4 border border-white/5 rounded-[2.5rem] pointer-events-none" />
               
               <button 
                 onClick={() => setShowAnniversary(false)}
-                className="absolute top-10 right-10 p-3 text-white/30 hover:text-white/100 hover:bg-white/10 rounded-full transition-all z-30"
+                className="absolute top-8 right-8 p-3 text-white/20 hover:text-white transition-all z-30"
               >
-                <X size={32} strokeWidth={1.5} />
+                <X size={24} />
               </button>
             </motion.div>
           </div>
