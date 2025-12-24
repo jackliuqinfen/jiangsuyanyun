@@ -64,9 +64,9 @@ const KEYS = {
   TEAM: 'yanyun_team_v2',
   HISTORY: 'yanyun_history_v2',
   TENDERS: 'yanyun_tenders_v2',
-  AUDIT_LOGS: 'yanyun_audit_logs_v2', // New
-  LOGIN_ATTEMPTS: 'yanyun_login_attempts_v2', // New
-  SECURITY_CONFIG: 'yanyun_security_config_v2' // New
+  AUDIT_LOGS: 'yanyun_audit_logs_v2', 
+  LOGIN_ATTEMPTS: 'yanyun_login_attempts_v2', 
+  SECURITY_CONFIG: 'yanyun_security_config_v2' 
 };
 
 const initStorage = () => {
@@ -86,15 +86,23 @@ const initStorage = () => {
   safeInit(KEYS.HONORS, INITIAL_HONORS);
   safeInit(KEYS.HONOR_CATEGORIES, INITIAL_HONOR_CATEGORIES);
   
-  // Special Handling for Settings to ensure Anniversary is enabled
+  // Settings initialization logic:
+  // We only set the default if no settings exist. 
+  // We do NOT overwrite enableAnniversary if it already exists, respecting the user's choice.
   const storedSettings = localStorage.getItem(KEYS.SETTINGS);
-  if (storedSettings) {
-    const parsed = JSON.parse(storedSettings);
-    // Force enableAnniversary to true for this update
-    const merged = { ...DEFAULT_SITE_SETTINGS, ...parsed, enableAnniversary: true };
-    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(merged));
+  if (!storedSettings) {
+    // First time load: Default to enabled
+    localStorage.setItem(KEYS.SETTINGS, JSON.stringify({
+        ...DEFAULT_SITE_SETTINGS,
+        enableAnniversary: true 
+    }));
   } else {
-    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(DEFAULT_SITE_SETTINGS));
+    // Migration: If settings exist but enableAnniversary is missing (from older version), add it
+    const parsed = JSON.parse(storedSettings);
+    if (parsed.enableAnniversary === undefined) {
+        const merged = { ...parsed, enableAnniversary: true };
+        localStorage.setItem(KEYS.SETTINGS, JSON.stringify(merged));
+    }
   }
 
   safeInit(KEYS.ROLES, INITIAL_ROLES);

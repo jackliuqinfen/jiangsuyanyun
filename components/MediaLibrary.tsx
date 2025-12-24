@@ -93,6 +93,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     // 增加文件大小限制 (3MB)
     if (file.size > 3 * 1024 * 1024) {
       alert("⚠️ 图片过大！\n\n由于浏览器缓存限制，请上传 3MB 以内的图片。\n建议使用 TinyPNG 等工具压缩后再上传。");
+      // Clean up input value so user can retry same file if needed (though size check blocks it)
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
@@ -146,6 +147,8 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
       
       // 4. 重置表单并关闭弹窗
       setIsUploadModalOpen(false);
+      // Auto-switch to the uploaded category or 'all' to show the new item immediately
+      setActiveCategory('all'); 
       setUploadForm({ name: '', type: 'image', category: 'site', url: '' });
 
       // 5. 如果是选择模式，自动选中并回调
@@ -164,6 +167,13 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
       setSelectedId(item.id);
       if (onSelect) onSelect(item.url);
     }
+  };
+
+  // Reset file input on click to ensure onChange fires even for same file
+  const onFileInputClick = () => {
+      if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+      }
   };
 
   return (
@@ -434,7 +444,14 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                              {isUploading ? '正在处理文件...' : uploadForm.url ? '点击更换文件' : '点击选择图片'}
                           </p>
                        </div>
-                       <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                       <input 
+                          type="file" 
+                          ref={fileInputRef} 
+                          onChange={handleFileChange} 
+                          onClick={onFileInputClick}
+                          className="hidden" 
+                          accept="image/*" 
+                       />
                     </div>
                  ) : (
                     <div>

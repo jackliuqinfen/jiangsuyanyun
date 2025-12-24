@@ -98,8 +98,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const isAtHome = location.pathname === '/';
   const isLightHeader = scrolled || !isAtHome;
 
-  // Don't show anniversary popup on admin pages
-  const showPopup = !location.pathname.startsWith('/admin');
+  // Don't show anniversary popup on admin pages OR inner pages. Only show on Homepage.
+  const showPopup = location.pathname === '/' && !location.pathname.startsWith('/admin');
 
   // Helper function to check if link is active
   const isActive = (path: string, currentPath: string) => {
@@ -110,7 +110,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-800 bg-surface">
       
-      {/* 8th Anniversary Popup */}
+      {/* 8th Anniversary Popup - Only on Homepage */}
       {showPopup && <AnniversaryPopup />}
 
       {/* Top Bar - Desktop Only */}
