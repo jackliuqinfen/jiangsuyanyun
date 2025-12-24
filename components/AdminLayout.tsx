@@ -54,9 +54,10 @@ interface SidebarContentProps {
   currentPath: string;
   onLogout: () => void;
   logoUrl?: string; // Add logo prop
+  onNavigate?: () => void; // Added for mobile UX
 }
 
-const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRole, currentPath, onLogout, logoUrl }) => (
+const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRole, currentPath, onLogout, logoUrl, onNavigate }) => (
   <div className="flex flex-col h-full overflow-hidden bg-gray-900 text-white">
     <div className="p-8 flex-shrink-0">
       <div className="flex items-center gap-3">
@@ -103,6 +104,7 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRol
                 <Link
                   key={item.path}
                   to={item.path}
+                  onClick={onNavigate}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group touch-manipulation ${
                     isActive ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]' : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`}
@@ -140,25 +142,30 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRol
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState<User | null>(storageService.getCurrentUser());
-  const [currentRole, setCurrentRole] = useState<Role | null>(storageService.getCurrentUserRole());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentRole, setCurrentRole] = useState<Role | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
   const [logo, setLogo] = useState(settings.graphicLogoUrl);
+  
+  // Security State: Prevent rendering before checking auth
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
+    // Immediate Auth Check
     const user = storageService.getCurrentUser();
-    if (!user) {
+    
+    if (!user || !storageService.isAuthenticated()) {
       navigate('/admin/login');
     } else {
       setCurrentUser(user);
       setCurrentRole(storageService.getCurrentUserRole());
+      setIsAuthorized(true);
     }
 
     const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
     
-    // Listen for settings update to refresh logo
     const handleSettingsUpdate = () => {
        const newSettings = storageService.getSettings();
        setSettings(newSettings);
@@ -172,7 +179,6 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     };
   }, [navigate]);
 
-  // Update Favicon based on settings (Ensuring admin panel also reflects brand)
   useEffect(() => {
     const updateFavicon = (url: string) => {
       let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -191,10 +197,6 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   }, [settings.faviconUrl, settings.graphicLogoUrl]);
 
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
-
   const handleLogout = () => {
     if (window.confirm('确定要退出管理系统吗？')) {
       storageService.logout();
@@ -205,7 +207,6 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const getBreadcrumbs = () => {
     const path = location.pathname.split('/').filter(Boolean);
     return path.map((p, i) => {
-      // 在 NAV_GROUPS 中查找匹配的名字
       const allItems = NAV_GROUPS.flatMap(g => g.items);
       const matchedItem = allItems.find(item => item.path.endsWith(p));
       return {
@@ -215,10 +216,14 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     });
   };
 
+  // Prevent FOUC (Flash of Unauthenticated Content)
+  if (!isAuthorized) {
+    return null; // Or return a centered loading spinner here
+  }
+
   return (
     <div className="flex h-screen bg-[#F1F5F9] overflow-hidden">
       
-      {/* Enable Anniversary Popup in Admin for Preview */}
       <AnniversaryPopup />
 
       {/* Desktop Sidebar */}
@@ -256,6 +261,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 currentPath={location.pathname}
                 onLogout={handleLogout}
                 logoUrl={logo}
+                onNavigate={() => setIsMobileMenuOpen(false)} // Close menu on navigation
               />
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}

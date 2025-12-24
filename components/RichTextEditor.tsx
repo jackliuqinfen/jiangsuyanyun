@@ -14,11 +14,17 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, classN
 
   // Sync value to contentEditable div only when value changes externally and is different
   useEffect(() => {
-    if (contentRef.current && contentRef.current.innerHTML !== value) {
-      // Only update if strictly different to avoid cursor jumping
-      // Basic check, good enough for demo
-      if (value === '' && contentRef.current.innerHTML === '<br>') return;
-      contentRef.current.innerHTML = value || '';
+    if (contentRef.current) {
+      // Check if the element is currently focused to avoid cursor jumping during typing
+      const isFocused = document.activeElement === contentRef.current;
+      const currentHTML = contentRef.current.innerHTML;
+      
+      // Only update DOM if not focused, or if the value is vastly different (e.g. initial load or reset)
+      // This prevents the cursor from jumping to the beginning when typing
+      if (!isFocused && currentHTML !== value) {
+         if (value === '' && currentHTML === '<br>') return;
+         contentRef.current.innerHTML = value || '';
+      }
     }
   }, [value]);
 
