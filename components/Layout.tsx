@@ -22,7 +22,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setSettings(storageService.getSettings());
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [location.pathname]); // Refresh settings on route change
+  }, [location.pathname]);
 
   const navLinks = [
     { name: '首页', path: '/' },
@@ -41,10 +41,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   ];
 
   const isActive = (path: string) => location.pathname === path;
+  const isAtHome = location.pathname === '/';
+  
+  // 核心逻辑：判断当前导航栏是否处于“浅色模式（白底）”
+  const isLightHeader = scrolled || !isAtHome;
 
   return (
     <div className="flex flex-col min-h-screen bg-surface font-sans text-gray-800">
-      {/* Top Bar - Dynamic Contact Info */}
+      {/* Top Bar */}
       <div className="bg-gray-900 text-gray-300 py-2.5 text-xs font-medium tracking-wide hidden md:block z-50 relative">
         <div className="container mx-auto px-6 flex justify-between items-center">
           <div className="flex space-x-8">
@@ -56,20 +60,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </span>
           </div>
           <div className="flex space-x-6 items-center">
-            {/* Employee Dropdown */}
             <div className="relative group">
               <button className="flex items-center hover:text-accent transition-colors focus:outline-none py-1">
                 员工入口 <ChevronDown size={12} className="ml-1" />
               </button>
-              
-              {/* Dropdown Menu */}
               <div className="absolute right-0 top-full mt-0 w-36 bg-white rounded-md shadow-xl py-2 hidden group-hover:block text-gray-800 z-[60] border border-gray-100 origin-top-right transition-all">
                 <a 
-                  href="#" 
+                  href="http://106.14.157.201:8088/login" 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className="block px-4 py-2 text-sm hover:bg-blue-50 hover:text-primary transition-colors text-left"
-                  onClick={(e) => { e.preventDefault(); alert("OA系统正在维护中，请稍后访问。"); }}
                 >
                   OA办公系统
                 </a>
@@ -85,21 +85,27 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </div>
       </div>
 
-      {/* Header - Glassmorphism & Dynamic Logo */}
+      {/* Header */}
       <header 
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
-          scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
-        } ${!scrolled && location.pathname !== '/' ? 'bg-white shadow-sm' : ''} md:top-[40px]`} 
+          isLightHeader ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
+        } md:top-[40px]`} 
         style={{ top: scrolled ? 0 : undefined }}
       >
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
-            {/* Logo */}
+            {/* Logo with Intelligent Contrast Filter */}
             <Link to="/" className="flex items-center space-x-3 group min-w-[200px]">
               <img 
                 src={settings.logoUrl} 
                 alt={settings.siteName} 
-                className="h-10 md:h-12 w-auto object-contain transition-all duration-300"
+                className={`h-10 md:h-12 w-auto object-contain transition-all duration-500 ease-in-out ${
+                  isLightHeader ? 'brightness-0 opacity-90' : 'brightness-100'
+                }`}
+                style={{ 
+                  // 这种混合模式在白色 Logo 遇到白色背景时效果最佳
+                  // 但 brightness-0 是最稳妥的方案，它将 Logo 强制转为黑色
+                }}
               />
             </Link>
 
@@ -113,19 +119,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                       isActive(link.path)
                         ? 'bg-primary/10 text-primary'
-                        : (scrolled || location.pathname !== '/' ? 'text-gray-600 hover:text-primary hover:bg-gray-50' : 'text-white/90 hover:text-white hover:bg-white/10')
+                        : (isLightHeader ? 'text-gray-600 hover:text-primary hover:bg-gray-50' : 'text-white/90 hover:text-white hover:bg-white/10')
                     }`}
                   >
                     {link.name}
                   </Link>
                 ))}
               </nav>
-              
-              {/* Highlighted CTA Button */}
               <Link 
                 to="/contact" 
                 className={`flex items-center px-5 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all transform hover:-translate-y-0.5 ${
-                  scrolled || location.pathname !== '/' 
+                  isLightHeader
                   ? 'bg-primary text-white hover:bg-primary-dark' 
                   : 'bg-white text-primary hover:bg-gray-100'
                 }`}
@@ -136,7 +140,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
             {/* Mobile Menu Button */}
             <button
-              className={`lg:hidden transition-colors ${scrolled || location.pathname !== '/' ? 'text-gray-900' : 'text-white'}`}
+              className={`lg:hidden transition-colors ${isLightHeader ? 'text-gray-900' : 'text-white'}`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
@@ -175,11 +179,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 >
                   立即咨询
                 </Link>
-                <div className="pt-4 border-t mt-2">
+                <div className="pt-4 border-t mt-2 text-left">
                    <p className="px-4 text-xs text-gray-400 mb-2 font-bold uppercase">员工通道</p>
                    <a
-                    href="#"
-                    onClick={(e) => { e.preventDefault(); alert("OA系统正在维护中，请稍后访问。"); setIsMobileMenuOpen(false); }}
+                    href="http://106.14.157.201:8088/login"
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-4 py-3 rounded-lg text-base font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                   >
                     OA办公系统
@@ -198,22 +204,20 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </AnimatePresence>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow pt-[40px] md:pt-0"> 
         {children}
       </main>
 
-      {/* Footer - Dynamic Info */}
+      {/* Footer */}
       <footer className="bg-gray-900 text-white pt-20 pb-10 border-t border-gray-800">
         <div className="container mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-16">
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
                  <img 
-                    src={settings.logoUrl.replace('2C388B', 'ffffff')} 
-                    // Simple hack for placeholder color, in real app upload separate white logo
+                    src={settings.logoUrl} 
                     alt={settings.siteName} 
-                    className="h-10 w-auto object-contain opacity-90 brightness-0 invert"
+                    className="h-10 w-auto object-contain brightness-0 invert"
                   />
               </div>
               <p className="text-gray-400 text-sm leading-7">

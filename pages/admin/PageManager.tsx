@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Save, CheckCircle2, Trash2, Plus } from 'lucide-react';
 import { storageService } from '../../services/storageService';
-import { PageContent } from '../../types';
+import { PageContent, PageHeaderConfig } from '../../types';
 import ImageUpload from '../../components/ImageUpload';
 
 const PageManager: React.FC = () => {
@@ -242,7 +241,8 @@ const PageManager: React.FC = () => {
          {/* --- HEADERS TAB --- */}
          {activeTab === 'headers' && (
             <div className="space-y-8">
-               {Object.entries(content.headers).map(([key, header]) => (
+               {/* Fix: cast Object.entries to explicit [string, PageHeaderConfig][] to avoid "unknown" type error on header properties */}
+               {(Object.entries(content.headers) as [string, PageHeaderConfig][]).map(([key, header]) => (
                   <div key={key} className="bg-gray-50 p-6 rounded-xl border border-gray-200">
                      <h3 className="text-lg font-bold text-gray-800 mb-4 capitalize">{key} 页面头部</h3>
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -284,4 +284,3 @@ const PageManager: React.FC = () => {
 };
 
 export default PageManager;
-    

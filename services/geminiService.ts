@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
-const ai = new GoogleGenAI({ apiKey });
+// Always use process.env.API_KEY directly for initialization as per guidelines
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export interface SearchResult {
   text: string;
@@ -13,7 +13,8 @@ export const geminiService = {
    * Performs a grounded search using Gemini 3 Flash to get latest industry info.
    */
   searchIndustryNews: async (query: string): Promise<SearchResult> => {
-    if (!apiKey) {
+    // API key availability is assumed as a hard requirement per instructions
+    if (!process.env.API_KEY) {
       return {
         text: "API Key not configured. Unable to fetch live data.",
         sources: []
@@ -21,18 +22,19 @@ export const geminiService = {
     }
 
     try {
-      const model = 'gemini-3-flash-preview';
+      // Use 'gemini-3-flash-preview' for general text search tasks
       const response = await ai.models.generateContent({
-        model,
+        model: 'gemini-3-flash-preview',
         contents: `Find the latest official construction industry news, bidding announcements, or policy changes in Jiangsu Province related to: ${query}. Summarize the key points clearly for a professional audience.`,
         config: {
           tools: [{ googleSearch: {} }],
         },
       });
 
+      // Extract text directly from the text property
       const text = response.text || "No results found.";
       
-      // Extract grounding metadata safely
+      // Extract grounding metadata safely from groundingChunks
       const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
       const sources = groundingChunks
         .filter((chunk: any) => chunk.web && chunk.web.uri)
