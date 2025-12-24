@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, ArrowUpRight, ShieldCheck, Activity, BarChart3, PieChart, Database, CheckCircle2, Server } from 'lucide-react';
+import { ArrowRight, Zap, ArrowUpRight, ShieldCheck, Activity, BarChart3, PieChart, Database, CheckCircle2, Server, Award, MapPin, Calendar, Star } from 'lucide-react';
 import { storageService } from '../services/storageService';
 
 const MotionDiv = motion.div as any;
@@ -16,12 +16,25 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [partners, services, content] = await Promise.all([
+      const [partners, services, content, projects, honors] = await Promise.all([
         storageService.getPartners(),
         storageService.getServices(),
-        storageService.getPageContent()
+        storageService.getPageContent(),
+        storageService.getProjects(),
+        storageService.getHonors()
       ]);
-      setData({ partners, services: services.slice(0, 4), content: content.home });
+      
+      // 筛选精选项目和前4个荣誉
+      const featuredProjects = projects.filter((p: any) => p.isFeatured).slice(0, 3);
+      const topHonors = honors.slice(0, 4);
+
+      setData({ 
+        partners, 
+        services: services.slice(0, 4), 
+        content: content.home,
+        featuredProjects,
+        topHonors
+      });
       setIsLoading(false);
     };
     fetchData();
@@ -38,7 +51,7 @@ const Home: React.FC = () => {
     );
   }
 
-  const { content, partners, services } = data;
+  const { content, partners, services, featuredProjects, topHonors } = data;
 
   return (
     <div className="bg-white">
@@ -191,6 +204,96 @@ const Home: React.FC = () => {
                   </div>
                </div>
             </div>
+         </div>
+      </section>
+
+      {/* 精选案例模块 */}
+      <section className="py-32 bg-white overflow-hidden">
+         <div className="container mx-auto px-6">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
+               <div className="max-w-2xl">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 rounded-full mb-4">
+                     <Star size={14} className="text-accent" fill="currentColor"/>
+                     <span className="text-[10px] font-black text-accent uppercase tracking-widest">Masterpieces</span>
+                  </div>
+                  <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter leading-tight">筑造城市<br/>永恒的坐标</h2>
+               </div>
+               <Link to="/cases" className="group flex items-center gap-3 text-sm font-black uppercase tracking-widest text-primary hover:text-primary-dark transition-colors">
+                  查看全部案例 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform"/>
+               </Link>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+               {featuredProjects.map((project: any, i: number) => (
+                  <MotionDiv 
+                    key={project.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.2 }}
+                    viewport={{ once: true }}
+                    className="group relative bg-gray-50 rounded-[2.5rem] overflow-hidden aspect-[4/5] shadow-soft hover:shadow-2xl transition-all duration-700"
+                  >
+                     <img src={project.imageUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                     <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/20 to-transparent opacity-80"></div>
+                     
+                     <div className="absolute inset-x-0 bottom-0 p-10 flex flex-col justify-end h-full">
+                        <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                           <span className="px-3 py-1 bg-white/20 backdrop-blur-md text-white text-[10px] font-bold rounded-lg mb-4 inline-block">{project.category}</span>
+                           <h3 className="text-2xl font-black text-white mb-4 leading-tight">{project.title}</h3>
+                           <div className="flex items-center gap-4 text-white/60 text-xs font-medium mb-6">
+                              <span className="flex items-center gap-1"><MapPin size={12}/> {project.location}</span>
+                              <span className="flex items-center gap-1"><Calendar size={12}/> {project.date}</span>
+                           </div>
+                        </div>
+                        
+                        <div className="h-0 group-hover:h-24 opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-500 border-t border-white/10 pt-6">
+                           <p className="text-xs text-white/70 leading-relaxed mb-6 line-clamp-2">{project.description}</p>
+                           <Link to={`/cases/${project.id}`} className="inline-flex items-center gap-2 text-[10px] font-black uppercase text-accent tracking-[0.2em]">View Analysis <ArrowUpRight size={14}/></Link>
+                        </div>
+                     </div>
+                  </MotionDiv>
+               ))}
+            </div>
+         </div>
+      </section>
+
+      {/* 荣誉资质模块 */}
+      <section className="py-24 bg-surface relative overflow-hidden">
+         <div className="container mx-auto px-6">
+            <div className="text-center mb-20">
+               <h3 className="text-sm font-black text-primary uppercase tracking-[0.4em] mb-4">Authority & Certification</h3>
+               <h2 className="text-4xl font-black text-gray-900 tracking-tighter">国家级专业背书</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+               {topHonors.map((honor: any, i: number) => (
+                  <MotionDiv 
+                    key={honor.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.1 }}
+                    viewport={{ once: true }}
+                    className="bg-white p-8 rounded-[2rem] border border-gray-100 shadow-soft hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 flex flex-col items-center text-center group"
+                  >
+                     <div className="w-20 h-28 bg-gray-50 rounded-xl mb-8 flex items-center justify-center overflow-hidden border border-gray-100 shadow-inner group-hover:rotate-3 transition-transform">
+                        {honor.imageUrl ? (
+                           <img src={honor.imageUrl} className="w-full h-full object-cover" />
+                        ) : (
+                           <Award className="text-accent" size={40} />
+                        )}
+                     </div>
+                     <h4 className="font-black text-gray-900 mb-3 tracking-tight">{honor.title}</h4>
+                     <div className="flex flex-col gap-1">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{honor.issuingAuthority}</p>
+                        <p className="text-[10px] text-primary font-black">{honor.issueDate}</p>
+                     </div>
+                  </MotionDiv>
+               ))}
+            </div>
+         </div>
+         
+         <div className="absolute top-1/2 left-0 -translate-y-1/2 text-[12rem] font-black text-gray-900/5 select-none pointer-events-none uppercase tracking-widest leading-none">
+            Credentials
          </div>
       </section>
 
