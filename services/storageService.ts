@@ -17,8 +17,7 @@ import {
   INITIAL_TEAM,
   COMPANY_HISTORY,
   INITIAL_TENDERS,
-  DEFAULT_SECURITY_CONFIG,
-  INITIAL_PERFORMANCES
+  DEFAULT_SECURITY_CONFIG
 } from '../constants';
 import { 
   Branch, 
@@ -41,8 +40,7 @@ import {
   TenderItem,
   AuditLog,
   LoginAttempt,
-  SecurityConfig,
-  PerformanceItem
+  SecurityConfig
 } from '../types';
 import { createAuditLogEntry } from '../utils/security';
 import JSZip from 'jszip';
@@ -67,12 +65,12 @@ const KEYS = {
   TEAM: 'yanyun_team_v3',
   HISTORY: 'yanyun_history_v3',
   TENDERS: 'yanyun_tenders_v3',
-  PERFORMANCES: 'yanyun_performances_v3', // Added
   AUDIT_LOGS: 'yanyun_audit_logs_v3', 
   LOGIN_ATTEMPTS: 'yanyun_login_attempts_v3', 
   SECURITY_CONFIG: 'yanyun_security_config_v3' 
 };
 
+// Map keys to initial data
 const INITIAL_DATA_MAP: Record<string, any> = {
   [KEYS.NEWS]: INITIAL_NEWS,
   [KEYS.PROJECTS]: INITIAL_PROJECTS,
@@ -90,7 +88,6 @@ const INITIAL_DATA_MAP: Record<string, any> = {
   [KEYS.TEAM]: INITIAL_TEAM,
   [KEYS.HISTORY]: COMPANY_HISTORY,
   [KEYS.TENDERS]: INITIAL_TENDERS,
-  [KEYS.PERFORMANCES]: INITIAL_PERFORMANCES,
   [KEYS.SETTINGS]: DEFAULT_SITE_SETTINGS,
   [KEYS.SECURITY_CONFIG]: DEFAULT_SECURITY_CONFIG,
   [KEYS.AUDIT_LOGS]: [],
@@ -107,6 +104,7 @@ const markCloudUnavailable = () => {
   if (isCloudAvailable) {
     isCloudAvailable = false;
     window.dispatchEvent(new Event('storageStatusChanged'));
+    console.error("Critical: Cloud Sync Terminal Error. Switching to Hard-LocalStorage Mode.");
   }
 };
 
@@ -125,10 +123,18 @@ export const storageService = {
     if (!isCloudAvailable) return getFallback();
 
     try {
-      const response = await fetch(`${API_ENDPOINT}?key=${key}`, { 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
+      const response = await fetch(`${API_ENDPOINT}?key=${key}&t=${Date.now()}`, { 
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${KV_ACCESS_TOKEN}` }
+        headers: {
+          'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
+        },
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
          if (response.status === 404) return getFallback();
@@ -147,7 +153,12 @@ export const storageService = {
   },
 
   async save<T>(key: string, items: T[]): Promise<void> {
-    localStorage.setItem(key, JSON.stringify(items));
+    try {
+      localStorage.setItem(key, JSON.stringify(items));
+    } catch (e) {
+      alert("本地存储空间不足，请在『系统设置』中导出备份并清理旧数据。");
+      throw e;
+    }
 
     if (isCloudAvailable) {
         fetch(API_ENDPOINT, {
@@ -159,10 +170,11 @@ export const storageService = {
             body: JSON.stringify({ key, value: items }),
         })
         .then(res => {
-            if (!res.ok) markCloudUnavailable();
+            if (!res.ok && res.status !== 404) markCloudUnavailable();
         })
         .catch(() => {});
     }
+    
     return Promise.resolve();
   },
 
@@ -170,6 +182,17 @@ export const storageService = {
     const ext = file.name.split('.').pop() || 'bin';
     const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
     
+    const toBase64 = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
+    if (!isCloudAvailable) return toBase64();
+
     try {
         const response = await fetch(`${FILE_API_ENDPOINT}?key=${uniqueKey}`, {
             method: 'POST',
@@ -184,11 +207,7 @@ export const storageService = {
         const res = await response.json();
         return res.url; 
     } catch (error) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.readAsDataURL(file);
-        });
+        return toBase64();
     }
   },
 
@@ -207,13 +226,31 @@ export const storageService = {
     const dataFolder = zip.folder("data");
     const assetsFolder = zip.folder("assets");
     
+    onProgress?.("正在聚合结构化数据...");
     const systemData: Record<string, any> = {};
     for (const key of Object.values(KEYS)) {
        if (key !== KEYS.AUTH_TOKEN) systemData[key] = await storageService.get(key);
     }
     dataFolder?.file("database.json", JSON.stringify(systemData, null, 2));
-    onProgress?.("数据打包完成，正在扫描媒体库...");
 
+    const assetRegex = /\/api\/file\?key=([a-zA-Z0-9_.-]+)/g;
+    const assets = new Set<string>();
+    const fullJson = JSON.stringify(systemData);
+    let match;
+    while ((match = assetRegex.exec(fullJson)) !== null) assets.add(match[1]);
+
+    const assetKeys = Array.from(assets);
+    onProgress?.(`正在下载 ${assetKeys.length} 个媒体文件...`);
+
+    for (let i = 0; i < assetKeys.length; i++) {
+       try {
+          const res = await fetch(`${FILE_API_ENDPOINT}?key=${assetKeys[i]}`);
+          if (res.ok) assetsFolder?.file(assetKeys[i], await res.blob());
+          onProgress?.(`备份进度: ${i+1}/${assetKeys.length}`);
+       } catch (e) {}
+    }
+
+    onProgress?.("正在生成 ZIP 压缩包...");
     return await zip.generateAsync({ type: "blob" });
   },
 
@@ -255,12 +292,14 @@ export const storageService = {
 
   getAuditLogs: () => storageService.get<AuditLog>(KEYS.AUDIT_LOGS),
 
+  // Correct fix: define return type with optional mfaRequired to resolve TS errors in Login.tsx
   login: async (u: string, p: string): Promise<{ success: boolean; message?: string; mfaRequired?: boolean }> => {
     if (u === 'admin' && p === 'admin') {
       const users = await storageService.getUsers();
       const user = users.find(usr => usr.username === 'admin') || INITIAL_USERS[0];
       const securityConfig = await storageService.getSecurityConfig();
 
+      // Check if MFA is required based on user or global config
       if (user.mfaEnabled || securityConfig.mfaEnabled) {
         return { success: true, mfaRequired: true };
       }
@@ -273,7 +312,9 @@ export const storageService = {
     return { success: false, message: '凭证无效', mfaRequired: false };
   },
 
+  // Added missing verifyMfa method called by Login.tsx
   verifyMfa: async (username: string, code: string): Promise<{ success: boolean; message?: string }> => {
+    // Simulated MFA verification (hardcoded code for demonstration)
     if (code === '123456') {
       const users = await storageService.getUsers();
       const user = users.find(u => u.username === username) || INITIAL_USERS[0];
@@ -367,9 +408,4 @@ export const storageService = {
   getTenders: () => storageService.get<TenderItem>(KEYS.TENDERS),
   saveTenders: (items: TenderItem[]) => storageService.save(KEYS.TENDERS, items),
   getTenderById: async (id: string) => (await storageService.getTenders()).find(t => t.id === id),
-
-  // PERFORMANCE METHODS
-  getPerformances: () => storageService.get<PerformanceItem>(KEYS.PERFORMANCES),
-  savePerformances: (items: PerformanceItem[]) => storageService.save(KEYS.PERFORMANCES, items),
-  getPerformanceById: async (id: string) => (await storageService.getPerformances()).find(p => p.id === id),
 };
