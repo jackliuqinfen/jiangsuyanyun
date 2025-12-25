@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, ChevronRight, Clock, Menu, X, Megaphone, Lock, Loader2, AlertTriangle, Cloud, HardDrive, WifiOff } from 'lucide-react';
+import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, ChevronRight, Clock, Menu, X, Megaphone, Lock, Loader2, AlertTriangle, Cloud, HardDrive, WifiOff, FileCheck } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { SiteSettings, ResourceType, User, Role } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,6 +21,7 @@ const NAV_GROUPS = [
       { name: '页面文案', path: '/admin/pages', icon: Layout, resource: 'pages' as ResourceType },
       { name: '新闻动态', path: '/admin/news', icon: FileText, resource: 'news' as ResourceType },
       { name: '招标信息', path: '/admin/tenders', icon: Megaphone, resource: 'tenders' as ResourceType },
+      { name: '企业业绩', path: '/admin/performances', icon: FileCheck, resource: 'performances' as ResourceType }, // Added
       { name: '项目案例', path: '/admin/projects', icon: Briefcase, resource: 'projects' as ResourceType },
       { name: '业务领域', path: '/admin/services', icon: Hexagon, resource: 'services' as ResourceType },
     ]
@@ -76,7 +77,6 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRol
       </div>
       
       <nav className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pb-6">
-        {/* Fail-safe: if role is unexpectedly missing but user is logged in, show at least Dashboard */}
         {!currentRole && (
            <div className="px-4 py-2 bg-red-900/20 border border-red-500/30 rounded-lg mb-4">
               <p className="text-xs text-red-200 flex items-center gap-2"><AlertTriangle size={12}/> Role Config Error</p>
@@ -88,19 +88,15 @@ const SidebarContent: React.FC<SidebarContentProps> = ({ currentUser, currentRol
             <h3 className="px-4 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-3">{group.label}</h3>
             <div className="space-y-1">
               {group.items.map((item) => {
-                // 安全优化：权限降级策略
                 let hasPermission = false;
                 
                 if (!item.resource) {
-                   // Always allow non-resource items like Dashboard
                    hasPermission = true; 
                 } else if (currentRole) {
                    const perm = currentRole.permissions[item.resource];
                    if (perm) {
                       hasPermission = perm.read;
                    } else {
-                      // Fallback logic for new resources added to types but not yet in role data
-                      // If the user is a system admin, implicitly allow read access to everything
                       hasPermission = currentRole.isSystem || false;
                    }
                 }
@@ -160,14 +156,12 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [logo, setLogo] = useState(settings.graphicLogoUrl);
   const [storageStatus, setStorageStatus] = useState(storageService.getSystemStatus());
   
-  // Security State
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     const initAuth = async () => {
-      // 1. Immediate Auth Check
       const user = storageService.getCurrentUser();
       
       if (!user || !storageService.isAuthenticated()) {
@@ -177,16 +171,13 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       if (mounted) setCurrentUser(user);
 
-      // 2. Fetch Role with Timeout Safety
       try {
-        // Race request against a 2-second timeout to prevent white screen of death
         const rolePromise = storageService.getCurrentUserRole();
         const timeoutPromise = new Promise<null>(resolve => setTimeout(() => resolve(null), 2000));
         
         const role = await Promise.race([rolePromise, timeoutPromise]);
         
         if (mounted) {
-          // If role is null (timeout or error), we still authorize rendering
           setCurrentRole(role); 
           setIsAuthorized(true);
         }
@@ -255,7 +246,6 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     });
   };
 
-  // Improved Loading State
   if (!isAuthorized) {
     return (
       <div className="h-screen w-screen flex flex-col items-center justify-center bg-gray-50 text-gray-400">

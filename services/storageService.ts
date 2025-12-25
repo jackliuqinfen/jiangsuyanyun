@@ -17,6 +17,7 @@ import {
   INITIAL_TEAM,
   COMPANY_HISTORY,
   INITIAL_TENDERS,
+  INITIAL_PERFORMANCES, // Added
   DEFAULT_SECURITY_CONFIG
 } from '../constants';
 import { 
@@ -38,6 +39,7 @@ import {
   TeamMember,
   HistoryEvent,
   TenderItem,
+  PerformanceItem, // Added
   AuditLog,
   LoginAttempt,
   SecurityConfig
@@ -65,6 +67,7 @@ const KEYS = {
   TEAM: 'yanyun_team_v3',
   HISTORY: 'yanyun_history_v3',
   TENDERS: 'yanyun_tenders_v3',
+  PERFORMANCES: 'yanyun_performances_v3', // Added
   AUDIT_LOGS: 'yanyun_audit_logs_v3', 
   LOGIN_ATTEMPTS: 'yanyun_login_attempts_v3', 
   SECURITY_CONFIG: 'yanyun_security_config_v3' 
@@ -88,6 +91,7 @@ const INITIAL_DATA_MAP: Record<string, any> = {
   [KEYS.TEAM]: INITIAL_TEAM,
   [KEYS.HISTORY]: COMPANY_HISTORY,
   [KEYS.TENDERS]: INITIAL_TENDERS,
+  [KEYS.PERFORMANCES]: INITIAL_PERFORMANCES, // Added
   [KEYS.SETTINGS]: DEFAULT_SITE_SETTINGS,
   [KEYS.SECURITY_CONFIG]: DEFAULT_SECURITY_CONFIG,
   [KEYS.AUDIT_LOGS]: [],
@@ -292,14 +296,12 @@ export const storageService = {
 
   getAuditLogs: () => storageService.get<AuditLog>(KEYS.AUDIT_LOGS),
 
-  // Correct fix: define return type with optional mfaRequired to resolve TS errors in Login.tsx
   login: async (u: string, p: string): Promise<{ success: boolean; message?: string; mfaRequired?: boolean }> => {
     if (u === 'admin' && p === 'admin') {
       const users = await storageService.getUsers();
       const user = users.find(usr => usr.username === 'admin') || INITIAL_USERS[0];
       const securityConfig = await storageService.getSecurityConfig();
 
-      // Check if MFA is required based on user or global config
       if (user.mfaEnabled || securityConfig.mfaEnabled) {
         return { success: true, mfaRequired: true };
       }
@@ -312,9 +314,7 @@ export const storageService = {
     return { success: false, message: '凭证无效', mfaRequired: false };
   },
 
-  // Added missing verifyMfa method called by Login.tsx
   verifyMfa: async (username: string, code: string): Promise<{ success: boolean; message?: string }> => {
-    // Simulated MFA verification (hardcoded code for demonstration)
     if (code === '123456') {
       const users = await storageService.getUsers();
       const user = users.find(u => u.username === username) || INITIAL_USERS[0];
@@ -408,4 +408,7 @@ export const storageService = {
   getTenders: () => storageService.get<TenderItem>(KEYS.TENDERS),
   saveTenders: (items: TenderItem[]) => storageService.save(KEYS.TENDERS, items),
   getTenderById: async (id: string) => (await storageService.getTenders()).find(t => t.id === id),
+  getPerformances: () => storageService.get<PerformanceItem>(KEYS.PERFORMANCES), // Added
+  savePerformances: (items: PerformanceItem[]) => storageService.save(KEYS.PERFORMANCES, items), // Added
+  getPerformanceById: async (id: string) => (await storageService.getPerformances()).find(p => p.id === id), // Added
 };

@@ -86,7 +86,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     { name: '荣誉资质', path: '/honors' },
     { name: '业务领域', path: '/services' },
     { name: '经典案例', path: '/cases' },
-    { name: '招标信息', path: '/tenders' }, // 新增
+    { name: '企业业绩', path: '/performances' }, // Added
+    { name: '招标信息', path: '/tenders' }, 
     { name: '新闻动态', path: '/news' },
     { name: '网址导航', path: '/navigation' },
     { name: '分支机构', path: '/branches' },
@@ -110,7 +111,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-800 bg-surface">
       
-      {/* 8th Anniversary Popup - Only on Homepage */}
       {showPopup && <AnniversaryPopup />}
 
       {/* Top Bar - Desktop Only */}

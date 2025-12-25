@@ -16,9 +16,10 @@ export type ResourceType =
   | 'navigation'
   | 'team'
   | 'history'
-  | 'tenders' // Added tenders resource
+  | 'tenders' 
+  | 'performances' // Added performances resource
   | 'pages'
-  | 'security'; // Added security resource
+  | 'security';
 
 export interface Permission {
   read: boolean;
@@ -47,7 +48,6 @@ export interface User {
   email?: string;
 }
 
-// ... [Keep existing NewsItem, TenderItem, etc. unchanged] ...
 export interface NewsItem {
   id: string;
   title: string;
@@ -74,12 +74,28 @@ export interface TenderItem {
   content?: string;
 }
 
+// New Performance Types
+export type PerformanceCategory = '招标代理' | '监理服务' | '造价咨询' | '其他咨询服务';
+
+export interface PerformanceItem {
+  id: string;
+  title: string; // 项目名称
+  category: PerformanceCategory;
+  client: string; // 业主单位
+  amount?: string; // 中标/合同金额
+  date: string; // 时间
+  content?: string; // 详细内容
+  pdfUrl?: string; // PDF附件地址
+  linkUrl?: string; // 外部网页链接
+  isPublished: boolean;
+}
+
 export interface ProjectCase {
   id: string;
   title: string;
   category: string;
   description: string;
-  content?: string; // Added rich text content
+  content?: string; 
   imageUrl: string;
   location: string;
   date: string;
@@ -155,7 +171,7 @@ export interface Honor {
   issuingAuthority: string;
   imageUrl: string;
   categoryId: string;
-  content?: string; // Added rich text content
+  content?: string; 
 }
 
 export interface Testimonial {
@@ -229,6 +245,7 @@ export interface PageContent {
     navigation: PageHeaderConfig;
     honors: PageHeaderConfig;
     tenders: PageHeaderConfig;
+    performances: PageHeaderConfig;
   };
   footer: {
     quickLinks: FooterLink[];
@@ -291,25 +308,23 @@ export interface PageHeaderConfig {
   backgroundImage: string;
 }
 
-// --- NEW SECURITY TYPES ---
-
 export interface AuditLog {
   id: string;
   userId: string;
   userName: string;
-  action: string;      // e.g., 'LOGIN', 'CREATE', 'DELETE'
-  resource: string;    // e.g., 'News', 'User'
+  action: string;      
+  resource: string;    
   details: string;
   timestamp: string;
-  ipAddress: string;   // Simulated
+  ipAddress: string;   
   status: 'SUCCESS' | 'FAILURE';
 }
 
 export interface LoginAttempt {
   count: number;
-  lastAttempt: number; // timestamp
+  lastAttempt: number; 
   isLocked: boolean;
-  lockUntil: number;   // timestamp
+  lockUntil: number;   
 }
 
 export interface SecurityConfig {

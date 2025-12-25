@@ -18,12 +18,15 @@ import Honors from './pages/Honors';
 import HonorDetail from './pages/HonorDetail'; // New Honor Detail Page
 import Tenders from './pages/Tenders'; 
 import TenderDetail from './pages/TenderDetail';
+import Performances from './pages/Performances'; // Added
+import PerformanceDetail from './pages/PerformanceDetail'; // Added
 import Dashboard from './pages/admin/Dashboard';
 import Login from './pages/admin/Login';
 import Settings from './pages/admin/Settings';
 import SecuritySettings from './pages/admin/SecuritySettings'; 
 import NewsManager from './pages/admin/NewsManager';
 import TenderManager from './pages/admin/TenderManager'; 
+import PerformanceManager from './pages/admin/PerformanceManager'; // Added
 import ProjectManager from './pages/admin/ProjectManager';
 import ServiceManager from './pages/admin/ServiceManager';
 import BranchManager from './pages/admin/BranchManager';
@@ -51,6 +54,7 @@ const App: React.FC = () => {
               <Route path="pages" element={<PageManager />} />
               <Route path="news" element={<NewsManager />} />
               <Route path="tenders" element={<TenderManager />} /> 
+              <Route path="performances" element={<PerformanceManager />} /> // Added
               <Route path="projects" element={<ProjectManager />} />
               <Route path="services" element={<ServiceManager />} />
               <Route path="branches" element={<BranchManager />} />
@@ -77,6 +81,8 @@ const App: React.FC = () => {
               <Route path="/cases/:id" element={<CaseDetail />} />
               <Route path="/tenders" element={<Tenders />} />
               <Route path="/tenders/:id" element={<TenderDetail />} />
+              <Route path="/performances" element={<Performances />} /> // Added
+              <Route path="/performances/:id" element={<PerformanceDetail />} /> // Added
               <Route path="/news" element={<News />} />
               <Route path="/news/:id" element={<NewsDetail />} />
               <Route path="/branches" element={<Branches />} />
