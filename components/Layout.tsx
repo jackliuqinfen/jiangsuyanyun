@@ -5,7 +5,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, Mail, MapPin, ChevronRight, ArrowRight, ChevronDown, Monitor, ShieldCheck, ExternalLink, ArrowUp, UserCircle, Briefcase, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { storageService } from '../services/storageService';
-import { SiteSettings, PageContent } from '../types';
+import { SiteSettings, PageContent, TopNavLink } from '../types';
 import AnniversaryPopup from './AnniversaryPopup'; // Import the new popup
 
 // Cast motion components to any to resolve property 'animate'/'initial' etc. missing errors in current type environment
@@ -18,8 +18,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
-  const [footerConfig, setFooterConfig] = useState<PageContent['footer']>(storageService.getPageContent().footer);
+  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettingsSync());
+  const [pageContent, setPageContent] = useState<PageContent>(storageService.getPageContent());
   const location = useLocation();
 
   useEffect(() => {
@@ -30,16 +30,16 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     
     // Listen for settings/content changes from Admin panel
     const handleSettingsUpdate = () => {
-      setSettings(storageService.getSettings());
-      setFooterConfig(storageService.getPageContent().footer);
+      setSettings(storageService.getSettingsSync());
+      setPageContent(storageService.getPageContent());
     };
 
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('settingsChanged', handleSettingsUpdate);
     
     // Refresh settings on route change too
-    setSettings(storageService.getSettings());
-    setFooterConfig(storageService.getPageContent().footer);
+    setSettings(storageService.getSettingsSync());
+    setPageContent(storageService.getPageContent());
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
@@ -80,18 +80,12 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const navLinks = [
-    { name: '首页', path: '/' },
-    { name: '关于盐韵', path: '/about' },
-    { name: '荣誉资质', path: '/honors' },
-    { name: '业务领域', path: '/services' },
-    { name: '经典案例', path: '/cases' },
-    { name: '企业业绩', path: '/performances' }, // Added
-    { name: '招标信息', path: '/tenders' }, 
-    { name: '新闻动态', path: '/news' },
-    { name: '网址导航', path: '/navigation' },
-    { name: '分支机构', path: '/branches' },
-  ];
+  // Process dynamic nav links
+  const navLinks = pageContent.topNav
+    ? pageContent.topNav.filter(link => link.isVisible).sort((a, b) => a.order - b.order)
+    : [];
+
+  const footerConfig = pageContent.footer;
 
   // Dynamic Footer Links
   const quickLinks = footerConfig?.quickLinks?.filter(l => l.isVisible) || [];
@@ -192,8 +186,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 className="h-full w-auto object-contain"
                 animate={{
                   filter: isLightHeader 
-                    ? 'drop-shadow(0 0 0px rgba(255,255,255,0))' 
-                    : 'drop-shadow(0 0 8px rgba(255,255,255,0.3))'
+                    ? 'brightness(1) drop-shadow(0 0 0 rgba(0,0,0,0))' // On White: Natural color, no shadow
+                    : 'brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.4))' // On Dark: Slightly brighter + Glow
                 }}
                 transition={{ duration: 0.5 }}
               />
@@ -204,8 +198,8 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 initial={false}
                 animate={{
                   filter: isLightHeader 
-                    ? 'brightness(0) opacity(0.9)' 
-                    : 'invert(1) brightness(2) opacity(1)',
+                    ? 'brightness(0.2) opacity(0.9)' // On White: Dark Grey for readability
+                    : 'brightness(0) invert(1) opacity(1)', // On Dark: Pure White
                   scale: scrolled ? 0.95 : 1
                 }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
@@ -233,13 +227,13 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
                   return (
                     <Link
-                      key={link.path}
+                      key={link.id}
                       to={link.path}
                       className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
                         active ? activeClass : inactiveClass
                       }`}
                     >
-                      {link.name}
+                      {link.label}
                     </Link>
                   );
                 })}
@@ -283,14 +277,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <nav className="flex flex-col space-y-6 flex-1 overflow-y-auto">
               {navLinks.map((link) => (
                 <Link
-                  key={link.path}
+                  key={link.id}
                   to={link.path}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`text-xl font-bold ${
                     isActive(link.path, location.pathname) ? 'text-primary' : 'text-gray-800'
                   }`}
                 >
-                  {link.name}
+                  {link.label}
                 </Link>
               ))}
               <Link

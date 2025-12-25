@@ -10,7 +10,7 @@ export const RESOURCES: {id: ResourceType, label: string}[] = [
   { id: 'pages', label: '页面内容' },
   { id: 'news', label: '新闻动态' },
   { id: 'tenders', label: '招标信息' },
-  { id: 'performances', label: '企业业绩' }, // Added
+  { id: 'performances', label: '企业业绩' }, 
   { id: 'projects', label: '项目案例' },
   { id: 'services', label: '业务服务' },
   { id: 'branches', label: '分支机构' },
@@ -35,7 +35,7 @@ export const INITIAL_ROLES: Role[] = [
       pages: fullAccess,
       news: fullAccess,
       tenders: fullAccess,
-      performances: fullAccess, // Added
+      performances: fullAccess,
       projects: fullAccess,
       services: fullAccess,
       branches: fullAccess,
@@ -59,7 +59,7 @@ export const INITIAL_ROLES: Role[] = [
       pages: fullAccess,
       news: fullAccess,
       tenders: fullAccess,
-      performances: fullAccess, // Added
+      performances: fullAccess,
       projects: fullAccess,
       services: fullAccess,
       branches: fullAccess,
@@ -83,7 +83,7 @@ export const INITIAL_ROLES: Role[] = [
       pages: readOnly,
       news: readOnly,
       tenders: readOnly,
-      performances: readOnly, // Added
+      performances: readOnly,
       projects: readOnly,
       services: readOnly,
       branches: readOnly,
@@ -106,7 +106,7 @@ export const INITIAL_USERS: User[] = [
     username: 'admin',
     name: '系统管理员',
     roleId: 'role_admin',
-    avatar: '/images/team/admin.jpg',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop',
     lastLogin: '2023-12-01 09:00',
     mfaEnabled: false,
     email: 'admin@yanyun.com',
@@ -125,9 +125,10 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   siteName: '江苏盐韵工程项目管理有限公司',
   logoUrl: '', 
-  graphicLogoUrl: '/images/logo.png',
-  textLogoUrl: '/images/logo-text.png',
-  faviconUrl: '/favicon.ico', 
+  // 使用在线图标替代本地路径 - Updated per request
+  graphicLogoUrl: 'https://youke2.picui.cn/s1/2025/12/26/694dadbf3da4f.png', 
+  textLogoUrl: 'https://youke2.picui.cn/s1/2025/12/26/694dadbf08724.png', 
+  faviconUrl: 'https://youke2.picui.cn/s1/2025/12/26/694dadbf3da4f.png', 
   themeColor: '#2C388B',
   contactPhone: '0515-88888888',
   contactEmail: 'office@jsyanyun.com',
@@ -242,17 +243,30 @@ export const INITIAL_PERFORMANCES: PerformanceItem[] = [
 ];
 
 export const INITIAL_PAGE_CONTENT: PageContent = {
+  topNav: [
+    { id: 'nav_home', label: '首页', path: '/', isVisible: true, order: 1 },
+    { id: 'nav_about', label: '关于盐韵', path: '/about', isVisible: true, order: 2 },
+    { id: 'nav_honors', label: '荣誉资质', path: '/honors', isVisible: true, order: 3 },
+    { id: 'nav_services', label: '业务领域', path: '/services', isVisible: true, order: 4 },
+    { id: 'nav_cases', label: '经典案例', path: '/cases', isVisible: true, order: 5 },
+    { id: 'nav_perf', label: '企业业绩', path: '/performances', isVisible: true, order: 6 },
+    { id: 'nav_tenders', label: '招标信息', path: '/tenders', isVisible: true, order: 7 },
+    { id: 'nav_news', label: '新闻动态', path: '/news', isVisible: true, order: 8 },
+    { id: 'nav_nav', label: '网址导航', path: '/navigation', isVisible: true, order: 9 },
+    { id: 'nav_branches', label: '分支机构', path: '/branches', isVisible: true, order: 10 },
+  ],
   headers: {
-    about: { title: '品牌溯源', subtitle: '深耕工程管理八载，致力于成为卓越的资产全生命周期守护者', backgroundImage: '/images/banners/about.jpg' },
-    services: { title: '核心业务', subtitle: '全过程工程咨询服务，以数字化技术赋能传统工程管理模式', backgroundImage: '/images/banners/services.jpg' },
-    cases: { title: '经典案例', subtitle: '每一个精品工程，都是我们对“质量生命线”的庄严承诺', backgroundImage: '/images/banners/cases.jpg' },
-    news: { title: '行业动态', subtitle: '把握行业脉搏，传递盐韵声音', backgroundImage: '/images/banners/news.jpg' },
-    branches: { title: '服务网络', subtitle: '立足江苏，辐射长三角，构建全方位的即时响应体系', backgroundImage: '/images/banners/branches.jpg' },
-    contact: { title: '联系我们', subtitle: '期待与您携手，共创价值。咨询热线：0515-88888888', backgroundImage: '/images/banners/contact.jpg' },
-    navigation: { title: '行业导航', subtitle: '为您整合行业政策及招投标入口', backgroundImage: '/images/banners/nav.jpg' },
-    honors: { title: '资质荣誉', subtitle: '权威认证是对专业主义的最佳背书', backgroundImage: '/images/banners/honors.jpg' },
-    tenders: { title: '招采频道', subtitle: '发布项目实时招标与中标讯息', backgroundImage: '/images/banners/tenders.jpg' },
-    performances: { title: '企业业绩', subtitle: '用数据说话，见证每一次交付的承诺', backgroundImage: '/images/banners/performances.jpg' } // Added
+    // 使用在线 Unsplash 图片替换本地 Banner
+    about: { title: '品牌溯源', subtitle: '深耕工程管理八载，致力于成为卓越的资产全生命周期守护者', backgroundImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop' },
+    services: { title: '核心业务', subtitle: '全过程工程咨询服务，以数字化技术赋能传统工程管理模式', backgroundImage: 'https://images.unsplash.com/photo-1581094794329-cd1096a7a2e8?q=80&w=2070&auto=format&fit=crop' },
+    cases: { title: '经典案例', subtitle: '每一个精品工程，都是我们对“质量生命线”的庄严承诺', backgroundImage: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=2070&auto=format&fit=crop' },
+    news: { title: '行业动态', subtitle: '把握行业脉搏，传递盐韵声音', backgroundImage: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070&auto=format&fit=crop' },
+    branches: { title: '服务网络', subtitle: '立足江苏，辐射长三角，构建全方位的即时响应体系', backgroundImage: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop' },
+    contact: { title: '联系我们', subtitle: '期待与您携手，共创价值。咨询热线：0515-88888888', backgroundImage: 'https://images.unsplash.com/photo-1423666639041-f140481d836a?q=80&w=2074&auto=format&fit=crop' },
+    navigation: { title: '行业导航', subtitle: '为您整合行业政策及招投标入口', backgroundImage: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop' },
+    honors: { title: '资质荣誉', subtitle: '权威认证是对专业主义的最佳背书', backgroundImage: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1974&auto=format&fit=crop' },
+    tenders: { title: '招采频道', subtitle: '发布项目实时招标与中标讯息', backgroundImage: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=2070&auto=format&fit=crop' },
+    performances: { title: '企业业绩', subtitle: '用数据说话，见证每一次交付的承诺', backgroundImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop' }
   },
   home: {
     layout: [
@@ -269,7 +283,8 @@ export const INITIAL_PAGE_CONTENT: PageContent = {
       titleLine1: '数智化赋能',
       titleHighlight: '工程全生命周期管理',
       description: '江苏盐韵致力于打造“咨询+科技+运营”三位一体的工程管理新范式，为基建项目提供全闭环顾问服务。',
-      bgImage: '/images/hero/main-bg.jpg',
+      // Hero Image
+      bgImage: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070&auto=format&fit=crop',
       buttonText: '探索服务体系',
       buttonLink: '/services',
       secondaryButtonText: '查看业绩库',
@@ -302,7 +317,7 @@ export const INITIAL_PAGE_CONTENT: PageContent = {
       title: '不仅仅是监理，更是您的资产管家',
       content1: '江苏盐韵工程项目管理有限公司成立于2017年，是江苏省内成长速度最快的综合型工程咨询服务商之一。',
       content2: '我们不满足于传统的“三控三管一协调”，更在全行业率先推广“数智化工地”模型，为业主的每一分投资护航。',
-      imageUrl: '/images/about/office.jpg'
+      imageUrl: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=2070&auto=format&fit=crop'
     },
     culture: { mission: '为客户创造价值', values: '诚信、专业、创新', management: '基于客观数据的精准决策' }
   },
@@ -330,13 +345,23 @@ export const INITIAL_PAGE_CONTENT: PageContent = {
 };
 
 export const INITIAL_NEWS: NewsItem[] = [
-  { id: '1', title: '盐韵参与编制的《江苏省智慧工地管理标准》正式发布', summary: '作为行业领先的数智化管理专家，标志着公司技术实力获得官方认可。', content: '<p>近日...</p>', date: '2025-01-20', category: '公司新闻', published: true, imageUrl: '/images/news/news-1.jpg' }
+  { 
+    id: '1', 
+    title: '盐韵参与编制的《江苏省智慧工地管理标准》正式发布', 
+    summary: '作为行业领先的数智化管理专家，标志着公司技术实力获得官方认可。', 
+    content: '<p>近日...</p>', 
+    date: '2025-01-20', 
+    category: '公司新闻', 
+    published: true, 
+    imageUrl: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070&auto=format&fit=crop' 
+  }
 ];
 
 export const INITIAL_BRANCH_CATEGORIES: BranchCategory[] = [{ id: 'cat_hq', name: '总部及研发中心', order: 0 }];
 export const INITIAL_BRANCHES: Branch[] = [{ id: '1', name: '盐韵总部', address: '盐城市金融城5号楼12F', phone: '0515-88888888', manager: '张总经理', coordinates: { lat: 33.347, lng: 120.163 }, categoryId: 'cat_hq' }];
 export const INITIAL_LINKS: NavigationLink[] = [{ id: '1', title: '江苏省智慧工地云平台', url: 'https://zhgd.js.gov.cn/', category: '政府监管' }];
-export const INITIAL_PARTNERS: Partner[] = [{ id: '1', name: '中南集团', logoUrl: '/images/partners/zhongnan.png' }];
+// Use online logos for partners
+export const INITIAL_PARTNERS: Partner[] = [{ id: '1', name: '中南集团', logoUrl: 'https://ui-avatars.com/api/?name=ZN&background=random&size=128' }];
 export const INITIAL_TESTIMONIALS: Testimonial[] = [];
 export const INITIAL_HONOR_CATEGORIES: HonorCategory[] = [{ id: 'cat_comp', name: '核心资质', order: 1 }, { id: 'cat_award', name: '行业荣誉', order: 2 }];
 
@@ -346,7 +371,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: '房屋建筑工程监理甲级资质', 
     issueDate: '2019-05', 
     issuingAuthority: '中华人民共和国住房和城乡建设部', 
-    imageUrl: '/images/honors/cert-1.jpg', 
+    imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2000&auto=format&fit=crop', 
     categoryId: 'cat_comp' 
   },
   {
@@ -354,7 +379,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: '市政公用工程监理甲级资质',
     issueDate: '2020-08',
     issuingAuthority: '中华人民共和国住房和城乡建设部',
-    imageUrl: '/images/honors/cert-2.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1635350736475-c8cef4b21906?q=80&w=2000&auto=format&fit=crop',
     categoryId: 'cat_comp'
   },
   {
@@ -362,7 +387,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: '人防工程监理乙级资质',
     issueDate: '2021-03',
     issuingAuthority: '江苏省民防局',
-    imageUrl: '/images/honors/cert-3.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2000&auto=format&fit=crop',
     categoryId: 'cat_comp'
   },
   {
@@ -370,7 +395,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: '江苏省优秀工程监理企业',
     issueDate: '2023-12',
     issuingAuthority: '江苏省建设监理协会',
-    imageUrl: '/images/honors/award-1.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2000&auto=format&fit=crop',
     categoryId: 'cat_award'
   },
   {
@@ -378,7 +403,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'AAA级信用企业证书',
     issueDate: '2024-01',
     issuingAuthority: '中国企业信用等级评价中心',
-    imageUrl: '/images/honors/cert-4.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop',
     categoryId: 'cat_comp'
   },
   {
@@ -386,7 +411,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'ISO9001 质量管理体系认证',
     issueDate: '2022-06',
     issuingAuthority: '中国质量认证中心',
-    imageUrl: '/images/honors/cert-5.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1554224154-260327c0d14d?q=80&w=2000&auto=format&fit=crop',
     categoryId: 'cat_comp'
   },
   {
@@ -394,7 +419,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: '盐城市“扬子杯”优质工程奖',
     issueDate: '2022-11',
     issuingAuthority: '江苏省住房和城乡建设厅',
-    imageUrl: '/images/honors/award-2.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1613909207039-6b173b755cc1?q=80&w=2000&auto=format&fit=crop',
     categoryId: 'cat_award'
   }
 ];
@@ -432,7 +457,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '盐城大数据中心三期扩建项目', 
     category: '公共建筑', 
     description: '省重点基建工程，总投资超15亿元，应用 BIM+IoT 技术实现数智化移交。', 
-    imageUrl: '/images/projects/data-center.jpg', 
+    imageUrl: 'https://images.unsplash.com/photo-1558494949-ef526bca4852?q=80&w=2068&auto=format&fit=crop', 
     location: '盐城市城南新区', 
     date: '2024-12', 
     isFeatured: true 
@@ -442,7 +467,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '南通金融城超高层综合体监理', 
     category: '综合商业', 
     description: '200米级超高层建筑，包含复杂钢结构及深基坑作业，盐韵负责全过程监理。', 
-    imageUrl: '/images/projects/finance-city.jpg', 
+    imageUrl: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?q=80&w=2070&auto=format&fit=crop', 
     location: '南通市崇川区', 
     date: '2023-11', 
     isFeatured: true 
@@ -452,7 +477,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '悦达起亚三工厂智能车间改造',
     category: '工业厂房',
     description: '涉及高精度设备基础施工与钢结构大跨度吊装，工期紧任务重。',
-    imageUrl: '/images/projects/kia-factory.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop',
     location: '盐城经济开发区',
     date: '2023-08',
     isFeatured: true
@@ -462,7 +487,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '盐城高铁站综合交通枢纽',
     category: '基础设施',
     description: '集高铁、长途客运、公交、出租于一体的城市交通核心，获鲁班奖提名。',
-    imageUrl: '/images/projects/railway-station.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1532153975070-2e9ab71f1b14?q=80&w=2070&auto=format&fit=crop',
     location: '盐城市亭湖区',
     date: '2022-05',
     isFeatured: true
@@ -472,7 +497,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '中韩(盐城)产业园未来科技城',
     category: '公共建筑',
     description: '园区地标性建筑群，包含研发中心、展示中心及人才公寓，采用绿色建筑三星标准。',
-    imageUrl: '/images/projects/tech-city.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=2069&auto=format&fit=crop',
     location: '盐城河东新区',
     date: '2023-01',
     isFeatured: true
@@ -482,7 +507,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '大丰港深水航道整治工程',
     category: '基础设施',
     description: '省重点水运工程，监理团队克服海上作业恶劣环境，确保工程按期完工。',
-    imageUrl: '/images/projects/dafeng-port.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1590247813693-5541d1c609fd?q=80&w=2009&auto=format&fit=crop',
     location: '盐城市大丰区',
     date: '2021-12',
     isFeatured: true
@@ -492,7 +517,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '射阳县人民医院异地新建项目',
     category: '公共建筑',
     description: '三级甲等综合医院标准建设，包含门诊楼、住院楼及感染楼，总建筑面积18万平米。',
-    imageUrl: '/images/projects/sheyang-hospital.jpg',
+    imageUrl: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=2053&auto=format&fit=crop',
     location: '盐城市射阳县',
     date: '2024-02',
     isFeatured: true
@@ -507,6 +532,6 @@ export const COMPANY_HISTORY: HistoryEvent[] = [
 ];
 
 export const INITIAL_TEAM: TeamMember[] = [
-  { id: '1', name: '张伟', role: '总经理 / 国家注册监理工程师', description: '25年基建管理经验，曾主导多项省优、部优工程项目。', imageUrl: '/images/team/member-1.jpg' },
-  { id: '2', name: '李静', role: '技术总监 / 国家注册造价工程师', description: '精通全过程造价管控，主持过超过50个大型项目的预决算审计。', imageUrl: '/images/team/member-2.jpg' }
+  { id: '1', name: '张伟', role: '总经理 / 国家注册监理工程师', description: '25年基建管理经验，曾主导多项省优、部优工程项目。', imageUrl: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1974&auto=format&fit=crop' },
+  { id: '2', name: '李静', role: '技术总监 / 国家注册造价工程师', description: '精通全过程造价管控，主持过超过50个大型项目的预决算审计。', imageUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop' }
 ];

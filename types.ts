@@ -234,7 +234,17 @@ export interface FooterLink {
   isVisible: boolean;
 }
 
+// New Interface for Top Navigation
+export interface TopNavLink {
+  id: string;
+  label: string;
+  path: string;
+  isVisible: boolean;
+  order: number;
+}
+
 export interface PageContent {
+  topNav: TopNavLink[]; // Added topNav
   headers: {
     about: PageHeaderConfig;
     services: PageHeaderConfig;

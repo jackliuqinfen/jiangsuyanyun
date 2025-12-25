@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, CheckCircle2, Trash2, Plus, Layout, Type, Image as ImageIcon, MessageSquare, ArrowUp, ArrowDown, Eye, EyeOff, Layers, Link as LinkIcon, Settings2, GripVertical, Activity, Sparkles, PieChart } from 'lucide-react';
+import { Save, CheckCircle2, Trash2, Plus, Layout, Type, Image as ImageIcon, MessageSquare, ArrowUp, ArrowDown, Eye, EyeOff, Layers, Link as LinkIcon, Settings2, GripVertical, Activity, Sparkles, PieChart, Compass } from 'lucide-react';
 import { storageService } from '../../services/storageService';
-import { PageContent, PageHeaderConfig, HomeSectionConfig, FooterLink } from '../../types';
+import { PageContent, PageHeaderConfig, HomeSectionConfig, FooterLink, TopNavLink } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
 import { motion } from 'framer-motion';
 
@@ -11,7 +11,7 @@ const MotionDiv = motion.div as any;
 
 const PageManager: React.FC = () => {
   const [content, setContent] = useState<PageContent>(storageService.getPageContent());
-  const [activeTab, setActiveTab] = useState<'home' | 'footer' | 'about' | 'services' | 'headers'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'navigation' | 'footer' | 'about' | 'services' | 'headers'>('home');
   const [isSaved, setIsSaved] = useState(false);
 
   const handleSave = () => {
@@ -50,6 +50,30 @@ const PageManager: React.FC = () => {
     updateContent(['home', 'layout'], newLayout);
   };
 
+  // --- Navigation Helpers ---
+  const moveNavLink = (index: number, direction: 'up' | 'down') => {
+    const newNav = [...(content.topNav || [])];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex >= 0 && targetIndex < newNav.length) {
+      [newNav[index], newNav[targetIndex]] = [newNav[targetIndex], newNav[index]];
+      // Update orders
+      newNav.forEach((link, idx) => link.order = idx + 1);
+      updateContent(['topNav'], newNav);
+    }
+  };
+
+  const toggleNavLinkVisibility = (index: number) => {
+    const newNav = [...(content.topNav || [])];
+    newNav[index].isVisible = !newNav[index].isVisible;
+    updateContent(['topNav'], newNav);
+  };
+
+  const updateNavLinkLabel = (index: number, label: string) => {
+    const newNav = [...(content.topNav || [])];
+    newNav[index].label = label;
+    updateContent(['topNav'], newNav);
+  };
+
   // --- Footer Helpers ---
   const addFooterLink = () => {
     const newLink: FooterLink = { 
@@ -74,6 +98,7 @@ const PageManager: React.FC = () => {
 
   const tabs = [
     { id: 'home', label: '首页配置', icon: Layout },
+    { id: 'navigation', label: '导航菜单', icon: Compass },
     { id: 'footer', label: '动态页脚', icon: Layers },
     { id: 'about', label: '关于我们', icon: Type },
     { id: 'services', label: '业务/问答', icon: MessageSquare },
@@ -277,6 +302,59 @@ const PageManager: React.FC = () => {
                      </div>
                   </div>
                </section>
+            </MotionDiv>
+         )}
+
+         {activeTab === 'navigation' && (
+            <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+               <div className="flex items-center gap-4 mb-4">
+                  <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><Compass size={20}/></div>
+                  <div>
+                     <h3 className="text-lg font-bold text-gray-900 uppercase tracking-widest">顶部导航配置</h3>
+                     <p className="text-xs text-gray-500 font-medium">自定义主菜单的排序、名称和显示状态</p>
+                  </div>
+               </div>
+
+               <div className="bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden">
+                  <div className="grid grid-cols-12 gap-4 p-4 border-b border-gray-200 bg-gray-100 text-xs font-bold text-gray-500 uppercase tracking-widest">
+                     <div className="col-span-1 text-center">排序</div>
+                     <div className="col-span-4">导航名称</div>
+                     <div className="col-span-4">跳转路径 (Path)</div>
+                     <div className="col-span-3 text-right">操作</div>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                     {(content.topNav || []).map((link, index) => (
+                        <div key={link.id} className={`grid grid-cols-12 gap-4 p-4 items-center bg-white transition-colors ${link.isVisible ? '' : 'opacity-60 bg-gray-50'}`}>
+                           <div className="col-span-1 flex justify-center">
+                              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-xs font-bold text-gray-400">
+                                 {index + 1}
+                              </div>
+                           </div>
+                           <div className="col-span-4">
+                              <input 
+                                 type="text" 
+                                 className="w-full px-3 py-2 border rounded-lg text-sm font-bold text-gray-800" 
+                                 value={link.label} 
+                                 onChange={e => updateNavLinkLabel(index, e.target.value)}
+                              />
+                           </div>
+                           <div className="col-span-4">
+                              <div className="px-3 py-2 bg-gray-50 border rounded-lg text-sm text-gray-500 font-mono truncate">
+                                 {link.path}
+                              </div>
+                           </div>
+                           <div className="col-span-3 flex items-center justify-end gap-2">
+                              <button onClick={() => moveNavLink(index, 'up')} disabled={index === 0} className="p-2 hover:bg-gray-100 rounded text-gray-500 disabled:opacity-30"><ArrowUp size={16}/></button>
+                              <button onClick={() => moveNavLink(index, 'down')} disabled={index === (content.topNav?.length || 0) - 1} className="p-2 hover:bg-gray-100 rounded text-gray-500 disabled:opacity-30"><ArrowDown size={16}/></button>
+                              <div className="w-px h-6 bg-gray-200 mx-2"></div>
+                              <button onClick={() => toggleNavLinkVisibility(index)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${link.isVisible ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'}`}>
+                                 {link.isVisible ? <Eye size={14}/> : <EyeOff size={14}/>}
+                              </button>
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+               </div>
             </MotionDiv>
          )}
 

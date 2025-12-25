@@ -102,7 +102,9 @@ const API_ENDPOINT = '/api/kv';
 const FILE_API_ENDPOINT = '/api/file';
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
-let isCloudAvailable = true;
+// Deployment Fix: Default to FALSE to ensure LocalStorage works immediately on static hosts.
+// Only set this to true if you have deployed the Edge Functions to Cloudflare/EdgeOne.
+let isCloudAvailable = false;
 
 const markCloudUnavailable = () => {
   if (isCloudAvailable) {
@@ -146,12 +148,21 @@ export const storageService = {
          return getFallback();
       }
 
+      // Deployment Fix: Check content type to avoid parsing HTML as JSON (common SPA issue)
+      const contentType = response.headers.get("content-type");
+      if (contentType && !contentType.includes("application/json")) {
+         markCloudUnavailable();
+         return getFallback();
+      }
+
       const data = await response.json();
       if (data === null) return getFallback();
       
       localStorage.setItem(key, JSON.stringify(data));
       return data;
     } catch (error) {
+      // Network error or JSON parse error
+      markCloudUnavailable();
       return getFallback();
     }
   },
@@ -272,143 +283,4 @@ export const storageService = {
 
   getStorageUsage: () => {
     let total = 0;
-    for (const key in localStorage) {
-      if (localStorage.hasOwnProperty(key)) total += (localStorage[key].length + key.length) * 2;
-    }
-    return (total / 1024).toFixed(2);
-  },
-
-  getSecurityConfig: async (): Promise<SecurityConfig> => {
-    const s = await storageService.get<SecurityConfig>(KEYS.SECURITY_CONFIG);
-    return Array.isArray(s) ? (s[0] || DEFAULT_SECURITY_CONFIG) : (s || DEFAULT_SECURITY_CONFIG);
-  },
-
-  saveSecurityConfig: async (config: SecurityConfig) => {
-    await storageService.save(KEYS.SECURITY_CONFIG, [config] as any);
-  },
-
-  logAction: async (action: string, resource: string, details: string, status: 'SUCCESS' | 'FAILURE') => {
-    const user = storageService.getCurrentUser();
-    const log = createAuditLogEntry(user?.id || 'sys', user?.name || 'Guest', action, resource, details, status);
-    const logs = await storageService.getAuditLogs();
-    await storageService.save(KEYS.AUDIT_LOGS, [log, ...logs].slice(0, 1000));
-  },
-
-  getAuditLogs: () => storageService.get<AuditLog>(KEYS.AUDIT_LOGS),
-
-  login: async (u: string, p: string): Promise<{ success: boolean; message?: string; mfaRequired?: boolean }> => {
-    if (u === 'admin' && p === 'admin') {
-      const users = await storageService.getUsers();
-      const user = users.find(usr => usr.username === 'admin') || INITIAL_USERS[0];
-      const securityConfig = await storageService.getSecurityConfig();
-
-      if (user.mfaEnabled || securityConfig.mfaEnabled) {
-        return { success: true, mfaRequired: true };
-      }
-
-      sessionStorage.setItem(KEYS.AUTH_TOKEN, 'session_' + Date.now());
-      localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
-      storageService.logAction('LOGIN', 'Auth', `Admin logged in`, 'SUCCESS');
-      return { success: true, mfaRequired: false };
-    }
-    return { success: false, message: '凭证无效', mfaRequired: false };
-  },
-
-  verifyMfa: async (username: string, code: string): Promise<{ success: boolean; message?: string }> => {
-    if (code === '123456') {
-      const users = await storageService.getUsers();
-      const user = users.find(u => u.username === username) || INITIAL_USERS[0];
-      sessionStorage.setItem(KEYS.AUTH_TOKEN, 'session_' + Date.now());
-      localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
-      storageService.logAction('LOGIN', 'Auth', `${user.name} verified MFA`, 'SUCCESS');
-      return { success: true };
-    }
-    return { success: false, message: '验证码无效' };
-  },
-
-  logout: () => {
-    sessionStorage.removeItem(KEYS.AUTH_TOKEN);
-    localStorage.removeItem(KEYS.CURRENT_USER);
-  },
-
-  isAuthenticated: () => !!sessionStorage.getItem(KEYS.AUTH_TOKEN),
-  getCurrentUser: (): User | null => {
-    const u = localStorage.getItem(KEYS.CURRENT_USER);
-    return u ? JSON.parse(u) : null;
-  },
-
-  getCurrentUserRole: async (): Promise<Role | null> => {
-    const user = storageService.getCurrentUser();
-    if (!user) return null;
-    const roles = await storageService.getRoles();
-    return roles.find(r => r.id === user.roleId) || INITIAL_ROLES[0];
-  },
-
-  getNews: () => storageService.get<NewsItem>(KEYS.NEWS),
-  saveNews: (items: NewsItem[]) => storageService.save(KEYS.NEWS, items),
-  getNewsById: async (id: string) => (await storageService.getNews()).find(n => n.id === id),
-  getRelatedNews: async (id: string) => {
-    const news = await storageService.getNews();
-    return news.filter(n => n.id !== id).slice(0, 3);
-  },
-  
-  getProjects: () => storageService.get<ProjectCase>(KEYS.PROJECTS),
-  saveProjects: (items: ProjectCase[]) => storageService.save(KEYS.PROJECTS, items),
-
-  getServices: () => storageService.get<Service>(KEYS.SERVICES),
-  saveServices: (items: Service[]) => storageService.save(KEYS.SERVICES, items),
-  
-  getSettings: async (): Promise<SiteSettings> => {
-    const s = await storageService.get<SiteSettings>(KEYS.SETTINGS);
-    return Array.isArray(s) ? (s[0] || DEFAULT_SITE_SETTINGS) : (s || DEFAULT_SITE_SETTINGS);
-  },
-  getSettingsSync: (): SiteSettings => {
-     const s = localStorage.getItem(KEYS.SETTINGS);
-     return s ? JSON.parse(s) : DEFAULT_SITE_SETTINGS;
-  },
-  saveSettings: async (s: SiteSettings) => {
-    await storageService.save(KEYS.SETTINGS, [s] as any);
-    window.dispatchEvent(new Event('settingsChanged'));
-  },
-
-  getPageContent: (): PageContent => {
-    const c = localStorage.getItem(KEYS.PAGE_CONTENT);
-    return c ? JSON.parse(c) : INITIAL_PAGE_CONTENT;
-  },
-  savePageContent: (c: PageContent) => storageService.save(KEYS.PAGE_CONTENT, c as any),
-
-  getPartners: () => storageService.get<Partner>(KEYS.PARTNERS),
-  savePartners: (items: Partner[]) => storageService.save(KEYS.PARTNERS, items),
-  getHistory: () => storageService.get<HistoryEvent>(KEYS.HISTORY),
-  saveHistory: (items: HistoryEvent[]) => storageService.save(KEYS.HISTORY, items),
-  getTeamMembers: () => storageService.get<TeamMember>(KEYS.TEAM),
-  saveTeam: (items: TeamMember[]) => storageService.save(KEYS.TEAM, items),
-  getHonors: () => storageService.get<Honor>(KEYS.HONORS),
-  saveHonors: (items: Honor[]) => storageService.save(KEYS.HONORS, items),
-  getHonorCategories: () => storageService.get<HonorCategory>(KEYS.HONOR_CATEGORIES),
-  saveHonorCategories: (items: HonorCategory[]) => storageService.save(KEYS.HONOR_CATEGORIES, items),
-  getLinks: () => storageService.get<NavigationLink>(KEYS.LINKS),
-  saveLinks: (items: NavigationLink[]) => storageService.save(KEYS.LINKS, items),
-  getMedia: () => storageService.get<MediaItem>(KEYS.MEDIA),
-  saveMedia: (items: MediaItem[]) => storageService.save(KEYS.MEDIA, items),
-  getMediaCategories: () => [
-    { id: 'all', name: '全部', count: 0 },
-    { id: 'site', name: '站点', count: 0 },
-    { id: 'news', name: '新闻', count: 0 },
-    { id: 'project', name: '项目', count: 0 },
-  ],
-  getBranches: () => storageService.get<Branch>(KEYS.BRANCHES),
-  saveBranches: (items: Branch[]) => storageService.save(KEYS.BRANCHES, items),
-  getBranchCategories: () => storageService.get<BranchCategory>(KEYS.BRANCH_CATEGORIES),
-  saveBranchCategories: (items: BranchCategory[]) => storageService.save(KEYS.BRANCH_CATEGORIES, items),
-  getUsers: () => storageService.get<User>(KEYS.USERS),
-  saveUsers: (items: User[]) => storageService.save(KEYS.USERS, items),
-  getRoles: () => storageService.get<Role>(KEYS.ROLES),
-  saveRoles: (items: Role[]) => storageService.save(KEYS.ROLES, items),
-  getTenders: () => storageService.get<TenderItem>(KEYS.TENDERS),
-  saveTenders: (items: TenderItem[]) => storageService.save(KEYS.TENDERS, items),
-  getTenderById: async (id: string) => (await storageService.getTenders()).find(t => t.id === id),
-  getPerformances: () => storageService.get<PerformanceItem>(KEYS.PERFORMANCES), // Added
-  savePerformances: (items: PerformanceItem[]) => storageService.save(KEYS.PERFORMANCES, items), // Added
-  getPerformanceById: async (id: string) => (await storageService.getPerformances()).find(p => p.id === id), // Added
-};
+    for (const
