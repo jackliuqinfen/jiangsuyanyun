@@ -137,7 +137,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   enableAnniversary: true, 
   anniversaryTitle: '盐韵八载 · 匠心传诚',
   anniversarySubtitle: '感恩一路同行，共鉴品质工程',
-  anniversaryBadgeLabel: 'Est. 2017'
+  anniversaryBadgeLabel: 'Est. 2017',
+  anniversaryTemplate: 'fireworks'
 };
 
 export const INITIAL_MEDIA: MediaItem[] = [

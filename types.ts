@@ -183,6 +183,8 @@ export interface Testimonial {
   avatarUrl: string;
 }
 
+export type AnimationTemplate = 'fireworks' | 'gold-rain' | 'confetti';
+
 export interface SiteSettings {
   siteName: string;
   logoUrl: string;
@@ -199,6 +201,7 @@ export interface SiteSettings {
   anniversaryTitle?: string;
   anniversarySubtitle?: string;
   anniversaryBadgeLabel?: string;
+  anniversaryTemplate?: AnimationTemplate; // New field
 }
 
 export interface MediaItem {

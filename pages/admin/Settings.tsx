@@ -20,7 +20,7 @@ const Settings: React.FC = () => {
     setStorageUsage(storageService.getStorageUsage());
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setSettings(prev => ({ ...prev, [name]: value }));
   };
@@ -216,7 +216,7 @@ const Settings: React.FC = () => {
            <div className="space-y-6">
               <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                  <div>
-                    <span className="block font-bold text-gray-800">8 周年庆典弹窗</span>
+                    <span className="block font-bold text-gray-800">庆典/喜报弹窗</span>
                     <span className="text-xs text-gray-500">开启后，用户访问首页时将看到全屏庆祝动画（每位访客仅显示一次）</span>
                  </div>
                  <label className="relative inline-flex items-center cursor-pointer">
@@ -233,6 +233,19 @@ const Settings: React.FC = () => {
 
               {settings.enableAnniversary && (
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 border-l-4 border-amber-200 bg-amber-50/30 rounded-r-xl">
+                    <div className="col-span-2">
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">动效主题模版</label>
+                       <select 
+                          name="anniversaryTemplate" 
+                          value={settings.anniversaryTemplate || 'fireworks'} 
+                          onChange={handleChange} 
+                          className="w-full px-3 py-2 border border-amber-200 rounded-lg outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+                       >
+                          <option value="fireworks">🎇 盛世烟火 (周年庆/重大节日)</option>
+                          <option value="gold-rain">💰 中标流金 (中标/业绩庆祝)</option>
+                          <option value="confetti">🎉 五彩礼花 (通用表彰/活动)</option>
+                       </select>
+                    </div>
                     <div className="col-span-2 md:col-span-1">
                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">庆典主标题</label>
                        <input 
@@ -244,7 +257,7 @@ const Settings: React.FC = () => {
                        />
                     </div>
                     <div className="col-span-2 md:col-span-1">
-                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">顶部徽章年份</label>
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">顶部徽章年份/文案</label>
                        <input 
                           type="text" 
                           name="anniversaryBadgeLabel" 
