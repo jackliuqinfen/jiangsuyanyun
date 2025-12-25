@@ -16,19 +16,16 @@ export async function onRequest(context) {
 
   try {
     // 3. 获取 KV 绑定实例
-    // 按照 EdgeOne Pages 文档，绑定变量在 env 对象上
     const db = env.YANYUN_DB;
     
     if (!db) {
-        throw new Error('Server Config Error: KV Binding "YANYUN_DB" not found in environment variables.');
+        throw new Error('Server Config Error: KV Binding "YANYUN_DB" not found.');
     }
 
     // 4. 安全校验 (验证 Token)
     const authHeader = request.headers.get('Authorization');
-    // 用户提供的 Token
     const EXPECTED_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
     
-    // 如果 Token 不匹配，拒绝访问
     if (!authHeader || !authHeader.includes(EXPECTED_TOKEN)) {
         return new Response(JSON.stringify({ error: 'Unauthorized: Invalid Token' }), { 
             status: 401, 
@@ -48,14 +45,21 @@ export async function onRequest(context) {
             });
         }
         
-        const value = await db.get(key);
+        // CRITICAL FIX: Consistency Setting
+        // EdgeOne KV 默认为最终一致性。
+        // 设置 cacheTtl: 0 或较短时间，强制边缘节点回源确认或尽快过期缓存，
+        // 减少"写完读不到"的情况。
+        // type: 'text' 确保我们拿到的是字符串，方便 JSON.parse 处理。
+        const value = await db.get(key, { type: 'text', cacheTtl: 5 }); 
         
-        // 如果 KV 中没有数据，返回 "null" 字符串，前端 JSON.parse 会将其转为 null 对象
-        // 这样前端 storageService 可以识别并初始化默认数据
         const responseBody = value === null ? 'null' : value; 
         
         return new Response(responseBody, {
-            headers: { 'Content-Type': 'application/json', ...corsHeaders }
+            headers: { 
+                'Content-Type': 'application/json', 
+                'Cache-Control': 'no-store, max-age=0', // Tell browser not to cache API responses
+                ...corsHeaders 
+            }
         });
     }
 
@@ -70,11 +74,19 @@ export async function onRequest(context) {
             });
         }
         
-        // 将对象转为字符串存入 KV
-        // EdgeOne KV 存入时需要字符串、Stream 或 ArrayBuffer
-        await db.put(body.key, JSON.stringify(body.value));
+        const stringValue = JSON.stringify(body.value);
+
+        // CRITICAL FIX: Size Check
+        // EdgeOne KV 单个 Value 最大限制通常为 25MB (视套餐而定)，但建议控制在 2MB 以内以保证性能。
+        // 此处做一个简单的长度检查，避免超大包导致 Worker 崩溃
+        if (stringValue.length > 25 * 1024 * 1024) {
+             throw new Error('Payload too large: Value exceeds 25MB limit.');
+        }
+
+        // 写入数据
+        await db.put(body.key, stringValue);
         
-        return new Response(JSON.stringify({ success: true }), {
+        return new Response(JSON.stringify({ success: true, timestamp: Date.now() }), {
             headers: { 'Content-Type': 'application/json', ...corsHeaders }
         });
     }
@@ -82,7 +94,6 @@ export async function onRequest(context) {
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
 
   } catch (err) {
-      // 捕获并返回详细错误信息，方便调试
       return new Response(JSON.stringify({ error: err.message, stack: err.stack }), { 
           status: 500, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 

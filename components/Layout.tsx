@@ -121,11 +121,11 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <div className="container mx-auto px-6 flex justify-between items-center">
           <div className="flex space-x-8">
             <span className="flex items-center hover:text-white transition-colors cursor-pointer group">
-              <Phone size={13} className="mr-2 text-primary group-hover:text-white transition-colors" /> 
+              <Phone size={13} className="mr-2 text-blue-400 group-hover:text-white transition-colors" /> 
               <span className="font-mono tracking-wider">{settings.contactPhone}</span>
             </span>
             <span className="flex items-center hover:text-white transition-colors cursor-pointer group">
-              <Mail size={13} className="mr-2 text-primary group-hover:text-white transition-colors" /> 
+              <Mail size={13} className="mr-2 text-blue-400 group-hover:text-white transition-colors" /> 
               {settings.contactEmail}
             </span>
           </div>
@@ -135,7 +135,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <div className="relative group">
               <button className="flex items-center gap-2 px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full border border-white/5 hover:border-white/20 transition-all duration-300 focus:outline-none">
                 <div className="w-4 h-4 rounded-full bg-primary/20 flex items-center justify-center">
-                   <UserCircle size={10} className="text-primary" />
+                   <UserCircle size={10} className="text-blue-400" />
                 </div>
                 <span className="text-gray-300 group-hover:text-white text-[10px] font-bold uppercase tracking-wider">员工通道</span>
                 <ChevronDown size={10} className="text-gray-500 group-hover:text-white transition-transform duration-300 group-hover:rotate-180" />
@@ -338,14 +338,14 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                  </div>
                  <span className="text-xl font-bold tracking-tight">{settings.siteName}</span>
               </div>
-              <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              <p className="text-gray-300 text-sm leading-relaxed mb-6">
                 专业的工程项目管理咨询服务商，为您提供全过程、全方位的工程咨询解决方案。
               </p>
             </div>
 
             <div>
               <h4 className="text-lg font-bold mb-6">快速导航</h4>
-              <ul className="space-y-4 text-sm text-gray-400">
+              <ul className="space-y-4 text-sm text-gray-300">
                 {quickLinks.map(link => (
                    <li key={link.id}>
                       <Link to={link.path} className="hover:text-white transition-colors">{link.name}</Link>
@@ -356,7 +356,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
             <div>
               <h4 className="text-lg font-bold mb-6">业务领域</h4>
-              <ul className="space-y-4 text-sm text-gray-400">
+              <ul className="space-y-4 text-sm text-gray-300">
                 <li><Link to="/services" className="hover:text-white transition-colors">工程监理</Link></li>
                 <li><Link to="/services" className="hover:text-white transition-colors">项目管理</Link></li>
                 <li><Link to="/services" className="hover:text-white transition-colors">造价咨询</Link></li>
@@ -367,17 +367,17 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             {footerConfig?.showContactInfo && (
               <div>
                 <h4 className="text-lg font-bold mb-6">联系方式</h4>
-                <ul className="space-y-4 text-sm text-gray-400">
+                <ul className="space-y-4 text-sm text-gray-300">
                   <li className="flex items-start">
-                    <MapPin size={16} className="mr-3 mt-1 flex-shrink-0 text-primary" />
+                    <MapPin size={16} className="mr-3 mt-1 flex-shrink-0 text-blue-400" />
                     <span>{settings.contactAddress}</span>
                   </li>
                   <li className="flex items-center">
-                    <Phone size={16} className="mr-3 flex-shrink-0 text-primary" />
+                    <Phone size={16} className="mr-3 flex-shrink-0 text-blue-400" />
                     <span>{settings.contactPhone}</span>
                   </li>
                   <li className="flex items-center">
-                    <Mail size={16} className="mr-3 flex-shrink-0 text-primary" />
+                    <Mail size={16} className="mr-3 flex-shrink-0 text-blue-400" />
                     <span>{settings.contactEmail}</span>
                   </li>
                 </ul>

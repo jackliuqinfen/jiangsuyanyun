@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Save, CheckCircle2, Eye, Sparkles, Database, Download, Upload, HardDrive } from 'lucide-react';
+import { Save, CheckCircle2, Eye, Sparkles, Database, Download, Upload, HardDrive, Archive, Loader2 } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { SiteSettings } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
@@ -9,6 +9,11 @@ const Settings: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings>(storageService.getSettingsSync());
   const [isSaved, setIsSaved] = useState(false);
   const [storageUsage, setStorageUsage] = useState<string>('0');
+  
+  // Backup State
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [backupStatus, setBackupStatus] = useState('');
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,10 +43,38 @@ const Settings: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `yanyun_backup_${new Date().toISOString().split('T')[0]}.json`;
+    link.download = `yanyun_data_${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleFullBackup = async () => {
+    setIsBackingUp(true);
+    setBackupStatus('准备开始全量备份...');
+    
+    try {
+       const zipBlob = await storageService.createFullBackup((msg) => {
+          setBackupStatus(msg);
+       });
+       
+       const url = URL.createObjectURL(zipBlob);
+       const link = document.createElement('a');
+       link.href = url;
+       link.download = `yanyun_full_backup_${new Date().toISOString().split('T')[0]}.zip`;
+       document.body.appendChild(link);
+       link.click();
+       document.body.removeChild(link);
+       setBackupStatus('备份完成！');
+    } catch (e) {
+       console.error(e);
+       setBackupStatus('备份失败，请重试');
+    } finally {
+       setTimeout(() => {
+          setIsBackingUp(false);
+          setBackupStatus('');
+       }, 3000);
+    }
   };
 
   const handleImportClick = () => {
@@ -92,43 +125,52 @@ const Settings: React.FC = () => {
                <Database size={20} />
             </div>
             <div>
-               <h2 className="text-lg font-bold text-gray-900">数据维护与迁移</h2>
-               <p className="text-xs text-gray-500">本系统为纯前端演示版，数据存储在本地浏览器。更换电脑前请务必导出数据。</p>
+               <h2 className="text-lg font-bold text-gray-900">Plan B: 数据灾备与迁移</h2>
+               <p className="text-xs text-gray-500">定期备份可确保数据安全，支持将全站内容同步至 GitHub 或本地硬盘。</p>
             </div>
          </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="space-y-2">
-               <div className="flex justify-between text-sm font-bold text-gray-700">
-                  <span className="flex items-center gap-2"><HardDrive size={16}/> 本地存储用量</span>
-                  <span className={parseFloat(storageUsage) > 4000 ? 'text-red-500' : 'text-primary'}>{storageUsage} KB</span>
+         <div className="space-y-6">
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl p-6 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+               <div>
+                  <h3 className="font-bold text-lg flex items-center gap-2"><Archive size={20} className="text-blue-400"/> 全量静态化归档 (Full Archive)</h3>
+                  <p className="text-white/60 text-sm mt-1 max-w-lg">
+                     一键打包所有结构化数据 (JSON) 及 云端媒体资源 (图片/文件)，生成标准 ZIP 包。
+                     解压后可直接提交至 Git 仓库作为冷备份。
+                  </p>
+                  {isBackingUp && (
+                     <div className="mt-3 flex items-center gap-2 text-xs font-bold text-blue-300">
+                        <Loader2 size={14} className="animate-spin"/>
+                        {backupStatus}
+                     </div>
+                  )}
                </div>
-               <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                  <div 
-                     className={`h-2.5 rounded-full ${parseFloat(storageUsage) > 4000 ? 'bg-red-500' : 'bg-primary'}`} 
-                     style={{ width: `${Math.min((parseFloat(storageUsage) / 5120) * 100, 100)}%` }}
-                  ></div>
-               </div>
-               <p className="text-[10px] text-gray-400">浏览器通常限制为 5MB (5120KB)。若图片过多，请使用外部图床链接。</p>
+               <button 
+                  onClick={handleFullBackup}
+                  disabled={isBackingUp}
+                  className="px-6 py-3 bg-white text-gray-900 rounded-lg font-black hover:bg-blue-50 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-wait whitespace-nowrap"
+               >
+                  {isBackingUp ? '打包中...' : '下载全量备份 ZIP'}
+               </button>
             </div>
 
-            <div className="flex gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <button 
                   type="button"
                   onClick={handleExport}
-                  className="flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-primary/20 bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors text-primary font-bold gap-2 group"
+                  className="flex items-center justify-center p-4 border border-gray-200 bg-gray-50 rounded-xl hover:bg-white hover:border-gray-300 transition-colors text-gray-600 text-sm font-bold gap-2"
                >
-                  <Download size={24} className="group-hover:-translate-y-1 transition-transform"/>
-                  <span>导出全站备份 (JSON)</span>
+                  <Download size={16}/>
+                  仅导出数据 JSON (轻量)
                </button>
                
                <button 
                   type="button"
                   onClick={handleImportClick}
-                  className="flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 transition-colors text-gray-600 font-bold gap-2 group"
+                  className="flex items-center justify-center p-4 border border-dashed border-gray-300 bg-white rounded-xl hover:border-orange-400 hover:text-orange-600 transition-colors text-gray-500 text-sm font-bold gap-2"
                >
-                  <Upload size={24} className="group-hover:-translate-y-1 transition-transform"/>
-                  <span>导入恢复数据</span>
+                  <Upload size={16}/>
+                  导入 JSON 恢复数据
                </button>
                <input type="file" ref={fileInputRef} accept=".json" onChange={handleFileImport} className="hidden" />
             </div>

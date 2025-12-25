@@ -43,6 +43,7 @@ import {
   SecurityConfig
 } from '../types';
 import { createAuditLogEntry } from '../utils/security';
+import JSZip from 'jszip';
 
 const KEYS = {
   NEWS: 'yanyun_news_v2',
@@ -98,105 +99,175 @@ const API_ENDPOINT = '/api/kv';
 const FILE_API_ENDPOINT = '/api/file';
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
+// Circuit Breaker State
+let isCloudAvailable = true;
+let hasLoggedOfflineMode = false;
+
+const markCloudUnavailable = () => {
+  if (isCloudAvailable) {
+    isCloudAvailable = false;
+    // Dispatch event to notify UI components (like AdminLayout)
+    window.dispatchEvent(new Event('storageStatusChanged'));
+  }
+  
+  if (!hasLoggedOfflineMode) {
+    hasLoggedOfflineMode = true;
+    console.warn("⚠️ Cloud API disconnected. Switching to local-only storage mode.");
+  }
+};
+
 export const storageService = {
+  // Check System Status
+  getSystemStatus: () => ({
+    mode: isCloudAvailable ? 'CLOUD_SYNC' : 'LOCAL_ONLY',
+    isOnline: navigator.onLine
+  }),
+
   // 通用 CRUD 抽象 - Cloud Version with Auth
   async get<T>(key: string): Promise<T[]> {
+    const getFallback = () => {
+        const local = localStorage.getItem(key);
+        return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
+    };
+
+    // If we already know cloud is down, skip fetch entirely
+    if (!isCloudAvailable) {
+        return getFallback();
+    }
+
     try {
-      // 1. Try to fetch from EdgeOne KV
-      const response = await fetch(`${API_ENDPOINT}?key=${key}`, {
+      // 1. Try to fetch from EdgeOne KV with TIMEOUT
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500); // Strict timeout
+
+      const response = await fetch(`${API_ENDPOINT}?key=${key}&t=${Date.now()}`, { 
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${KV_ACCESS_TOKEN}`,
           'X-Client-Id': 'yanyun-frontend'
-        }
+        },
+        signal: controller.signal
       });
       
+      clearTimeout(timeoutId);
+      
+      // Handle 404 or Server Errors
       if (!response.ok) {
-        console.warn(`Cloud fetch failed for ${key} (${response.status}), falling back to local.`);
-        const local = localStorage.getItem(key);
-        return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
+         if (response.status === 404 || response.status === 500) {
+            markCloudUnavailable();
+         }
+         return getFallback();
       }
 
       const data = await response.json();
       
+      // 2. If KV returns null (key doesn't exist yet), return initial data
       if (data === null || data === undefined) {
         const initial = INITIAL_DATA_MAP[key] || [];
-        storageService.save(key, initial).catch(console.error);
+        // Seed initial data in background
+        storageService.save(key, initial).catch(() => {});
         return initial;
       }
 
+      // Update local cache on successful fetch to keep them in sync
       localStorage.setItem(key, JSON.stringify(data));
       return data;
 
     } catch (error) {
-      console.error(`Error fetching ${key}:`, error);
-      const local = localStorage.getItem(key);
-      return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
+      // Network errors or AbortErrors
+      return getFallback();
     }
   },
 
+  // OPTIMISTIC SAVE: Save locally immediately, sync to cloud in background
   async save<T>(key: string, items: T[]): Promise<void> {
+    // 1. Critical: Save to Local Storage immediately
     try {
       localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
-      console.warn("Local storage quota exceeded.");
+      console.error("Local storage save failed:", e);
+      throw new Error("Local storage full or disabled");
     }
 
-    try {
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
-        },
-        body: JSON.stringify({
-          key: key,
-          value: items 
-        }),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Cloud save failed: ${response.status} ${errText}`);
-      }
-
-    } catch (e: any) {
-      console.error("Storage Save Error:", e);
-      console.warn("Data saved locally but cloud sync failed.");
+    // 2. Background Sync (Fire and Forget)
+    if (isCloudAvailable) {
+        // We use a non-awaited promise here to not block the UI
+        fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
+            },
+            body: JSON.stringify({
+                key: key,
+                value: items 
+            }),
+        })
+        .then(response => {
+            if (response.status === 404 || response.status === 500) {
+                markCloudUnavailable();
+            } else if (!response.ok) {
+                console.warn(`Cloud sync failed for ${key}: ${response.status}`);
+            }
+        })
+        .catch(() => {
+            // Network error implies offline or blocked
+            // Don't aggressively mark offline on single failure, but log it
+            // markCloudUnavailable(); 
+        });
     }
+    
+    // Always return success to the UI if local save worked
+    return Promise.resolve();
   },
 
-  // --- NEW: Binary Asset Upload ---
-  // This uploads the actual file content to a unique KV key, avoiding JSON bloat.
   async uploadAsset(file: File): Promise<string> {
     const ext = file.name.split('.').pop() || 'bin';
     const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
     
+    // Fallback function: Convert to Base64 for local-only mode
+    const toBase64 = (): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    };
+
+    // If cloud is down, use local fallback immediately
+    if (!isCloudAvailable) {
+        return toBase64();
+    }
+
     try {
         const response = await fetch(`${FILE_API_ENDPOINT}?key=${uniqueKey}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${KV_ACCESS_TOKEN}`,
-                'Content-Type': file.type // Pass original mime type if needed, or backend detects
+                'Content-Type': file.type
             },
-            body: file // Send raw binary
+            body: file 
         });
+
+        if (response.status === 404) {
+            markCloudUnavailable();
+            return toBase64();
+        }
 
         if (!response.ok) {
             throw new Error('Upload failed');
         }
 
         const res = await response.json();
-        // Return the URL that points to the GET endpoint
         return res.url; 
     } catch (error) {
-        console.error("Asset Upload Error:", error);
-        throw error;
+        console.warn("Asset Upload Failed (Falling back to Base64):", error);
+        return toBase64();
     }
   },
 
   // --- DATA MIGRATION FEATURES ---
-  
   exportSystemData: async () => {
     const data: Record<string, any> = {};
     const promises = Object.values(KEYS).map(async (key) => {
@@ -207,6 +278,75 @@ export const storageService = {
     });
     await Promise.all(promises);
     return JSON.stringify(data, null, 2);
+  },
+
+  createFullBackup: async (onProgress?: (msg: string) => void) => {
+    const zip = new JSZip();
+    const dataFolder = zip.folder("data");
+    const assetsFolder = zip.folder("assets");
+    
+    // 1. Fetch all JSON Data
+    onProgress?.("正在导出结构化数据...");
+    const systemData: Record<string, any> = {};
+    const keysToBackup = Object.values(KEYS).filter(k => k !== KEYS.AUTH_TOKEN && k !== KEYS.CURRENT_USER);
+    
+    for (const key of keysToBackup) {
+       const items = await storageService.get(key);
+       systemData[key] = items;
+    }
+    
+    const fullJsonString = JSON.stringify(systemData, null, 2);
+    dataFolder?.file("database.json", fullJsonString);
+
+    // 2. Discover Assets
+    onProgress?.("正在分析媒体文件依赖...");
+    // Only attempt to download assets if they look like our API URLs
+    const assetRegex = /\/api\/file\?key=([a-zA-Z0-9_.-]+)/g;
+    const assets = new Set<string>();
+    let match;
+    while ((match = assetRegex.exec(fullJsonString)) !== null) {
+        assets.add(match[1]); 
+    }
+
+    const totalAssets = assets.size;
+    let processedAssets = 0;
+
+    // 3. Download Assets (Concurrency Controlled)
+    const assetKeys = Array.from(assets);
+    const CONCURRENCY = 5;
+    
+    const downloadAsset = async (key: string) => {
+       if (!isCloudAvailable) return; // Skip downloads if offline
+       try {
+          const response = await fetch(`${FILE_API_ENDPOINT}?key=${key}`);
+          if (response.ok) {
+             const blob = await response.blob();
+             assetsFolder?.file(key, blob);
+          } else {
+             assetsFolder?.file(`${key}.error.txt`, `Failed to fetch: ${response.status}`);
+          }
+       } catch (e) {
+          // ignore
+       } finally {
+          processedAssets++;
+          onProgress?.(`备份媒体文件: ${processedAssets}/${totalAssets}`);
+       }
+    };
+
+    if (isCloudAvailable) {
+        // Process in batches
+        for (let i = 0; i < assetKeys.length; i += CONCURRENCY) {
+           const batch = assetKeys.slice(i, i + CONCURRENCY);
+           await Promise.all(batch.map(key => downloadAsset(key)));
+        }
+    } else {
+        onProgress?.("离线模式：跳过云端媒体备份");
+    }
+
+    // 4. Generate Zip
+    onProgress?.("正在打包压缩...");
+    const zipContent = await zip.generateAsync({ type: "blob" });
+    return zipContent;
   },
 
   importSystemData: async (jsonString: string) => {
@@ -259,7 +399,12 @@ export const storageService = {
     );
     const localLogs = JSON.parse(localStorage.getItem(KEYS.AUDIT_LOGS) || '[]');
     const newLogs = [log, ...localLogs].slice(0, 1000);
-    storageService.save(KEYS.AUDIT_LOGS, newLogs);
+    localStorage.setItem(KEYS.AUDIT_LOGS, JSON.stringify(newLogs));
+    
+    if (isCloudAvailable) {
+        // Fire and forget
+        storageService.save(KEYS.AUDIT_LOGS, newLogs).catch(() => {});
+    }
   },
 
   getAuditLogs: async (): Promise<AuditLog[]> => {
@@ -281,12 +426,15 @@ export const storageService = {
     }
 
     const users = await storageService.getUsers();
-    const user = users.find((u: User) => u.username === username);
+    const safeUsers = users.length > 0 ? users : INITIAL_USERS;
+    const user = safeUsers.find((u: User) => u.username === username);
+    
     const isValidPass = user && passwordInput === 'admin'; 
 
     if (isValidPass) {
       loginAttempts[username] = { count: 0, lastAttempt: Date.now(), isLocked: false, lockUntil: 0 };
-      await storageService.save(KEYS.LOGIN_ATTEMPTS, loginAttempts);
+      // Fire and forget save
+      storageService.save(KEYS.LOGIN_ATTEMPTS, loginAttempts).catch(() => {});
 
       if (user.mfaEnabled || config.mfaEnabled) {
         return { success: true, mfaRequired: true };
@@ -296,7 +444,7 @@ export const storageService = {
       sessionStorage.setItem(KEYS.AUTH_TOKEN, mockToken);
       localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
       
-      const updatedUsers = users.map((u: User) => u.id === user.id ? { ...u, lastLogin: new Date().toISOString() } : u);
+      const updatedUsers = safeUsers.map((u: User) => u.id === user.id ? { ...u, lastLogin: new Date().toISOString() } : u);
       storageService.saveUsers(updatedUsers);
 
       storageService.logAction('LOGIN', 'Auth', `User ${username} logged in`, 'SUCCESS');
@@ -310,7 +458,7 @@ export const storageService = {
         userAttempt.lockUntil = Date.now() + (config.lockoutDurationMinutes * 60 * 1000);
       }
       
-      await storageService.save(KEYS.LOGIN_ATTEMPTS, loginAttempts);
+      storageService.save(KEYS.LOGIN_ATTEMPTS, loginAttempts).catch(() => {});
       return { success: false, message: userAttempt.isLocked ? '尝试次数过多，账户已锁定' : '用户名或密码错误' };
     }
   },
@@ -318,7 +466,8 @@ export const storageService = {
   verifyMfa: async (username: string, code: string): Promise<{success: boolean, token?: string, message?: string}> => {
     if (code.length === 6 && /^\d+$/.test(code)) {
        const users = await storageService.getUsers();
-       const user = users.find((u: User) => u.username === username);
+       const safeUsers = users.length > 0 ? users : INITIAL_USERS;
+       const user = safeUsers.find((u: User) => u.username === username);
        
        if (user) {
           const mockToken = `ey-session-${Date.now()}`;
@@ -347,8 +496,17 @@ export const storageService = {
   getCurrentUserRole: async (): Promise<Role | null> => {
     const user = storageService.getCurrentUser();
     if (!user) return null;
-    const roles = await storageService.getRoles();
-    return roles.find((r: Role) => r.id === user.roleId) || null;
+    
+    try {
+      const roles = await storageService.getRoles();
+      const foundRole = roles.find((r: Role) => r.id === user.roleId);
+      if (foundRole) return foundRole;
+      if (user.username === 'admin' || user.id === '1') return INITIAL_ROLES[0]; 
+      return INITIAL_ROLES.find(r => r.id === 'role_viewer') || INITIAL_ROLES[2];
+    } catch (e) {
+      if (user.username === 'admin') return INITIAL_ROLES[0];
+      return INITIAL_ROLES[2]; 
+    }
   },
 
   // 业务模型访问层
