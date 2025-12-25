@@ -15,16 +15,17 @@ export async function onRequest(context) {
   }
 
   try {
-    // 3. 检查 KV 绑定是否存在
-    // 确保在 EdgeOne Pages 设置 -> 函数 -> KV 绑定中，变量名设为 YANYUN_DB
+    // 3. 获取 KV 绑定实例
+    // 按照 EdgeOne Pages 文档，绑定变量在 env 对象上
     const db = env.YANYUN_DB;
+    
     if (!db) {
-        throw new Error('Server Config Error: KV Binding YANYUN_DB not found.');
+        throw new Error('Server Config Error: KV Binding "YANYUN_DB" not found in environment variables.');
     }
 
-    // 4. 安全校验 (验证前端 storageService.ts 发送的 Token)
+    // 4. 安全校验 (验证 Token)
     const authHeader = request.headers.get('Authorization');
-    // 这是您提供的 Token
+    // 用户提供的 Token
     const EXPECTED_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
     
     // 如果 Token 不匹配，拒绝访问
@@ -50,7 +51,7 @@ export async function onRequest(context) {
         const value = await db.get(key);
         
         // 如果 KV 中没有数据，返回 "null" 字符串，前端 JSON.parse 会将其转为 null 对象
-        // 注意：不要直接返回 JSON 对象，前端 storageService 期望的是一个 JSON 字符串流
+        // 这样前端 storageService 可以识别并初始化默认数据
         const responseBody = value === null ? 'null' : value; 
         
         return new Response(responseBody, {
@@ -81,7 +82,7 @@ export async function onRequest(context) {
     return new Response('Method not allowed', { status: 405, headers: corsHeaders });
 
   } catch (err) {
-      // 捕获并返回错误信息，方便调试
+      // 捕获并返回详细错误信息，方便调试
       return new Response(JSON.stringify({ error: err.message, stack: err.stack }), { 
           status: 500, 
           headers: { 'Content-Type': 'application/json', ...corsHeaders } 

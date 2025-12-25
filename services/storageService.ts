@@ -94,6 +94,7 @@ const INITIAL_DATA_MAP: Record<string, any> = {
 };
 
 // --- CONFIGURATION ---
+// EdgeOne Pages automatically routes /api/* to the functions in edge-functions/api/
 const API_ENDPOINT = '/api/kv';
 // Token provided by user for KV Access
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
