@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 // Cast motion component for TS
 const MotionDiv = motion.div as any;
 const MotionH1 = motion.h1 as any;
-const MotionH2 = motion.h2 as any; // Added h2 cast
+const MotionH2 = motion.h2 as any; 
 const MotionP = motion.p as any;
 const MotionButton = motion.button as any;
 
@@ -348,7 +348,7 @@ const AnniversaryPopup: React.FC = () => {
            {/* Inner Content */}
            <div className="relative p-10 text-center flex flex-col items-center">
                 
-                {/* PROMINENT COMPANY NAME */}
+                {/* PROMINENT COMPANY NAME - FIXED TO FULL NAME */}
                 <MotionH2 
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -356,7 +356,7 @@ const AnniversaryPopup: React.FC = () => {
                     className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 text-2xl font-black tracking-widest mb-6 font-serif drop-shadow-xl"
                     style={{ textShadow: '0 2px 20px rgba(234, 179, 8, 0.4)' }}
                 >
-                    {settings.siteName}
+                    江苏盐韵工程项目管理有限公司
                 </MotionH2>
 
                 {/* Top Badge */}
@@ -409,7 +409,7 @@ const AnniversaryPopup: React.FC = () => {
                         transition={{ delay: 0.6 }}
                         className="text-3xl font-serif font-bold text-white tracking-widest"
                     >
-                        {settings.anniversaryTitle || '辉煌八载 · 智绘未来'}
+                        {settings.anniversaryTitle || '"盐"续匠心，"韵"致八载'}
                     </MotionH1>
                     
                     <MotionP 

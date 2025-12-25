@@ -119,7 +119,7 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
 };
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  siteName: '江苏盐韵工程项目管理',
+  siteName: '江苏盐韵工程项目管理有限公司',
   logoUrl: '', // unused in new design but kept for type compatibility
   graphicLogoUrl: 'https://placehold.co/100x100/2C388B/ffffff?text=Y',
   textLogoUrl: 'https://placehold.co/200x50/transparent/2C388B?text=YANYUN',
@@ -128,9 +128,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   contactPhone: '0515-88888888',
   contactEmail: 'contact@yanyun.com',
   contactAddress: '江苏省盐城市盐都区世纪大道99号金融城',
-  copyrightText: '© 2025 Jiangsu Yanyun Project Management Co., Ltd. All rights reserved.',
+  copyrightText: '© 2025 江苏盐韵工程项目管理有限公司. All rights reserved.',
   enableAnniversary: true, 
-  anniversaryTitle: '辉煌八载 · 智绘未来',
+  anniversaryTitle: '"盐"续匠心，"韵"致八载',
   anniversarySubtitle: '感恩一路同行，共鉴品质工程',
   anniversaryBadgeLabel: '2017 - 2025'
 };
@@ -364,7 +364,7 @@ export const INITIAL_PROJECTS: ProjectCase[] = [
     title: '盐城市政务中心扩建工程',
     category: '市政工程',
     description: '总建筑面积5万平方米，包括主体办公楼及配套设施。',
-    content: '<h3>项目概况</h3><p>盐城市政务中心扩建工程是市重点民生工程，旨在提升政务服务效率和市民办事体验。项目总投资约3.5亿元，主要建设内容包括政务大厅、后台办公区、会议中心及地下车库等。</p><h3>技术难点</h3><p>该项目涉及深基坑支护、大跨度钢结构安装等技术难题。我司项目管理团队通过引入BIM技术进行全过程模拟，有效解决了管线碰撞、施工工序衔接等问题。</p><h3>成果展示</h3><p>项目提前2个月竣工交付，并荣获江苏省“扬子杯”优质工程奖。</p>',
+    content: '<h3>项目概况</h3><p>盐城市政务中心扩建工程是市重点民生工程，旨在提升政务服务效率 and 市民办事体验。项目总投资约3.5亿元，主要建设内容包括政务大厅、后台办公区、会议中心及地下车库等。</p><h3>技术难点</h3><p>该项目涉及深基坑支护、大跨度钢结构安装等技术难题。我司项目管理团队通过引入BIM技术进行全过程模拟，有效解决了管线碰撞、施工工序衔接等问题。</p><h3>成果展示</h3><p>项目提前2个月竣工交付，并荣获江苏省“扬子杯”优质工程奖。</p>',
     imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
     location: '盐城市',
     date: '2022-05',
