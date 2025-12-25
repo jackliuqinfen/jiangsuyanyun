@@ -101,27 +101,50 @@ const INITIAL_DATA_MAP: Record<string, any> = {
 // Using relative path to allow Nginx to proxy
 const API_ENDPOINT = '/api/kv';
 const FILE_API_ENDPOINT = '/api/file';
+const HEALTH_ENDPOINT = '/api/health';
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
-// Enable Cloud Sync for Server Deployment
 let isCloudAvailable = true;
 
 const markCloudUnavailable = (reason?: string) => {
   if (isCloudAvailable) {
     isCloudAvailable = false;
     window.dispatchEvent(new Event('storageStatusChanged'));
-    console.error(`[Storage] ⚠️ Cloud Sync Disconnected: ${reason || 'Unknown Error'}`);
-    console.error(`[Storage] Switching to Local Storage Mode. Data will NOT persist to server.`);
+    console.error(`[Storage] ⚠️ Cloud Disconnected: ${reason}`);
   }
 };
 
 export const storageService = {
   getSystemStatus: () => ({
     mode: isCloudAvailable ? 'CLOUD_SYNC' : 'LOCAL_ONLY',
-    isOnline: navigator.onLine
+    isOnline: navigator.onLine,
   }),
 
+  // 手动健康检查：在 AdminLayout 中调用
+  checkHealth: async (): Promise<{ status: 'ok' | 'error', message: string }> => {
+    try {
+        // 尝试连接后端健康检查接口
+        const response = await fetch(HEALTH_ENDPOINT, { method: 'GET', cache: 'no-store' });
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.status === 'ok') {
+                isCloudAvailable = true;
+                window.dispatchEvent(new Event('storageStatusChanged'));
+                return { status: 'ok', message: '数据库连接正常，系统运行中。' };
+            } else {
+                return { status: 'error', message: `数据库连接失败: ${data.db_error}` };
+            }
+        } else {
+            return { status: 'error', message: `后端服务异常 (HTTP ${response.status})` };
+        }
+    } catch (e: any) {
+        return { status: 'error', message: `无法连接后端服务: ${e.message}` };
+    }
+  },
+
   async get<T>(key: string): Promise<T[]> {
+    // 默认回退到本地数据
     const getFallback = () => {
         const local = localStorage.getItem(key);
         return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
@@ -130,124 +153,93 @@ export const storageService = {
     if (!isCloudAvailable) return getFallback();
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
-
       const response = await fetch(`${API_ENDPOINT}?key=${key}&t=${Date.now()}`, { 
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
-        },
-        signal: controller.signal
+        headers: { 'Authorization': `Bearer ${KV_ACCESS_TOKEN}` },
       });
       
-      clearTimeout(timeoutId);
-      
       if (!response.ok) {
-         if (response.status === 404) return getFallback();
-         
-         // If server returns 500/502/503/504, it means backend is down or config is wrong
-         markCloudUnavailable(`Server Error ${response.status}: ${response.statusText}`);
+         if (response.status !== 404) markCloudUnavailable(`Fetch Error ${response.status}`);
          return getFallback();
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-         // This usually happens when Nginx returns an HTML error page (like 502 Bad Gateway)
-         throw new Error("Received HTML instead of JSON. Check Nginx/Backend.");
       }
 
       const data = await response.json();
       if (data === null) return getFallback();
       
-      // Update local cache
+      // 更新本地缓存以备不时之需
       localStorage.setItem(key, JSON.stringify(data));
       return data;
     } catch (error: any) {
-      markCloudUnavailable(`Network Request Failed: ${error.message}`);
+      markCloudUnavailable(`Network Error: ${error.message}`);
       return getFallback();
     }
   },
 
   async save<T>(key: string, items: T[]): Promise<void> {
-    // 1. Optimistic UI update (save to local storage immediately)
-    try {
-      localStorage.setItem(key, JSON.stringify(items));
-    } catch (e) {
-      console.error("Local storage full");
-    }
+    // 1. 总是先存本地，保证 UI 响应快
+    localStorage.setItem(key, JSON.stringify(items));
 
-    // 2. Background Cloud Sync
+    // 2. 尝试同步到云端
     if (isCloudAvailable) {
-        fetch(API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
-            },
-            body: JSON.stringify({ key, value: items }),
-        })
-        .then(async res => {
-            if (!res.ok) {
-               const txt = await res.text();
-               console.error(`[Storage] Cloud Save Failed (${res.status}):`, txt);
-               // Don't disable cloud immediately on one write fail, might be transient
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
+                },
+                body: JSON.stringify({ key, value: items }),
+            });
+
+            if (!response.ok) {
+                console.error(`[Storage] Save Failed (${response.status})`);
+                markCloudUnavailable(`Save failed: ${response.statusText}`);
+                alert("⚠️ 数据保存到服务器失败！请检查数据库连接。当前数据仅保存在浏览器本地。");
             }
-        })
-        .catch(err => console.error("[Storage] Cloud Save Network Error:", err));
+        } catch (err: any) {
+            console.error("[Storage] Network Error:", err);
+            markCloudUnavailable(`Network error: ${err.message}`);
+        }
     } else {
-        console.warn("[Storage] Cloud unavailable, saved locally only.");
+        console.warn("[Storage] Offline mode, data saved locally only.");
     }
-    
     return Promise.resolve();
   },
 
+  // 核心：上传文件
   async uploadAsset(file: File): Promise<string> {
-    const ext = file.name.split('.').pop() || 'bin';
-    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${safeName}`;
-    
-    const toBase64 = (): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    };
-
+    // 严格模式：如果不在线，直接报错，不给转 Base64 的机会
     if (!isCloudAvailable) {
-        console.warn("Cloud unavailable, falling back to Base64");
-        return toBase64();
+        throw new Error("服务器未连接，无法上传文件。请检查后端状态。");
     }
 
     try {
         const formData = new FormData();
         formData.append('file', file);
         
-        const response = await fetch(`${FILE_API_ENDPOINT}?key=${uniqueKey}`, {
+        const response = await fetch(`${FILE_API_ENDPOINT}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
             },
-            body: formData 
+            body: formData,
         });
 
         if (!response.ok) {
             const errText = await response.text();
-            throw new Error(`Server responded ${response.status}: ${errText}`);
+            throw new Error(`Server Upload Error: ${response.status} ${errText}`);
         }
         
         const res = await response.json();
+        // 返回服务器生成的 URL (例如 /files/image_123.jpg)
         return res.url; 
-    } catch (error) {
-        console.error("Upload error, falling back to base64", error);
-        alert("上传到服务器失败，已转为本地 Base64 存储 (刷新后可能失效)。请检查后台日志。");
-        return toBase64();
+    } catch (error: any) {
+        console.error("Upload Asset Error", error);
+        throw error;
     }
   },
 
-  // ... (Keep existing exportSystemData, etc. as they were) ...
+  // ... (保留导出/导入/登录等其他方法不变) ...
   exportSystemData: async () => {
     const data: Record<string, any> = {};
     for (const key of Object.values(KEYS)) {
@@ -270,7 +262,7 @@ export const storageService = {
     }
     dataFolder?.file("database.json", JSON.stringify(systemData, null, 2));
 
-    const assetRegex = /\/files\/([a-zA-Z0-9_.-]+)/g; // Updated regex for new URL pattern
+    const assetRegex = /\/files\/([a-zA-Z0-9_.-]+)/g; 
     const assets = new Set<string>();
     const fullJson = JSON.stringify(systemData);
     let match;

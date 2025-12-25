@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, ChevronRight, Clock, Menu, X, Megaphone, Lock, Loader2, AlertTriangle, Cloud, HardDrive, WifiOff, FileCheck } from 'lucide-react';
+import { LayoutDashboard, FileText, Briefcase, Settings, Users, Image, LogOut, Building, Globe, Award, Hexagon, Compass, Layout, History, UserCheck, ShieldCheck, ChevronRight, Clock, Menu, X, Megaphone, Lock, Loader2, AlertTriangle, Cloud, HardDrive, WifiOff, FileCheck, RefreshCw } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { SiteSettings, ResourceType, User, Role } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -156,6 +156,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [logo, setLogo] = useState(settings.graphicLogoUrl);
   const [storageStatus, setStorageStatus] = useState(storageService.getSystemStatus());
   
+  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
@@ -231,6 +232,20 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     if (window.confirm('确定要退出管理系统吗？')) {
       storageService.logout();
       navigate('/admin/login');
+    }
+  };
+
+  const handleHealthCheck = async () => {
+    if (isCheckingHealth) return;
+    setIsCheckingHealth(true);
+    const result = await storageService.checkHealth();
+    setIsCheckingHealth(false);
+    
+    // Simple alert for result (could be a modal in future)
+    if (result.status === 'ok') {
+        alert("✅ " + result.message);
+    } else {
+        alert("❌ 连接失败\n\n原因: " + result.message);
     }
   };
 
@@ -334,15 +349,21 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           
           <div className="flex items-center gap-3 md:gap-6">
-             {/* Storage Status Indicator */}
-             <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-               storageStatus.mode === 'CLOUD_SYNC' 
-                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100' 
-                 : 'bg-amber-50 text-amber-600 border-amber-100'
-             }`}>
-                {storageStatus.mode === 'CLOUD_SYNC' ? <Cloud size={12} /> : <HardDrive size={12} />}
-                {storageStatus.mode === 'CLOUD_SYNC' ? 'Cloud Sync Active' : 'Local Storage Only'}
-             </div>
+             {/* Storage Status Indicator - Now Interactive */}
+             <button 
+               onClick={handleHealthCheck}
+               disabled={isCheckingHealth}
+               className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all active:scale-95 hover:shadow-sm ${
+                 storageStatus.mode === 'CLOUD_SYNC' 
+                   ? 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100' 
+                   : 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-100'
+               }`}
+               title="点击检测服务器连接"
+             >
+                {isCheckingHealth ? <Loader2 size={12} className="animate-spin" /> : storageStatus.mode === 'CLOUD_SYNC' ? <Cloud size={12} /> : <HardDrive size={12} />}
+                {isCheckingHealth ? 'Checking...' : storageStatus.mode === 'CLOUD_SYNC' ? 'Cloud Sync Active' : 'Local Storage Only'}
+                {storageStatus.mode === 'LOCAL_ONLY' && <RefreshCw size={10} className="ml-1 opacity-50" />}
+             </button>
 
              <div className="hidden xl:flex items-center gap-2 text-xs font-bold text-gray-400 border-r pr-6 border-gray-100">
                 <Clock size={14} className="text-primary" /> {currentTime}

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, Plus, Trash2, Filter, Image as ImageIcon, Video, Link as LinkIcon, Copy, Check, FolderOpen, Upload, Grid, List as ListIcon, X, CheckCircle2, Loader2 } from 'lucide-react';
+import { Search, Plus, Trash2, Filter, Image as ImageIcon, Video, Link as LinkIcon, Copy, Check, FolderOpen, Upload, Grid, List as ListIcon, X, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react';
 import { storageService } from '../services/storageService';
 import { MediaItem, MediaCategory } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -238,99 +238,118 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
           {filteredMedia.length > 0 ? (
             viewMode === 'grid' ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-4">
-                {filteredMedia.map(item => (
-                  <MotionDiv 
-                    layout
-                    key={item.id}
-                    onClick={() => handleItemClick(item)}
-                    className={`group relative aspect-square bg-white rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${
-                      selectedId === item.id ? 'border-primary ring-2 ring-primary/20' : 'border-gray-100 hover:border-gray-300'
-                    }`}
-                  >
-                    {item.type === 'image' ? (
-                      <img 
-                        src={item.url} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover" 
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white">
-                        <Video size={32} />
-                      </div>
-                    )}
+                {filteredMedia.map(item => {
+                  const isLocal = item.url.startsWith('data:');
+                  return (
+                    <MotionDiv 
+                      layout
+                      key={item.id}
+                      onClick={() => handleItemClick(item)}
+                      className={`group relative aspect-square bg-white rounded-xl border-2 transition-all cursor-pointer overflow-hidden ${
+                        selectedId === item.id ? 'border-primary ring-2 ring-primary/20' : 'border-gray-100 hover:border-gray-300'
+                      }`}
+                    >
+                      {/* Warning for local images */}
+                      {isLocal && (
+                        <div className="absolute top-2 left-2 z-20 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-sm flex items-center">
+                          <AlertTriangle size={10} className="mr-1" /> 仅本地
+                        </div>
+                      )}
 
-                    {/* Checkmark for selection */}
-                    {selectedId === item.id && (
-                      <div className="absolute top-2 right-2 z-20 text-primary bg-white rounded-full">
-                        <CheckCircle2 size={24} fill="currentColor" className="text-white" />
-                      </div>
-                    )}
+                      {item.type === 'image' ? (
+                        <img 
+                          src={item.url} 
+                          alt={item.name} 
+                          className="w-full h-full object-cover" 
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-900 text-white">
+                          <Video size={32} />
+                        </div>
+                      )}
 
-                    {/* Overlay for Management Mode */}
-                    {mode === 'manage' && (
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <button 
-                          onClick={(e) => handleCopy(item.url, item.id, e)}
-                          className="p-2 bg-white rounded-full text-gray-700 hover:text-primary transition-colors"
-                          title="复制链接"
-                        >
-                          {copiedId === item.id ? <CheckCircle2 size={18} className="text-green-500"/> : <LinkIcon size={18} />}
-                        </button>
-                        <button 
-                          onClick={(e) => handleDelete(item.id, e)}
-                          className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 transition-colors"
-                          title="删除"
-                        >
-                          <Trash2 size={18} />
-                        </button>
+                      {/* Checkmark for selection */}
+                      {selectedId === item.id && (
+                        <div className="absolute top-2 right-2 z-20 text-primary bg-white rounded-full">
+                          <CheckCircle2 size={24} fill="currentColor" className="text-white" />
+                        </div>
+                      )}
+
+                      {/* Overlay for Management Mode */}
+                      {mode === 'manage' && (
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <button 
+                            onClick={(e) => handleCopy(item.url, item.id, e)}
+                            className="p-2 bg-white rounded-full text-gray-700 hover:text-primary transition-colors"
+                            title="复制链接"
+                          >
+                            {copiedId === item.id ? <CheckCircle2 size={18} className="text-green-500"/> : <LinkIcon size={18} />}
+                          </button>
+                          <button 
+                            onClick={(e) => handleDelete(item.id, e)}
+                            className="p-2 bg-white rounded-full text-gray-700 hover:text-red-600 transition-colors"
+                            title="删除"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* Caption */}
+                      <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
+                        <p className="text-[10px] text-white font-medium truncate">{item.name}</p>
                       </div>
-                    )}
-                    
-                    {/* Caption */}
-                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent">
-                      <p className="text-[10px] text-white font-medium truncate">{item.name}</p>
-                    </div>
-                  </MotionDiv>
-                ))}
+                    </MotionDiv>
+                  );
+                })}
               </div>
             ) : (
               <div className="bg-white rounded-xl border border-gray-100 divide-y overflow-hidden">
-                {filteredMedia.map(item => (
-                  <div 
-                    key={item.id}
-                    onClick={() => handleItemClick(item)}
-                    className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedId === item.id ? 'bg-blue-50' : ''}`}
-                  >
-                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-4 flex-shrink-0">
-                        {item.type === 'image' ? (
-                          <img 
-                            src={item.url} 
-                            className="w-full h-full object-cover" 
-                            loading="lazy"
-                            alt={item.name}
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-900 flex items-center justify-center text-white">
-                            <Video size={20}/>
-                          </div>
-                        )}
-                     </div>
-                     <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-bold text-gray-900 truncate">{item.name}</h4>
-                        <p className="text-xs text-gray-400">{item.uploadDate} · {item.size}</p>
-                     </div>
-                     <div className="flex items-center gap-2">
-                        {mode === 'manage' && (
-                           <>
-                              <button onClick={(e) => handleCopy(item.url, item.id, e)} className="p-2 text-gray-400 hover:text-primary"><LinkIcon size={16}/></button>
-                              <button onClick={(e) => handleDelete(item.id, e)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 size={16}/></button>
-                           </>
-                        )}
-                        {selectedId === item.id && <Check className="text-primary" size={20} />}
-                     </div>
-                  </div>
-                ))}
+                {filteredMedia.map(item => {
+                  const isLocal = item.url.startsWith('data:');
+                  return (
+                    <div 
+                      key={item.id}
+                      onClick={() => handleItemClick(item)}
+                      className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors ${selectedId === item.id ? 'bg-blue-50' : ''}`}
+                    >
+                       <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 mr-4 flex-shrink-0 relative">
+                          {item.type === 'image' ? (
+                            <img 
+                              src={item.url} 
+                              className="w-full h-full object-cover" 
+                              loading="lazy"
+                              alt={item.name}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-900 flex items-center justify-center text-white">
+                              <Video size={20}/>
+                            </div>
+                          )}
+                          {isLocal && (
+                            <div className="absolute bottom-0 left-0 right-0 bg-amber-500 h-1" title="仅存储于本地，未上云"></div>
+                          )}
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-bold text-gray-900 truncate flex items-center">
+                             {item.name}
+                             {isLocal && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 px-1.5 rounded border border-amber-100">未上云</span>}
+                          </h4>
+                          <p className="text-xs text-gray-400">{item.uploadDate} · {item.size}</p>
+                       </div>
+                       <div className="flex items-center gap-2">
+                          {mode === 'manage' && (
+                             <>
+                                <button onClick={(e) => handleCopy(item.url, item.id, e)} className="p-2 text-gray-400 hover:text-primary"><LinkIcon size={16}/></button>
+                                <button onClick={(e) => handleDelete(item.id, e)} className="p-2 text-gray-400 hover:text-red-500"><Trash2 size={16}/></button>
+                             </>
+                          )}
+                          {selectedId === item.id && <Check className="text-primary" size={20} />}
+                       </div>
+                    </div>
+                  );
+                })}
               </div>
             )
           ) : (
