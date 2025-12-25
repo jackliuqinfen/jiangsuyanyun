@@ -16,9 +16,18 @@ export type ResourceType =
   | 'navigation'
   | 'team'
   | 'history'
-  | 'tenders' // Added tenders resource
+  | 'tenders'
+  | 'performances'
   | 'pages'
-  | 'security'; // Added security resource
+  | 'security';
+
+export interface TopNavItem {
+  id: string;
+  label: string;
+  path: string;
+  isVisible: boolean;
+  order: number;
+}
 
 export interface Permission {
   read: boolean;
@@ -41,13 +50,11 @@ export interface User {
   roleId: string;
   avatar?: string;
   lastLogin?: string;
-  // Security fields
   mfaEnabled?: boolean;
   phone?: string;
   email?: string;
 }
 
-// ... [Keep existing NewsItem, TenderItem, etc. unchanged] ...
 export interface NewsItem {
   id: string;
   title: string;
@@ -74,12 +81,26 @@ export interface TenderItem {
   content?: string;
 }
 
+export type PerformanceCategory = '招标代理' | '监理服务' | '造价咨询' | '其他咨询服务';
+
+export interface PerformanceItem {
+  id: string;
+  title: string;
+  projectNo: string;
+  category: PerformanceCategory;
+  client: string; 
+  date: string; 
+  content?: string; 
+  fileUrl?: string; 
+  externalUrl?: string; 
+}
+
 export interface ProjectCase {
   id: string;
   title: string;
   category: string;
   description: string;
-  content?: string; // Added rich text content
+  content?: string;
   imageUrl: string;
   location: string;
   date: string;
@@ -155,7 +176,7 @@ export interface Honor {
   issuingAuthority: string;
   imageUrl: string;
   categoryId: string;
-  content?: string; // Added rich text content
+  content?: string;
 }
 
 export interface Testimonial {
@@ -178,7 +199,6 @@ export interface SiteSettings {
   contactEmail: string;
   contactAddress: string;
   copyrightText: string;
-  // Anniversary Popup Settings
   enableAnniversary?: boolean; 
   anniversaryTitle?: string;
   anniversarySubtitle?: string;
@@ -219,6 +239,7 @@ export interface FooterLink {
 }
 
 export interface PageContent {
+  topNav: TopNavItem[];
   headers: {
     about: PageHeaderConfig;
     services: PageHeaderConfig;
@@ -229,6 +250,7 @@ export interface PageContent {
     navigation: PageHeaderConfig;
     honors: PageHeaderConfig;
     tenders: PageHeaderConfig;
+    performances: PageHeaderConfig;
   };
   footer: {
     quickLinks: FooterLink[];
@@ -291,25 +313,23 @@ export interface PageHeaderConfig {
   backgroundImage: string;
 }
 
-// --- NEW SECURITY TYPES ---
-
 export interface AuditLog {
   id: string;
   userId: string;
   userName: string;
-  action: string;      // e.g., 'LOGIN', 'CREATE', 'DELETE'
-  resource: string;    // e.g., 'News', 'User'
+  action: string;
+  resource: string;
   details: string;
   timestamp: string;
-  ipAddress: string;   // Simulated
+  ipAddress: string;
   status: 'SUCCESS' | 'FAILURE';
 }
 
 export interface LoginAttempt {
   count: number;
-  lastAttempt: number; // timestamp
+  lastAttempt: number;
   isLocked: boolean;
-  lockUntil: number;   // timestamp
+  lockUntil: number;
 }
 
 export interface SecurityConfig {
