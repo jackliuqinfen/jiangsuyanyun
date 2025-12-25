@@ -98,19 +98,20 @@ const INITIAL_DATA_MAP: Record<string, any> = {
   [KEYS.LOGIN_ATTEMPTS]: {}
 };
 
+// Using relative path to allow Nginx to proxy
 const API_ENDPOINT = '/api/kv';
 const FILE_API_ENDPOINT = '/api/file';
-// Important: This token must match the one configured in your PHP backend
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
 // Enable Cloud Sync for Server Deployment
 let isCloudAvailable = true;
 
-const markCloudUnavailable = () => {
+const markCloudUnavailable = (reason?: string) => {
   if (isCloudAvailable) {
     isCloudAvailable = false;
     window.dispatchEvent(new Event('storageStatusChanged'));
-    console.error("Critical: Cloud Sync Connection Failed. Switching to Local Storage.");
+    console.error(`[Storage] ⚠️ Cloud Sync Disconnected: ${reason || 'Unknown Error'}`);
+    console.error(`[Storage] Switching to Local Storage Mode. Data will NOT persist to server.`);
   }
 };
 
@@ -130,7 +131,7 @@ export const storageService = {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
 
       const response = await fetch(`${API_ENDPOINT}?key=${key}&t=${Date.now()}`, { 
         method: 'GET',
@@ -144,14 +145,16 @@ export const storageService = {
       
       if (!response.ok) {
          if (response.status === 404) return getFallback();
-         markCloudUnavailable();
+         
+         // If server returns 500/502/503/504, it means backend is down or config is wrong
+         markCloudUnavailable(`Server Error ${response.status}: ${response.statusText}`);
          return getFallback();
       }
 
-      // Handle potential HTML response from Nginx errors
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-         throw new Error("Invalid response format");
+         // This usually happens when Nginx returns an HTML error page (like 502 Bad Gateway)
+         throw new Error("Received HTML instead of JSON. Check Nginx/Backend.");
       }
 
       const data = await response.json();
@@ -160,22 +163,22 @@ export const storageService = {
       // Update local cache
       localStorage.setItem(key, JSON.stringify(data));
       return data;
-    } catch (error) {
-      console.warn(`Sync failed for ${key}, using local data.`);
+    } catch (error: any) {
+      markCloudUnavailable(`Network Request Failed: ${error.message}`);
       return getFallback();
     }
   },
 
   async save<T>(key: string, items: T[]): Promise<void> {
-    // Always save locally first for immediate UI update
+    // 1. Optimistic UI update (save to local storage immediately)
     try {
       localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
       console.error("Local storage full");
     }
 
+    // 2. Background Cloud Sync
     if (isCloudAvailable) {
-        // Sync to server in background
         fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -184,14 +187,16 @@ export const storageService = {
             },
             body: JSON.stringify({ key, value: items }),
         })
-        .then(res => {
+        .then(async res => {
             if (!res.ok) {
-               console.error("Cloud save failed:", res.status);
-               // Optional: markCloudUnavailable(); 
-               // We don't disable cloud on write fail immediately to allow retries
+               const txt = await res.text();
+               console.error(`[Storage] Cloud Save Failed (${res.status}):`, txt);
+               // Don't disable cloud immediately on one write fail, might be transient
             }
         })
-        .catch(err => console.error("Cloud save error:", err));
+        .catch(err => console.error("[Storage] Cloud Save Network Error:", err));
+    } else {
+        console.warn("[Storage] Cloud unavailable, saved locally only.");
     }
     
     return Promise.resolve();
@@ -199,7 +204,6 @@ export const storageService = {
 
   async uploadAsset(file: File): Promise<string> {
     const ext = file.name.split('.').pop() || 'bin';
-    // Clean filename for URL safety
     const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
     const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${safeName}`;
     
@@ -212,33 +216,38 @@ export const storageService = {
         });
     };
 
-    if (!isCloudAvailable) return toBase64();
+    if (!isCloudAvailable) {
+        console.warn("Cloud unavailable, falling back to Base64");
+        return toBase64();
+    }
 
     try {
         const formData = new FormData();
         formData.append('file', file);
         
-        // Using query param for key to match existing API structure
         const response = await fetch(`${FILE_API_ENDPOINT}?key=${uniqueKey}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
-                // Content-Type is auto-set by fetch for FormData
             },
             body: formData 
         });
 
-        if (!response.ok) throw new Error('Upload failed');
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Server responded ${response.status}: ${errText}`);
+        }
         
         const res = await response.json();
-        // Return the API URL that will redirect to COS or serve the file
         return res.url; 
     } catch (error) {
         console.error("Upload error, falling back to base64", error);
+        alert("上传到服务器失败，已转为本地 Base64 存储 (刷新后可能失效)。请检查后台日志。");
         return toBase64();
     }
   },
 
+  // ... (Keep existing exportSystemData, etc. as they were) ...
   exportSystemData: async () => {
     const data: Record<string, any> = {};
     for (const key of Object.values(KEYS)) {
@@ -261,8 +270,7 @@ export const storageService = {
     }
     dataFolder?.file("database.json", JSON.stringify(systemData, null, 2));
 
-    // Look for our API file pattern
-    const assetRegex = /\/api\/file\?key=([a-zA-Z0-9_.-]+)/g;
+    const assetRegex = /\/files\/([a-zA-Z0-9_.-]+)/g; // Updated regex for new URL pattern
     const assets = new Set<string>();
     const fullJson = JSON.stringify(systemData);
     let match;
@@ -273,7 +281,7 @@ export const storageService = {
 
     for (let i = 0; i < assetKeys.length; i++) {
        try {
-          const res = await fetch(`${FILE_API_ENDPOINT}?key=${assetKeys[i]}`);
+          const res = await fetch(`/files/${assetKeys[i]}`);
           if (res.ok) assetsFolder?.file(assetKeys[i], await res.blob());
           onProgress?.(`备份进度: ${i+1}/${assetKeys.length}`);
        } catch (e) {}
@@ -315,7 +323,6 @@ export const storageService = {
   logAction: async (action: string, resource: string, details: string, status: 'SUCCESS' | 'FAILURE') => {
     const user = storageService.getCurrentUser();
     const log = createAuditLogEntry(user?.id || 'sys', user?.name || 'Guest', action, resource, details, status);
-    // Don't await logs to keep UI snappy
     storageService.getAuditLogs().then(logs => {
         storageService.save(KEYS.AUDIT_LOGS, [log, ...logs].slice(0, 1000));
     });
@@ -324,11 +331,6 @@ export const storageService = {
   getAuditLogs: () => storageService.get<AuditLog>(KEYS.AUDIT_LOGS),
 
   login: async (u: string, p: string): Promise<{ success: boolean; message?: string; mfaRequired?: boolean }> => {
-    // In a real backend, this logic moves to the server. 
-    // For this hybrid deployment, we fetch the users list and check locally (less secure but works for CMS)
-    // Or we could implement a specific login API endpoint.
-    
-    // For now, keeping the "Client-side check against fetched data" pattern to minimize backend complexity code
     if (u === 'admin' && p === 'admin') {
       const users = await storageService.getUsers();
       const user = users.find(usr => usr.username === 'admin') || INITIAL_USERS[0];
