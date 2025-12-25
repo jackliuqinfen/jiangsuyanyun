@@ -17,7 +17,7 @@ import {
   INITIAL_TEAM,
   COMPANY_HISTORY,
   INITIAL_TENDERS,
-  INITIAL_PERFORMANCES, // Added
+  INITIAL_PERFORMANCES,
   DEFAULT_SECURITY_CONFIG
 } from '../constants';
 import { 
@@ -39,7 +39,7 @@ import {
   TeamMember,
   HistoryEvent,
   TenderItem,
-  PerformanceItem, // Added
+  PerformanceItem,
   AuditLog,
   LoginAttempt,
   SecurityConfig
@@ -67,7 +67,7 @@ const KEYS = {
   TEAM: 'yanyun_team_v3',
   HISTORY: 'yanyun_history_v3',
   TENDERS: 'yanyun_tenders_v3',
-  PERFORMANCES: 'yanyun_performances_v3', // Added
+  PERFORMANCES: 'yanyun_performances_v3',
   AUDIT_LOGS: 'yanyun_audit_logs_v3', 
   LOGIN_ATTEMPTS: 'yanyun_login_attempts_v3', 
   SECURITY_CONFIG: 'yanyun_security_config_v3' 
@@ -91,7 +91,7 @@ const INITIAL_DATA_MAP: Record<string, any> = {
   [KEYS.TEAM]: INITIAL_TEAM,
   [KEYS.HISTORY]: COMPANY_HISTORY,
   [KEYS.TENDERS]: INITIAL_TENDERS,
-  [KEYS.PERFORMANCES]: INITIAL_PERFORMANCES, // Added
+  [KEYS.PERFORMANCES]: INITIAL_PERFORMANCES,
   [KEYS.SETTINGS]: DEFAULT_SITE_SETTINGS,
   [KEYS.SECURITY_CONFIG]: DEFAULT_SECURITY_CONFIG,
   [KEYS.AUDIT_LOGS]: [],
@@ -100,15 +100,17 @@ const INITIAL_DATA_MAP: Record<string, any> = {
 
 const API_ENDPOINT = '/api/kv';
 const FILE_API_ENDPOINT = '/api/file';
+// Important: This token must match the one configured in your PHP backend
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
+// Enable Cloud Sync for Server Deployment
 let isCloudAvailable = true;
 
 const markCloudUnavailable = () => {
   if (isCloudAvailable) {
     isCloudAvailable = false;
     window.dispatchEvent(new Event('storageStatusChanged'));
-    console.error("Critical: Cloud Sync Terminal Error. Switching to Hard-LocalStorage Mode.");
+    console.error("Critical: Cloud Sync Connection Failed. Switching to Local Storage.");
   }
 };
 
@@ -128,7 +130,7 @@ export const storageService = {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout
 
       const response = await fetch(`${API_ENDPOINT}?key=${key}&t=${Date.now()}`, { 
         method: 'GET',
@@ -146,25 +148,34 @@ export const storageService = {
          return getFallback();
       }
 
+      // Handle potential HTML response from Nginx errors
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+         throw new Error("Invalid response format");
+      }
+
       const data = await response.json();
       if (data === null) return getFallback();
       
+      // Update local cache
       localStorage.setItem(key, JSON.stringify(data));
       return data;
     } catch (error) {
+      console.warn(`Sync failed for ${key}, using local data.`);
       return getFallback();
     }
   },
 
   async save<T>(key: string, items: T[]): Promise<void> {
+    // Always save locally first for immediate UI update
     try {
       localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
-      alert("本地存储空间不足，请在『系统设置』中导出备份并清理旧数据。");
-      throw e;
+      console.error("Local storage full");
     }
 
     if (isCloudAvailable) {
+        // Sync to server in background
         fetch(API_ENDPOINT, {
             method: 'POST',
             headers: {
@@ -174,9 +185,13 @@ export const storageService = {
             body: JSON.stringify({ key, value: items }),
         })
         .then(res => {
-            if (!res.ok && res.status !== 404) markCloudUnavailable();
+            if (!res.ok) {
+               console.error("Cloud save failed:", res.status);
+               // Optional: markCloudUnavailable(); 
+               // We don't disable cloud on write fail immediately to allow retries
+            }
         })
-        .catch(() => {});
+        .catch(err => console.error("Cloud save error:", err));
     }
     
     return Promise.resolve();
@@ -184,7 +199,9 @@ export const storageService = {
 
   async uploadAsset(file: File): Promise<string> {
     const ext = file.name.split('.').pop() || 'bin';
-    const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
+    // Clean filename for URL safety
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 5)}_${safeName}`;
     
     const toBase64 = (): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -198,19 +215,26 @@ export const storageService = {
     if (!isCloudAvailable) return toBase64();
 
     try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Using query param for key to match existing API structure
         const response = await fetch(`${FILE_API_ENDPOINT}?key=${uniqueKey}`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${KV_ACCESS_TOKEN}`,
-                'Content-Type': file.type
+                'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
+                // Content-Type is auto-set by fetch for FormData
             },
-            body: file 
+            body: formData 
         });
 
         if (!response.ok) throw new Error('Upload failed');
+        
         const res = await response.json();
+        // Return the API URL that will redirect to COS or serve the file
         return res.url; 
     } catch (error) {
+        console.error("Upload error, falling back to base64", error);
         return toBase64();
     }
   },
@@ -237,6 +261,7 @@ export const storageService = {
     }
     dataFolder?.file("database.json", JSON.stringify(systemData, null, 2));
 
+    // Look for our API file pattern
     const assetRegex = /\/api\/file\?key=([a-zA-Z0-9_.-]+)/g;
     const assets = new Set<string>();
     const fullJson = JSON.stringify(systemData);
@@ -290,13 +315,20 @@ export const storageService = {
   logAction: async (action: string, resource: string, details: string, status: 'SUCCESS' | 'FAILURE') => {
     const user = storageService.getCurrentUser();
     const log = createAuditLogEntry(user?.id || 'sys', user?.name || 'Guest', action, resource, details, status);
-    const logs = await storageService.getAuditLogs();
-    await storageService.save(KEYS.AUDIT_LOGS, [log, ...logs].slice(0, 1000));
+    // Don't await logs to keep UI snappy
+    storageService.getAuditLogs().then(logs => {
+        storageService.save(KEYS.AUDIT_LOGS, [log, ...logs].slice(0, 1000));
+    });
   },
 
   getAuditLogs: () => storageService.get<AuditLog>(KEYS.AUDIT_LOGS),
 
   login: async (u: string, p: string): Promise<{ success: boolean; message?: string; mfaRequired?: boolean }> => {
+    // In a real backend, this logic moves to the server. 
+    // For this hybrid deployment, we fetch the users list and check locally (less secure but works for CMS)
+    // Or we could implement a specific login API endpoint.
+    
+    // For now, keeping the "Client-side check against fetched data" pattern to minimize backend complexity code
     if (u === 'admin' && p === 'admin') {
       const users = await storageService.getUsers();
       const user = users.find(usr => usr.username === 'admin') || INITIAL_USERS[0];
@@ -408,7 +440,7 @@ export const storageService = {
   getTenders: () => storageService.get<TenderItem>(KEYS.TENDERS),
   saveTenders: (items: TenderItem[]) => storageService.save(KEYS.TENDERS, items),
   getTenderById: async (id: string) => (await storageService.getTenders()).find(t => t.id === id),
-  getPerformances: () => storageService.get<PerformanceItem>(KEYS.PERFORMANCES), // Added
-  savePerformances: (items: PerformanceItem[]) => storageService.save(KEYS.PERFORMANCES, items), // Added
-  getPerformanceById: async (id: string) => (await storageService.getPerformances()).find(p => p.id === id), // Added
+  getPerformances: () => storageService.get<PerformanceItem>(KEYS.PERFORMANCES),
+  savePerformances: (items: PerformanceItem[]) => storageService.save(KEYS.PERFORMANCES, items),
+  getPerformanceById: async (id: string) => (await storageService.getPerformances()).find(p => p.id === id),
 };

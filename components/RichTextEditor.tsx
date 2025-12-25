@@ -95,7 +95,16 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange, classN
         <ToolbarButton icon={AlignCenter} cmd="justifyCenter" title="居中" />
         <ToolbarButton icon={AlignRight} cmd="justifyRight" title="右对齐" />
         <div className="w-px h-4 bg-gray-300 mx-1"></div>
-        <ToolbarButton icon={LinkIcon} cmd="createLink" arg={prompt('请输入链接地址:') || ''} title="插入链接" />
+        
+        {/* Fixed Link Button: Prompt inside onClick */}
+        <ToolbarButton 
+          icon={LinkIcon} 
+          title="插入链接" 
+          onClick={() => {
+            const url = window.prompt('请输入链接地址:');
+            if (url) execCmd('createLink', url);
+          }}
+        />
         
         {/* Cloud Image Upload Button */}
         <ToolbarButton 
