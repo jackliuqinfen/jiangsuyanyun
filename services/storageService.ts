@@ -94,9 +94,8 @@ const INITIAL_DATA_MAP: Record<string, any> = {
 };
 
 // --- CONFIGURATION ---
-// EdgeOne Pages automatically routes /api/* to the functions in edge-functions/api/
 const API_ENDPOINT = '/api/kv';
-// Token provided by user for KV Access
+const FILE_API_ENDPOINT = '/api/file';
 const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
 export const storageService = {
@@ -114,44 +113,36 @@ export const storageService = {
       
       if (!response.ok) {
         console.warn(`Cloud fetch failed for ${key} (${response.status}), falling back to local.`);
-        // Don't return empty immediately, try local storage as cache/fallback
         const local = localStorage.getItem(key);
         return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
       }
 
       const data = await response.json();
       
-      // 2. If KV returns null (key doesn't exist yet), return initial data
       if (data === null || data === undefined) {
-        // First time load: save initial data to cloud so next time it exists
         const initial = INITIAL_DATA_MAP[key] || [];
-        // Optionally seed the cloud asynchronously
         storageService.save(key, initial).catch(console.error);
         return initial;
       }
 
-      // Update local cache on successful fetch
       localStorage.setItem(key, JSON.stringify(data));
       return data;
 
     } catch (error) {
       console.error(`Error fetching ${key}:`, error);
-      // Fallback for offline or network error
       const local = localStorage.getItem(key);
       return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
     }
   },
 
   async save<T>(key: string, items: T[]): Promise<void> {
-    // 1. Optimistic Update: Save to LocalStorage immediately for UI responsiveness
     try {
       localStorage.setItem(key, JSON.stringify(items));
     } catch (e) {
-      console.warn("Local storage quota exceeded, but will attempt cloud save.");
+      console.warn("Local storage quota exceeded.");
     }
 
     try {
-      // 2. Save to EdgeOne KV via API
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
@@ -171,9 +162,36 @@ export const storageService = {
 
     } catch (e: any) {
       console.error("Storage Save Error:", e);
-      // We already saved to local, so user won't lose data immediately, 
-      // but we should notify them if cloud sync fails.
-      console.warn("Data saved locally but cloud sync failed. Please check network.");
+      console.warn("Data saved locally but cloud sync failed.");
+    }
+  },
+
+  // --- NEW: Binary Asset Upload ---
+  // This uploads the actual file content to a unique KV key, avoiding JSON bloat.
+  async uploadAsset(file: File): Promise<string> {
+    const ext = file.name.split('.').pop() || 'bin';
+    const uniqueKey = `asset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${ext}`;
+    
+    try {
+        const response = await fetch(`${FILE_API_ENDPOINT}?key=${uniqueKey}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${KV_ACCESS_TOKEN}`,
+                'Content-Type': file.type // Pass original mime type if needed, or backend detects
+            },
+            body: file // Send raw binary
+        });
+
+        if (!response.ok) {
+            throw new Error('Upload failed');
+        }
+
+        const res = await response.json();
+        // Return the URL that points to the GET endpoint
+        return res.url; 
+    } catch (error) {
+        console.error("Asset Upload Error:", error);
+        throw error;
     }
   },
 
@@ -208,14 +226,13 @@ export const storageService = {
   },
 
   getStorageUsage: () => {
-    // This is purely local usage estimate
     let total = 0;
     for (const key in localStorage) {
       if (localStorage.hasOwnProperty(key)) {
         total += (localStorage[key].length + key.length) * 2;
       }
     }
-    return (total / 1024).toFixed(2); // KB
+    return (total / 1024).toFixed(2);
   },
 
   // --- Security & Auth ---
@@ -240,7 +257,6 @@ export const storageService = {
       details,
       status
     );
-    // Optimistic log handling
     const localLogs = JSON.parse(localStorage.getItem(KEYS.AUDIT_LOGS) || '[]');
     const newLogs = [log, ...localLogs].slice(0, 1000);
     storageService.save(KEYS.AUDIT_LOGS, newLogs);
@@ -266,8 +282,6 @@ export const storageService = {
 
     const users = await storageService.getUsers();
     const user = users.find((u: User) => u.username === username);
-    
-    // In a real backend, password would be hashed. For this demo, simple check.
     const isValidPass = user && passwordInput === 'admin'; 
 
     if (isValidPass) {
@@ -359,7 +373,6 @@ export const storageService = {
     const settings = Array.isArray(s) ? (s.length > 0 ? s[0] : DEFAULT_SITE_SETTINGS) : (s || DEFAULT_SITE_SETTINGS);
     return settings as SiteSettings;
   },
-  // Synchronous fallback reads from local cache for immediate UI rendering
   getSettingsSync: (): SiteSettings => {
      const s = localStorage.getItem(KEYS.SETTINGS);
      return s ? JSON.parse(s) : DEFAULT_SITE_SETTINGS;
@@ -370,7 +383,6 @@ export const storageService = {
   },
 
   getPageContent: (): PageContent => {
-    // Read from local for speed, background sync handles the rest
     const c = localStorage.getItem(KEYS.PAGE_CONTENT);
     return c ? JSON.parse(c) : INITIAL_PAGE_CONTENT;
   },

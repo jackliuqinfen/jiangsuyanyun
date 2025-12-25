@@ -37,6 +37,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     type: 'image' as 'image' | 'video',
     category: 'site',
     url: '',
+    file: null as File | null // Store raw file object
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +89,6 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
 
   const triggerFileSelect = () => {
     if (isUploading) return;
-    // Explicitly clear value before click to ensure change event fires even if same file selected
     if (fileInputRef.current) {
         fileInputRef.current.value = '';
         fileInputRef.current.click();
@@ -99,74 +99,54 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 增加文件大小限制 (3MB)
-    if (file.size > 3 * 1024 * 1024) {
-      alert("⚠️ 图片过大！\n\n由于浏览器缓存限制，请上传 3MB 以内的图片。\n建议使用 TinyPNG 等工具压缩后再上传。");
-      return;
-    }
-
-    setIsUploading(true); // Set state immediately before reading
+    // Use FileReader just for preview
     const reader = new FileReader();
-    
     reader.onload = (event) => {
-      const base64String = event.target?.result as string;
-      if (base64String) {
-        setUploadForm(prev => ({ 
-            ...prev, 
-            url: base64String,
-            name: prev.name || file.name.split('.')[0]
-        }));
-      }
+      setUploadForm(prev => ({ 
+          ...prev, 
+          url: event.target?.result as string, // Preview URL (Base64)
+          name: prev.name || file.name.split('.')[0],
+          file: file // Store actual file for upload
+      }));
     };
-
-    reader.onloadend = () => {
-      setIsUploading(false);
-    };
-
-    reader.onerror = () => {
-      alert("读取文件失败，请重试");
-      setIsUploading(false);
-    };
-
     reader.readAsDataURL(file);
   };
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadForm.url) {
+    if (!uploadForm.url && !uploadForm.file) {
       alert("请先选择图片或输入视频链接");
       return;
     }
 
     setIsUploading(true);
     try {
+      let finalUrl = uploadForm.url;
+
+      // If it's an image file upload, upload to cloud KV first
+      if (uploadForm.type === 'image' && uploadForm.file) {
+         finalUrl = await storageService.uploadAsset(uploadForm.file);
+      }
+
       const newItem: MediaItem = {
         id: Date.now().toString(),
         name: uploadForm.name || '未命名资源',
         type: uploadForm.type,
         category: uploadForm.category,
-        url: uploadForm.url,
+        url: finalUrl,
         uploadDate: new Date().toISOString().split('T')[0],
-        size: uploadForm.type === 'image' ? (Math.round(uploadForm.url.length / 1024) + ' KB') : 'External'
+        size: uploadForm.file ? (Math.round(uploadForm.file.size / 1024) + ' KB') : 'External'
       };
 
-      // 1. 获取最新数据 (防止覆盖)
       const currentMedia = await storageService.getMedia();
       const updated = [newItem, ...currentMedia];
-      
-      // 2. 保存到 Storage
       await storageService.saveMedia(updated);
-      
-      // 3. 刷新列表状态
       await loadData();
       
-      // 4. 重置表单并关闭弹窗
       setIsUploadModalOpen(false);
-      // Auto-switch to the uploaded category or 'all' to show the new item immediately
       setActiveCategory('all'); 
-      setUploadForm({ name: '', type: 'image', category: 'site', url: '' });
+      setUploadForm({ name: '', type: 'image', category: 'site', url: '', file: null });
 
-      // 5. 如果是选择模式，自动选中并回调
       if (mode === 'select' && onSelect) {
         onSelect(newItem.url);
       }
@@ -449,7 +429,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                             <Upload className="text-gray-300 mb-2" size={32} />
                           )}
                           <p className="text-sm font-medium text-gray-600">
-                             {isUploading ? '正在处理文件...' : uploadForm.url ? '点击更换文件' : '点击选择图片'}
+                             {isUploading ? '正在上传到云端KV...' : uploadForm.url ? '点击更换文件' : '点击选择图片'}
                           </p>
                        </div>
                        <input 
@@ -486,7 +466,7 @@ const MediaLibrary: React.FC<MediaLibraryProps> = ({
                       className="px-8 py-2 bg-primary text-white rounded-lg font-bold shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2 disabled:bg-gray-400 disabled:shadow-none"
                     >
                       {isUploading && <Loader2 size={16} className="animate-spin" />}
-                      {isUploading ? '处理中...' : '确认上传并存库'}
+                      {isUploading ? '正在存储...' : '确认上传并存库'}
                     </button>
                  </div>
               </form>
