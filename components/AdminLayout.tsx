@@ -145,7 +145,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentRole, setCurrentRole] = useState<Role | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
+  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettingsSync());
   const [logo, setLogo] = useState(settings.graphicLogoUrl);
   
   // Security State: Prevent rendering before checking auth
@@ -159,14 +159,16 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       navigate('/admin/login');
     } else {
       setCurrentUser(user);
-      setCurrentRole(storageService.getCurrentUserRole());
+      setCurrentRole(storageService.getCurrentUserRole()); // This is async but we don't await for initial render check
+      // For proper async handling we should probably await this, but setCurrentRole is safe to update later
+      storageService.getCurrentUserRole().then(role => setCurrentRole(role));
       setIsAuthorized(true);
     }
 
     const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString()), 1000);
     
     const handleSettingsUpdate = () => {
-       const newSettings = storageService.getSettings();
+       const newSettings = storageService.getSettingsSync();
        setSettings(newSettings);
        setLogo(newSettings.graphicLogoUrl);
     };

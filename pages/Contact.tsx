@@ -13,7 +13,7 @@ const Contact: React.FC = () => {
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const settings = storageService.getSettings();
+  const settings = storageService.getSettingsSync();
   const header = storageService.getPageContent().headers.contact;
 
   const handleSubmit = (e: React.FormEvent) => {

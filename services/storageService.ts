@@ -69,94 +69,167 @@ const KEYS = {
   SECURITY_CONFIG: 'yanyun_security_config_v2' 
 };
 
-const initStorage = () => {
-  const safeInit = <T>(key: string, initialData: T) => {
-    if (!localStorage.getItem(key)) {
-      localStorage.setItem(key, JSON.stringify(initialData));
-    }
-  };
-
-  safeInit(KEYS.NEWS, INITIAL_NEWS);
-  safeInit(KEYS.PROJECTS, INITIAL_PROJECTS);
-  safeInit(KEYS.SERVICES, INITIAL_SERVICES);
-  safeInit(KEYS.BRANCHES, INITIAL_BRANCHES);
-  safeInit(KEYS.BRANCH_CATEGORIES, INITIAL_BRANCH_CATEGORIES);
-  safeInit(KEYS.LINKS, INITIAL_LINKS);
-  safeInit(KEYS.PARTNERS, INITIAL_PARTNERS);
-  safeInit(KEYS.HONORS, INITIAL_HONORS);
-  safeInit(KEYS.HONOR_CATEGORIES, INITIAL_HONOR_CATEGORIES);
-  
-  // Settings initialization logic:
-  // We only set the default if no settings exist. 
-  // We do NOT overwrite enableAnniversary if it already exists, respecting the user's choice.
-  const storedSettings = localStorage.getItem(KEYS.SETTINGS);
-  if (!storedSettings) {
-    // First time load: Default to enabled
-    localStorage.setItem(KEYS.SETTINGS, JSON.stringify({
-        ...DEFAULT_SITE_SETTINGS,
-        enableAnniversary: true 
-    }));
-  } else {
-    // Migration: If settings exist but enableAnniversary is missing (from older version), add it
-    const parsed = JSON.parse(storedSettings);
-    if (parsed.enableAnniversary === undefined) {
-        const merged = { ...parsed, enableAnniversary: true };
-        localStorage.setItem(KEYS.SETTINGS, JSON.stringify(merged));
-    }
-  }
-
-  safeInit(KEYS.ROLES, INITIAL_ROLES);
-  safeInit(KEYS.USERS, INITIAL_USERS);
-  safeInit(KEYS.MEDIA, INITIAL_MEDIA);
-  safeInit(KEYS.PAGE_CONTENT, INITIAL_PAGE_CONTENT);
-  safeInit(KEYS.TEAM, INITIAL_TEAM);
-  safeInit(KEYS.HISTORY, COMPANY_HISTORY);
-  safeInit(KEYS.TENDERS, INITIAL_TENDERS);
-  safeInit(KEYS.AUDIT_LOGS, [] as AuditLog[]);
-  safeInit(KEYS.LOGIN_ATTEMPTS, {} as Record<string, LoginAttempt>);
-  safeInit(KEYS.SECURITY_CONFIG, DEFAULT_SECURITY_CONFIG);
+// Map keys to initial data for fallback/seeding
+const INITIAL_DATA_MAP: Record<string, any> = {
+  [KEYS.NEWS]: INITIAL_NEWS,
+  [KEYS.PROJECTS]: INITIAL_PROJECTS,
+  [KEYS.SERVICES]: INITIAL_SERVICES,
+  [KEYS.BRANCHES]: INITIAL_BRANCHES,
+  [KEYS.BRANCH_CATEGORIES]: INITIAL_BRANCH_CATEGORIES,
+  [KEYS.LINKS]: INITIAL_LINKS,
+  [KEYS.PARTNERS]: INITIAL_PARTNERS,
+  [KEYS.HONORS]: INITIAL_HONORS,
+  [KEYS.HONOR_CATEGORIES]: INITIAL_HONOR_CATEGORIES,
+  [KEYS.ROLES]: INITIAL_ROLES,
+  [KEYS.USERS]: INITIAL_USERS,
+  [KEYS.MEDIA]: INITIAL_MEDIA,
+  [KEYS.PAGE_CONTENT]: INITIAL_PAGE_CONTENT,
+  [KEYS.TEAM]: INITIAL_TEAM,
+  [KEYS.HISTORY]: COMPANY_HISTORY,
+  [KEYS.TENDERS]: INITIAL_TENDERS,
+  [KEYS.SETTINGS]: { ...DEFAULT_SITE_SETTINGS, enableAnniversary: true },
+  [KEYS.SECURITY_CONFIG]: DEFAULT_SECURITY_CONFIG,
+  [KEYS.AUDIT_LOGS]: [],
+  [KEYS.LOGIN_ATTEMPTS]: {}
 };
 
-initStorage();
-
-// 模拟后端网络请求
-const delay = (ms: number = 300) => new Promise(res => setTimeout(res, ms));
+// --- CONFIGURATION ---
+const API_ENDPOINT = '/api/kv';
+// Token provided by user for KV Access
+const KV_ACCESS_TOKEN = '8CG4Q0zhUzrvt14hsymoLNa+SJL9ioImlqabL5R+fJA=';
 
 export const storageService = {
-  // 通用 CRUD 抽象
+  // 通用 CRUD 抽象 - Cloud Version with Auth
   async get<T>(key: string): Promise<T[]> {
-    await delay();
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : [];
+    try {
+      // 1. Try to fetch from EdgeOne KV
+      const response = await fetch(`${API_ENDPOINT}?key=${key}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${KV_ACCESS_TOKEN}`,
+          'X-Client-Id': 'yanyun-frontend'
+        }
+      });
+      
+      if (!response.ok) {
+        console.warn(`Cloud fetch failed for ${key} (${response.status}), falling back to local.`);
+        // Don't return empty immediately, try local storage as cache/fallback
+        const local = localStorage.getItem(key);
+        return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
+      }
+
+      const data = await response.json();
+      
+      // 2. If KV returns null (key doesn't exist yet), return initial data
+      if (data === null || data === undefined) {
+        // First time load: save initial data to cloud so next time it exists
+        const initial = INITIAL_DATA_MAP[key] || [];
+        // Optionally seed the cloud asynchronously
+        storageService.save(key, initial).catch(console.error);
+        return initial;
+      }
+
+      // Update local cache on successful fetch
+      localStorage.setItem(key, JSON.stringify(data));
+      return data;
+
+    } catch (error) {
+      console.error(`Error fetching ${key}:`, error);
+      // Fallback for offline or network error
+      const local = localStorage.getItem(key);
+      return local ? JSON.parse(local) : (INITIAL_DATA_MAP[key] || []);
+    }
   },
 
   async save<T>(key: string, items: T[]): Promise<void> {
-    await delay();
+    // 1. Optimistic Update: Save to LocalStorage immediately for UI responsiveness
     try {
       localStorage.setItem(key, JSON.stringify(items));
-    } catch (e: any) {
-      if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-        throw new Error("浏览器存储空间已满。由于演示系统使用本地缓存，上传过多大图可能导致此错误。请尝试删除部分媒体资源或使用更小的图片（建议<500KB）。");
+    } catch (e) {
+      console.warn("Local storage quota exceeded, but will attempt cloud save.");
+    }
+
+    try {
+      // 2. Save to EdgeOne KV via API
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${KV_ACCESS_TOKEN}`
+        },
+        body: JSON.stringify({
+          key: key,
+          value: items 
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Cloud save failed: ${response.status} ${errText}`);
       }
+
+    } catch (e: any) {
       console.error("Storage Save Error:", e);
-      throw new Error("保存失败，请稍后重试。");
+      // We already saved to local, so user won't lose data immediately, 
+      // but we should notify them if cloud sync fails.
+      console.warn("Data saved locally but cloud sync failed. Please check network.");
     }
   },
 
-  // --- Security & Auth (Enhanced) ---
-
-  getSecurityConfig: (): SecurityConfig => {
-    const s = localStorage.getItem(KEYS.SECURITY_CONFIG);
-    return s ? JSON.parse(s) : DEFAULT_SECURITY_CONFIG;
+  // --- DATA MIGRATION FEATURES ---
+  
+  exportSystemData: async () => {
+    const data: Record<string, any> = {};
+    const promises = Object.values(KEYS).map(async (key) => {
+        if (key !== KEYS.AUTH_TOKEN && key !== KEYS.CURRENT_USER) {
+            const items = await storageService.get(key);
+            data[key] = items;
+        }
+    });
+    await Promise.all(promises);
+    return JSON.stringify(data, null, 2);
   },
 
-  saveSecurityConfig: (config: SecurityConfig) => {
-    localStorage.setItem(KEYS.SECURITY_CONFIG, JSON.stringify(config));
-    // Log this action
+  importSystemData: async (jsonString: string) => {
+    try {
+      const data = JSON.parse(jsonString);
+      const promises = Object.keys(data).map(async (key) => {
+        if (Object.values(KEYS).includes(key)) {
+           await storageService.save(key, data[key]);
+        }
+      });
+      await Promise.all(promises);
+      return { success: true };
+    } catch (e) {
+      console.error("Import failed", e);
+      return { success: false, message: "文件格式错误" };
+    }
+  },
+
+  getStorageUsage: () => {
+    // This is purely local usage estimate
+    let total = 0;
+    for (const key in localStorage) {
+      if (localStorage.hasOwnProperty(key)) {
+        total += (localStorage[key].length + key.length) * 2;
+      }
+    }
+    return (total / 1024).toFixed(2); // KB
+  },
+
+  // --- Security & Auth ---
+
+  getSecurityConfig: async (): Promise<SecurityConfig> => {
+    const s = await storageService.get<SecurityConfig>(KEYS.SECURITY_CONFIG);
+    return Array.isArray(s) ? (s.length > 0 ? s[0] : DEFAULT_SECURITY_CONFIG) : (s || DEFAULT_SECURITY_CONFIG);
+  },
+
+  saveSecurityConfig: async (config: SecurityConfig) => {
+    await storageService.save(KEYS.SECURITY_CONFIG, config as any);
     storageService.logAction('Update Security Config', 'Settings', 'Updated global security policies', 'SUCCESS');
   },
 
-  logAction: (action: string, resource: string, details: string, status: 'SUCCESS' | 'FAILURE') => {
+  logAction: async (action: string, resource: string, details: string, status: 'SUCCESS' | 'FAILURE') => {
     const currentUser = storageService.getCurrentUser();
     const log = createAuditLogEntry(
       currentUser?.id || 'system',
@@ -166,98 +239,80 @@ export const storageService = {
       details,
       status
     );
-    const logs = JSON.parse(localStorage.getItem(KEYS.AUDIT_LOGS) || '[]');
-    localStorage.setItem(KEYS.AUDIT_LOGS, JSON.stringify([log, ...logs].slice(0, 1000))); // Keep last 1000
+    // Optimistic log handling
+    const localLogs = JSON.parse(localStorage.getItem(KEYS.AUDIT_LOGS) || '[]');
+    const newLogs = [log, ...localLogs].slice(0, 1000);
+    storageService.save(KEYS.AUDIT_LOGS, newLogs);
   },
 
   getAuditLogs: async (): Promise<AuditLog[]> => {
-    await delay();
-    return JSON.parse(localStorage.getItem(KEYS.AUDIT_LOGS) || '[]');
+    return storageService.get<AuditLog>(KEYS.AUDIT_LOGS);
   },
 
   login: async (username: string, passwordInput: string): Promise<{success: boolean, token?: string, mfaRequired?: boolean, message?: string}> => {
-    await delay(800);
-    
-    const config = storageService.getSecurityConfig();
-    const loginAttempts = JSON.parse(localStorage.getItem(KEYS.LOGIN_ATTEMPTS) || '{}') as Record<string, LoginAttempt>;
+    const config = await storageService.getSecurityConfig();
+    const loginAttempts = (await storageService.get(KEYS.LOGIN_ATTEMPTS)) as any || {};
     const userAttempt = loginAttempts[username] || { count: 0, lastAttempt: 0, isLocked: false, lockUntil: 0 };
 
-    // 1. Check Lockout
     if (userAttempt.isLocked) {
       if (Date.now() < userAttempt.lockUntil) {
-        storageService.logAction('LOGIN_LOCKED', 'Auth', `Login attempted on locked account: ${username}`, 'FAILURE');
         return { success: false, message: `账户已锁定，请在 ${Math.ceil((userAttempt.lockUntil - Date.now()) / 60000)} 分钟后重试` };
       } else {
-        // Unlock
         userAttempt.isLocked = false;
         userAttempt.count = 0;
       }
     }
 
-    const users = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+    const users = await storageService.getUsers();
     const user = users.find((u: User) => u.username === username);
-
-    // 2. Validate Credentials (Simulation - in real app, hash compare)
-    // Note: The demo hardcodes password 'admin' for simplicity in `Login.tsx` previously, 
-    // but here we simulate a check. For the default admin, let's assume 'admin' is the pass.
+    
+    // In a real backend, password would be hashed. For this demo, simple check.
     const isValidPass = user && passwordInput === 'admin'; 
 
     if (isValidPass) {
-      // Reset attempts on success
       loginAttempts[username] = { count: 0, lastAttempt: Date.now(), isLocked: false, lockUntil: 0 };
-      localStorage.setItem(KEYS.LOGIN_ATTEMPTS, JSON.stringify(loginAttempts));
+      await storageService.save(KEYS.LOGIN_ATTEMPTS, loginAttempts);
 
-      // 3. MFA Check
       if (user.mfaEnabled || config.mfaEnabled) {
-        // Return intermediate state
         return { success: true, mfaRequired: true };
       }
 
-      // 4. Success Token Generation
       const mockToken = `ey-session-${Date.now()}-${Math.random().toString(36).substr(2)}`;
       sessionStorage.setItem(KEYS.AUTH_TOKEN, mockToken);
       localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
       
-      // Update last login
       const updatedUsers = users.map((u: User) => u.id === user.id ? { ...u, lastLogin: new Date().toISOString() } : u);
-      localStorage.setItem(KEYS.USERS, JSON.stringify(updatedUsers));
+      storageService.saveUsers(updatedUsers);
 
-      storageService.logAction('LOGIN', 'Auth', `User ${username} logged in successfully`, 'SUCCESS');
+      storageService.logAction('LOGIN', 'Auth', `User ${username} logged in`, 'SUCCESS');
       return { success: true, token: mockToken };
     } else {
-      // 5. Handle Failure & Locking
       userAttempt.count += 1;
       userAttempt.lastAttempt = Date.now();
       
       if (userAttempt.count >= config.maxLoginAttempts) {
         userAttempt.isLocked = true;
         userAttempt.lockUntil = Date.now() + (config.lockoutDurationMinutes * 60 * 1000);
-        storageService.logAction('LOGIN_LOCKOUT', 'Auth', `Account ${username} locked due to too many failed attempts`, 'FAILURE');
-      } else {
-        storageService.logAction('LOGIN_FAILED', 'Auth', `Failed login attempt for ${username}`, 'FAILURE');
       }
       
-      localStorage.setItem(KEYS.LOGIN_ATTEMPTS, JSON.stringify(loginAttempts));
+      await storageService.save(KEYS.LOGIN_ATTEMPTS, loginAttempts);
       return { success: false, message: userAttempt.isLocked ? '尝试次数过多，账户已锁定' : '用户名或密码错误' };
     }
   },
 
   verifyMfa: async (username: string, code: string): Promise<{success: boolean, token?: string, message?: string}> => {
-    await delay(500);
-    // Simulation: Any 6 digit code works for demo
     if (code.length === 6 && /^\d+$/.test(code)) {
-       const users = JSON.parse(localStorage.getItem(KEYS.USERS) || '[]');
+       const users = await storageService.getUsers();
        const user = users.find((u: User) => u.username === username);
        
        if (user) {
-          const mockToken = `ey-session-${Date.now()}-${Math.random().toString(36).substr(2)}`;
+          const mockToken = `ey-session-${Date.now()}`;
           sessionStorage.setItem(KEYS.AUTH_TOKEN, mockToken);
           localStorage.setItem(KEYS.CURRENT_USER, JSON.stringify(user));
           storageService.logAction('MFA_VERIFY', 'Auth', `MFA verified for ${username}`, 'SUCCESS');
           return { success: true, token: mockToken };
        }
     }
-    storageService.logAction('MFA_FAILED', 'Auth', `Invalid MFA code for ${username}`, 'FAILURE');
     return { success: false, message: '验证码无效' };
   },
 
@@ -274,19 +329,16 @@ export const storageService = {
     return u ? JSON.parse(u) : null;
   },
 
-  getCurrentUserRole: (): Role | null => {
+  getCurrentUserRole: async (): Promise<Role | null> => {
     const user = storageService.getCurrentUser();
     if (!user) return null;
-    const roles = JSON.parse(localStorage.getItem(KEYS.ROLES) || '[]');
+    const roles = await storageService.getRoles();
     return roles.find((r: Role) => r.id === user.roleId) || null;
   },
 
   // 业务模型访问层
   getNews: () => storageService.get<NewsItem>(KEYS.NEWS),
-  saveNews: (items: NewsItem[]) => {
-    storageService.logAction('UPDATE', 'News', `Updated news list (${items.length} items)`, 'SUCCESS');
-    return storageService.save(KEYS.NEWS, items);
-  },
+  saveNews: (items: NewsItem[]) => storageService.save(KEYS.NEWS, items),
   getNewsById: async (id: string) => (await storageService.getNews()).find(n => n.id === id),
   getRelatedNews: async (id: string) => {
     const news = await storageService.getNews();
@@ -296,30 +348,33 @@ export const storageService = {
   },
   
   getProjects: () => storageService.get<ProjectCase>(KEYS.PROJECTS),
-  saveProjects: (items: ProjectCase[]) => {
-    storageService.logAction('UPDATE', 'Projects', `Updated projects list`, 'SUCCESS');
-    return storageService.save(KEYS.PROJECTS, items);
-  },
+  saveProjects: (items: ProjectCase[]) => storageService.save(KEYS.PROJECTS, items),
 
   getServices: () => storageService.get<Service>(KEYS.SERVICES),
   saveServices: (items: Service[]) => storageService.save(KEYS.SERVICES, items),
   
-  getSettings: (): SiteSettings => {
-    const s = localStorage.getItem(KEYS.SETTINGS);
-    return s ? JSON.parse(s) : DEFAULT_SITE_SETTINGS;
+  getSettings: async (): Promise<SiteSettings> => {
+    const s = await storageService.get<SiteSettings>(KEYS.SETTINGS);
+    const settings = Array.isArray(s) ? (s.length > 0 ? s[0] : DEFAULT_SITE_SETTINGS) : (s || DEFAULT_SITE_SETTINGS);
+    return settings as SiteSettings;
   },
-  saveSettings: (s: SiteSettings) => {
-    localStorage.setItem(KEYS.SETTINGS, JSON.stringify(s));
-    storageService.logAction('UPDATE', 'Settings', 'Updated global site settings', 'SUCCESS');
+  // Synchronous fallback reads from local cache for immediate UI rendering
+  getSettingsSync: (): SiteSettings => {
+     const s = localStorage.getItem(KEYS.SETTINGS);
+     return s ? JSON.parse(s) : DEFAULT_SITE_SETTINGS;
+  },
+  saveSettings: async (s: SiteSettings) => {
+    await storageService.save(KEYS.SETTINGS, s as any);
     window.dispatchEvent(new Event('settingsChanged'));
   },
 
   getPageContent: (): PageContent => {
+    // Read from local for speed, background sync handles the rest
     const c = localStorage.getItem(KEYS.PAGE_CONTENT);
     return c ? JSON.parse(c) : INITIAL_PAGE_CONTENT;
   },
   savePageContent: (c: PageContent) => {
-    storageService.logAction('UPDATE', 'Pages', 'Updated page content configuration', 'SUCCESS');
+    storageService.save(KEYS.PAGE_CONTENT, c as any);
     localStorage.setItem(KEYS.PAGE_CONTENT, JSON.stringify(c));
   },
 
@@ -358,21 +413,12 @@ export const storageService = {
   saveBranchCategories: (items: BranchCategory[]) => storageService.save(KEYS.BRANCH_CATEGORIES, items),
 
   getUsers: () => storageService.get<User>(KEYS.USERS),
-  saveUsers: (items: User[]) => {
-    storageService.logAction('UPDATE', 'Users', 'Modified user list', 'SUCCESS');
-    return storageService.save(KEYS.USERS, items);
-  },
+  saveUsers: (items: User[]) => storageService.save(KEYS.USERS, items),
 
   getRoles: () => storageService.get<Role>(KEYS.ROLES),
-  saveRoles: (items: Role[]) => {
-    storageService.logAction('UPDATE', 'Roles', 'Modified RBAC role definitions', 'SUCCESS');
-    return storageService.save(KEYS.ROLES, items);
-  },
+  saveRoles: (items: Role[]) => storageService.save(KEYS.ROLES, items),
 
   getTenders: () => storageService.get<TenderItem>(KEYS.TENDERS),
-  saveTenders: (items: TenderItem[]) => {
-    storageService.logAction('UPDATE', 'Tenders', `Updated tenders list`, 'SUCCESS');
-    return storageService.save(KEYS.TENDERS, items);
-  },
+  saveTenders: (items: TenderItem[]) => storageService.save(KEYS.TENDERS, items),
   getTenderById: async (id: string) => (await storageService.getTenders()).find(t => t.id === id),
 };

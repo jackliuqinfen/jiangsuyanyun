@@ -1,13 +1,19 @@
 
-import React, { useState } from 'react';
-import { Save, CheckCircle2, Eye, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Save, CheckCircle2, Eye, Sparkles, Database, Download, Upload, HardDrive } from 'lucide-react';
 import { storageService } from '../../services/storageService';
 import { SiteSettings } from '../../types';
 import MediaSelector from '../../components/MediaSelector';
 
 const Settings: React.FC = () => {
-  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettings());
+  const [settings, setSettings] = useState<SiteSettings>(storageService.getSettingsSync());
   const [isSaved, setIsSaved] = useState(false);
+  const [storageUsage, setStorageUsage] = useState<string>('0');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setStorageUsage(storageService.getStorageUsage());
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -26,8 +32,47 @@ const Settings: React.FC = () => {
     setTimeout(() => setIsSaved(false), 3000);
   };
 
+  const handleExport = async () => {
+    const data = await storageService.exportSystemData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `yanyun_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportClick = () => {
+    if (window.confirm('⚠️ 警告：导入数据将覆盖当前系统的所有内容（包括文章、项目、图片等）。\n\n确定要继续吗？建议先导出备份。')) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const json = event.target?.result as string;
+      if (json) {
+        const result = await storageService.importSystemData(json);
+        if (result.success) {
+          alert('数据导入成功！页面将刷新以应用更改。');
+          window.location.reload();
+        } else {
+          alert(`导入失败: ${result.message}`);
+        }
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset input
+  };
+
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6 pb-20">
       <div className="flex justify-between items-center">
         <div>
            <h1 className="text-2xl font-bold text-gray-800">全局系统设置</h1>
@@ -38,6 +83,56 @@ const Settings: React.FC = () => {
              <CheckCircle2 size={16} className="mr-2"/> 保存成功
           </span>
         )}
+      </div>
+
+      {/* Data Maintenance Card */}
+      <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+            <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+               <Database size={20} />
+            </div>
+            <div>
+               <h2 className="text-lg font-bold text-gray-900">数据维护与迁移</h2>
+               <p className="text-xs text-gray-500">本系统为纯前端演示版，数据存储在本地浏览器。更换电脑前请务必导出数据。</p>
+            </div>
+         </div>
+
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-2">
+               <div className="flex justify-between text-sm font-bold text-gray-700">
+                  <span className="flex items-center gap-2"><HardDrive size={16}/> 本地存储用量</span>
+                  <span className={parseFloat(storageUsage) > 4000 ? 'text-red-500' : 'text-primary'}>{storageUsage} KB</span>
+               </div>
+               <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                  <div 
+                     className={`h-2.5 rounded-full ${parseFloat(storageUsage) > 4000 ? 'bg-red-500' : 'bg-primary'}`} 
+                     style={{ width: `${Math.min((parseFloat(storageUsage) / 5120) * 100, 100)}%` }}
+                  ></div>
+               </div>
+               <p className="text-[10px] text-gray-400">浏览器通常限制为 5MB (5120KB)。若图片过多，请使用外部图床链接。</p>
+            </div>
+
+            <div className="flex gap-4">
+               <button 
+                  type="button"
+                  onClick={handleExport}
+                  className="flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-primary/20 bg-primary/5 rounded-xl hover:bg-primary/10 transition-colors text-primary font-bold gap-2 group"
+               >
+                  <Download size={24} className="group-hover:-translate-y-1 transition-transform"/>
+                  <span>导出全站备份 (JSON)</span>
+               </button>
+               
+               <button 
+                  type="button"
+                  onClick={handleImportClick}
+                  className="flex-1 flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 bg-gray-50 rounded-xl hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 transition-colors text-gray-600 font-bold gap-2 group"
+               >
+                  <Upload size={24} className="group-hover:-translate-y-1 transition-transform"/>
+                  <span>导入恢复数据</span>
+               </button>
+               <input type="file" ref={fileInputRef} accept=".json" onChange={handleFileImport} className="hidden" />
+            </div>
+         </div>
       </div>
 
       <form onSubmit={handleSave} className="space-y-8">

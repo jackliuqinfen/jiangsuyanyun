@@ -16,31 +16,34 @@ const PermissionGate: React.FC<PermissionGateProps> = ({
   action = 'read',
   fallback = null 
 }) => {
-  const role = storageService.getCurrentUserRole();
+  const [hasPermission, setHasPermission] = React.useState<boolean | null>(null);
 
-  if (!role) return <>{fallback}</>;
+  React.useEffect(() => {
+    const checkPermission = async () => {
+        const role = await storageService.getCurrentUserRole();
+        if (!role) {
+            setHasPermission(false);
+            return;
+        }
+        const permission = role.permissions[resource];
+        if (!permission) {
+            setHasPermission(false);
+            return;
+        }
+        
+        let allowed = false;
+        switch (action) {
+            case 'read': allowed = permission.read; break;
+            case 'write': allowed = permission.write; break;
+            case 'delete': allowed = permission.delete; break;
+        }
+        setHasPermission(allowed);
+    };
+    checkPermission();
+  }, [resource, action]);
 
-  const permission = role.permissions[resource];
-
-  if (!permission) return <>{fallback}</>;
-
-  let hasPermission = false;
-
-  switch (action) {
-    case 'read':
-      hasPermission = permission.read;
-      break;
-    case 'write':
-      hasPermission = permission.write;
-      break;
-    case 'delete':
-      hasPermission = permission.delete;
-      break;
-  }
-
-  if (!hasPermission) {
-    return <>{fallback}</>;
-  }
+  if (hasPermission === null) return <>{fallback}</>;
+  if (!hasPermission) return <>{fallback}</>;
 
   return <>{children}</>;
 };

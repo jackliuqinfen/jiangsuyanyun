@@ -14,7 +14,7 @@ const MotionButton = motion.button as any;
 
 const AnniversaryPopup: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [settings, setSettings] = useState(storageService.getSettings());
+  const [settings, setSettings] = useState(storageService.getSettingsSync());
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -30,7 +30,7 @@ const AnniversaryPopup: React.FC = () => {
 
   useEffect(() => {
     // 1. Check Global Settings from Storage
-    const currentSettings = storageService.getSettings();
+    const currentSettings = storageService.getSettingsSync();
     setSettings(currentSettings); // Update local state for text binding
     const hasSeen = sessionStorage.getItem(SESSION_KEY);
     
@@ -43,7 +43,7 @@ const AnniversaryPopup: React.FC = () => {
 
     // Listener for real-time preview from Admin Panel
     const handleSettingsChange = () => {
-       const newSettings = storageService.getSettings();
+       const newSettings = storageService.getSettingsSync();
        setSettings(newSettings);
        if (newSettings.enableAnniversary) {
           sessionStorage.removeItem(SESSION_KEY); // Reset seen state for preview
