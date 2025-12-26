@@ -258,7 +258,7 @@ export const INITIAL_PAGE_CONTENT: PageContent = {
   ],
   headers: {
     // 使用在线 Unsplash 图片替换本地 Banner
-    about: { title: '品牌溯源', subtitle: '深耕工程管理八载，致力于成为卓越的资产全生命周期守护者', backgroundImage: 'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2069&auto=format&fit=crop' },
+    about: { title: '品牌溯源', subtitle: '深耕工程管理八载，致力于成为卓越的资产全生命周期守护者', backgroundImage: 'https://youke2.picui.cn/s1/2025/12/26/694ea19144c6f.jpg' },
     services: { title: '核心业务', subtitle: '全过程工程咨询服务，以数字化技术赋能传统工程管理模式', backgroundImage: 'https://images.unsplash.com/photo-1581094794329-cd1096a7a2e8?q=80&w=2070&auto=format&fit=crop' },
     cases: { title: '经典案例', subtitle: '每一个精品工程，都是我们对“质量生命线”的庄严承诺', backgroundImage: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?q=80&w=2070&auto=format&fit=crop' },
     news: { title: '行业动态', subtitle: '把握行业脉搏，传递盐韵声音', backgroundImage: 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?q=80&w=2070&auto=format&fit=crop' },
@@ -364,16 +364,169 @@ export const INITIAL_LINKS: NavigationLink[] = [{ id: '1', title: '江苏省智�
 // Use online logos for partners
 export const INITIAL_PARTNERS: Partner[] = [{ id: '1', name: '中南集团', logoUrl: 'https://ui-avatars.com/api/?name=ZN&background=random&size=128' }];
 export const INITIAL_TESTIMONIALS: Testimonial[] = [];
-export const INITIAL_HONOR_CATEGORIES: HonorCategory[] = [{ id: 'cat_comp', name: '核心资质', order: 1 }, { id: 'cat_award', name: '行业荣誉', order: 2 }];
+export const INITIAL_HONOR_CATEGORIES: HonorCategory[] = [
+  { id: 'cat_domain', name: '域名证书', order: 1 },
+  { id: 'cat_trademark', name: '商标著作', order: 2 },
+  { id: 'cat_honor', name: '公司荣誉', order: 3 },
+  { id: 'cat_qual', name: '资格证书', order: 4 },
+  { id: 'cat_iso', name: 'ISO证书', order: 5 },
+  { id: 'cat_aaa', name: 'AAA证书', order: 6 },
+  { id: 'cat_grid', name: '国家电网服务类资信', order: 7 },
+  { id: 'cat_other', name: '其他资质', order: 8 }
+];
 
 export const INITIAL_HONORS: Honor[] = [
+  {
+    id: '8',
+    title: 'yanyun.cn 域名证书',
+    issueDate: '2024',
+    issuingAuthority: 'CNNIC',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694ea8fb810ed.jpg',
+    categoryId: 'cat_domain'
+  },
+  {
+    id: '9',
+    title: 'yysjzx.com 域名证书',
+    issueDate: '2024',
+    issuingAuthority: 'CNNIC',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694ea8fb1ee44.jpg',
+    categoryId: 'cat_domain'
+  },
+  {
+    id: '10',
+    title: 'yanyun.wangzhi 域名证书',
+    issueDate: '2024',
+    issuingAuthority: 'CNNIC',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eab3031a99.png',
+    categoryId: 'cat_domain'
+  },
+  {
+    id: '11',
+    title: 'yanyun.zhongguo 域名证书',
+    issueDate: '2024',
+    issuingAuthority: 'CNNIC',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694ea8fb4f328.jpg',
+    categoryId: 'cat_domain'
+  },
+  {
+    id: '12',
+    title: '江苏省建设监理与招投标协会年度会员',
+    issueDate: '2024',
+    issuingAuthority: '江苏省建设监理与招投标协会',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eac56c7181.png',
+    categoryId: 'cat_honor'
+  },
+  {
+    id: '13',
+    title: '软件著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家版权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb004e2927.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '14',
+    title: '软件著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家版权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb004d76e4.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '15',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09d5a073.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '16',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09d78839.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '17',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09dcea5a.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '18',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09dadca9.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '19',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09d8c17d.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '20',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb107634f1.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '21',
+    title: '商标著作权证书',
+    issueDate: '2024',
+    issuingAuthority: '国家知识产权局',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb107afc8a.png',
+    categoryId: 'cat_trademark'
+  },
+  {
+    id: '22',
+    title: '江苏省工程造价管理协会年度单位会员',
+    issueDate: '2023-08',
+    issuingAuthority: '江苏省工程造价管理协会',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eae929099e.png',
+    categoryId: 'cat_honor'
+  },
+  {
+    id: '23',
+    title: 'ISO9001 质量管理体系认证证书',
+    issueDate: '2024',
+    issuingAuthority: '认证中心',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb2566cd31.png',
+    categoryId: 'cat_iso'
+  },
+  {
+    id: '24',
+    title: 'ISO14001 环境管理体系认证证书',
+    issueDate: '2024',
+    issuingAuthority: '认证中心',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb256954f5.png',
+    categoryId: 'cat_iso'
+  },
+  {
+    id: '25',
+    title: 'ISO45001 职业健康安全管理体系认证证书',
+    issueDate: '2024',
+    issuingAuthority: '认证中心',
+    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb256ba76a.png',
+    categoryId: 'cat_iso'
+  },
   { 
     id: '1', 
     title: '房屋建筑工程监理甲级资质', 
     issueDate: '2019-05', 
     issuingAuthority: '中华人民共和国住房和城乡建设部', 
     imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2000&auto=format&fit=crop', 
-    categoryId: 'cat_comp' 
+    categoryId: 'cat_qual' 
   },
   {
     id: '2',
@@ -381,7 +534,7 @@ export const INITIAL_HONORS: Honor[] = [
     issueDate: '2020-08',
     issuingAuthority: '中华人民共和国住房和城乡建设部',
     imageUrl: 'https://images.unsplash.com/photo-1635350736475-c8cef4b21906?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_comp'
+    categoryId: 'cat_qual'
   },
   {
     id: '3',
@@ -389,7 +542,7 @@ export const INITIAL_HONORS: Honor[] = [
     issueDate: '2021-03',
     issuingAuthority: '江苏省民防局',
     imageUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_comp'
+    categoryId: 'cat_qual'
   },
   {
     id: '4',
@@ -397,7 +550,7 @@ export const INITIAL_HONORS: Honor[] = [
     issueDate: '2023-12',
     issuingAuthority: '江苏省建设监理协会',
     imageUrl: 'https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_award'
+    categoryId: 'cat_honor'
   },
   {
     id: '5',
@@ -405,7 +558,7 @@ export const INITIAL_HONORS: Honor[] = [
     issueDate: '2024-01',
     issuingAuthority: '中国企业信用等级评价中心',
     imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_comp'
+    categoryId: 'cat_aaa'
   },
   {
     id: '6',
@@ -413,7 +566,7 @@ export const INITIAL_HONORS: Honor[] = [
     issueDate: '2022-06',
     issuingAuthority: '中国质量认证中心',
     imageUrl: 'https://images.unsplash.com/photo-1554224154-260327c0d14d?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_comp'
+    categoryId: 'cat_iso'
   },
   {
     id: '7',
@@ -421,7 +574,7 @@ export const INITIAL_HONORS: Honor[] = [
     issueDate: '2022-11',
     issuingAuthority: '江苏省住房和城乡建设厅',
     imageUrl: 'https://images.unsplash.com/photo-1613909207039-6b173b755cc1?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_award'
+    categoryId: 'cat_honor'
   }
 ];
 
