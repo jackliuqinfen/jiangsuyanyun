@@ -139,8 +139,8 @@ const Home: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-r from-gray-950 via-gray-900/90 to-transparent"></div>
         </div>
 
-        <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <MotionDiv className="max-w-3xl pt-20">
+        <div className="container mx-auto px-6 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 items-center">
+          <MotionDiv className="max-w-3xl pt-32 md:pt-20">
              <MotionDiv
                 initial={{ opacity: 0, x: -30 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -193,9 +193,9 @@ const Home: React.FC = () => {
   );
 
   const renderProcess = () => (
-      <section className="py-24 bg-surface overflow-hidden relative">
+      <section className="py-16 md:py-24 bg-surface overflow-hidden relative">
          <div className="container mx-auto px-6 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
                <div className="lg:col-span-5">
                   <div className="p-3 bg-primary text-white rounded-2xl inline-block mb-6 shadow-xl shadow-primary/20"><Activity size={24}/></div>
                   <h2 className="text-4xl font-black text-gray-900 tracking-tighter mb-6 leading-tight whitespace-pre-line">{homeContent.process.title}</h2>
@@ -279,9 +279,9 @@ const Home: React.FC = () => {
   );
 
   const renderProjects = () => (
-      <section className="py-32 bg-white">
+      <section className="py-20 md:py-32 bg-white">
          <div className="container mx-auto px-6">
-            <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-16">
+            <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-10 md:mb-16">
                <div className="max-w-2xl">
                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-accent/10 rounded-full mb-4">
                      <Star size={14} className="text-accent" fill="currentColor"/>
@@ -343,9 +343,9 @@ const Home: React.FC = () => {
   );
 
   const renderHonors = () => (
-      <section className="py-24 bg-surface relative overflow-hidden">
+      <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
          <div className="container mx-auto px-6">
-            <div className="text-center mb-20">
+            <div className="text-center mb-12 md:mb-20">
                <h3 className="text-sm font-black text-primary uppercase tracking-[0.4em] mb-4">权威认证</h3>
                <h2 className="text-4xl font-black text-gray-900 tracking-tighter">国家级专业背书</h2>
                <div className="mt-8">
@@ -403,9 +403,9 @@ const Home: React.FC = () => {
   );
 
   const renderServices = () => (
-      <section className="py-32 bg-white">
+      <section className="py-20 md:py-32 bg-white">
         <div className="container mx-auto px-6">
-           <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20">
+           <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-12 md:mb-20">
               <div className="max-w-2xl">
                  <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter mb-6 leading-tight">超越传统的<br/>工程咨询标准</h2>
                  <p className="text-gray-500 font-medium">我们将数字化双胞胎与标准化现场管理相结合，确保每一个交付件都经得起时间的考验。</p>
@@ -415,14 +415,14 @@ const Home: React.FC = () => {
               </Link>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
               {services.map((s: any, i: number) => {
                  const ServiceIcon = getServiceIcon(s.icon);
                  return (
                     <MotionDiv 
                        key={s.id}
                        whileHover={{ y: -15 }}
-                       className="p-10 bg-gray-50 rounded-[2.5rem] border border-gray-100 group transition-all hover:bg-primary hover:border-primary cursor-pointer shadow-soft flex flex-col"
+                       className="p-8 md:p-10 bg-gray-50 rounded-[2.5rem] border border-gray-100 group transition-all hover:bg-primary hover:border-primary cursor-pointer shadow-soft flex flex-col"
                     >
                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mb-10 shadow-lg transition-transform group-hover:rotate-12 group-hover:scale-110">
                           <ServiceIcon className="text-primary" size={28} />
@@ -488,12 +488,12 @@ const Home: React.FC = () => {
   );
 
   const renderCTA = () => (
-    <section className="py-24 bg-surface relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
        {/* Decorative blob */}
        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-100/30 to-purple-100/30 rounded-full blur-[120px] pointer-events-none"></div>
        
        <div className="container mx-auto px-6 relative z-10">
-          <div className="bg-white rounded-[3rem] p-12 md:p-20 shadow-2xl border border-gray-100 text-center relative overflow-hidden">
+          <div className="bg-white rounded-[3rem] p-8 md:p-20 shadow-2xl border border-gray-100 text-center relative overflow-hidden">
              <div className="relative z-10 max-w-3xl mx-auto">
                 <h2 className="text-3xl md:text-5xl font-black text-gray-900 mb-6 tracking-tight leading-tight">{homeContent.cta.title}</h2>
                 <p className="text-lg text-gray-500 mb-10 leading-relaxed">{homeContent.cta.description}</p>

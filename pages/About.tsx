@@ -160,7 +160,7 @@ const About: React.FC = () => {
           
           <div className="max-w-4xl mx-auto relative px-4 md:px-0">
             {/* Timeline Line */}
-            <div className="absolute left-4 md:left/2 transform md:-translate-x-1/2 w-0.5 h-full bg-gray-200"></div>
+            <div className="absolute left-4 md:left-1/2 transform md:-translate-x-1/2 w-0.5 h-full bg-gray-200"></div>
             
             <div className="space-y-12">
               {history.map((event, idx) => (

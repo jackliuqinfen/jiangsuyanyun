@@ -85,8 +85,8 @@ const Services: React.FC = () => {
       </section>
 
       {/* Main Services List */}
-      <div className="container mx-auto px-6 py-24">
-        <div className="space-y-32">
+      <div className="container mx-auto px-6 py-16 md:py-24">
+        <div className="space-y-16 md:space-y-32">
           {services.map((service, idx) => (
             <MotionDiv 
               key={service.id}
@@ -95,16 +95,16 @@ const Services: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8 }}
-              className={`flex flex-col md:flex-row items-center gap-16 ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''}`}
+              className={`flex flex-col md:flex-row items-center gap-8 md:gap-16 ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''}`}
             >
               {/* Image Side */}
               <div className="w-full md:w-1/2">
                 <div className="relative group">
-                  <div className="absolute inset-0 bg-primary/5 transform translate-x-4 translate-y-4 rounded-2xl transition-transform group-hover:translate-x-6 group-hover:translate-y-6"></div>
+                  <div className="absolute inset-0 bg-primary/5 transform translate-x-4 translate-y-4 rounded-2xl transition-transform group-hover:translate-x-6 group-hover:translate-y-6 hidden md:block"></div>
                   <img 
                     src={`https://images.unsplash.com/photo-${idx % 2 === 0 ? '1541888946425-d81bb19240f5' : '1504307651254-35680f356dfd'}?q=80&w=1000&auto=format&fit=crop`}
                     alt={service.title}
-                    className="rounded-2xl shadow-xl w-full h-[400px] object-cover relative z-10"
+                    className="rounded-2xl shadow-xl w-full h-64 md:h-[400px] object-cover relative z-10"
                     loading="lazy"
                   />
                   {/* Floating Badge */}
