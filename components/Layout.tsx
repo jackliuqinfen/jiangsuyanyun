@@ -110,7 +110,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       {/* Top Bar - Desktop Only */}
       <MotionDiv 
         animate={{ opacity: scrolled ? 0 : 1, y: scrolled ? -40 : 0 }}
-        className="bg-gray-950 text-gray-400 py-2.5 text-xs font-medium tracking-wide hidden lg:block z-50 relative border-b border-white/5"
+        className="bg-gray-950 text-gray-400 py-2.5 text-xs font-medium tracking-wide hidden xl:block z-50 relative border-b border-white/5"
       >
         <div className="container mx-auto px-6 flex justify-between items-center">
           <div className="flex space-x-8">
@@ -173,7 +173,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <header 
         className={`fixed top-0 left-0 right-0 z-40 transition-all duration-500 ease-in-out ${
           isLightHeader ? 'bg-white/90 backdrop-blur-xl shadow-sm py-3' : 'bg-transparent py-6'
-        } ${scrolled ? 'md:top-0' : 'lg:top-[40px]'}`}
+        } ${scrolled ? 'md:top-0' : 'xl:top-[40px]'}`}
       >
         <div className="container mx-auto px-6">
           <div className="flex justify-between items-center">
@@ -207,7 +207,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </Link>
 
             {/* Desktop Nav - Optimized for Visibility */}
-            <div className="hidden lg:flex items-center space-x-2">
+            <div className="hidden xl:flex items-center space-x-2">
               <nav className="flex space-x-1 mr-4">
                 {navLinks.map((link) => {
                   const active = isActive(link.path, location.pathname);
@@ -229,7 +229,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <Link
                       key={link.id}
                       to={link.path}
-                      className={`px-5 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
+                      className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-300 ${
                         active ? activeClass : inactiveClass
                       }`}
                     >
@@ -240,7 +240,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               </nav>
               <Link 
                 to="/contact" 
-                className={`flex items-center px-6 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all transform hover:-translate-y-1 active:scale-95 ${
+                className={`flex items-center px-5 py-2.5 rounded-full text-sm font-bold shadow-lg transition-all transform hover:-translate-y-1 active:scale-95 flex-shrink-0 ${
                   isLightHeader 
                     ? 'bg-gray-900 text-white hover:bg-black shadow-gray-900/20' 
                     : 'bg-white text-primary hover:shadow-white/20'
@@ -252,7 +252,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="lg:hidden flex items-center relative z-50">
+            <div className="xl:hidden flex items-center relative z-50">
               <button 
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className={`p-2 rounded-lg transition-colors ${isLightHeader || isMobileMenuOpen ? 'text-gray-800' : 'text-white'}`}
@@ -272,7 +272,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed inset-0 z-40 bg-white lg:hidden flex flex-col pt-24 px-6 pb-6"
+            className="fixed inset-0 z-40 bg-white xl:hidden flex flex-col pt-24 px-6 pb-6"
           >
             <nav className="flex flex-col space-y-6 flex-1 overflow-y-auto">
               {navLinks.map((link) => (
