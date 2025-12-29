@@ -126,9 +126,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   siteName: '江苏盐韵工程项目管理有限公司',
   logoUrl: '', 
   // 使用在线图标替代本地路径 - Updated per request
-  graphicLogoUrl: 'https://youke2.picui.cn/s1/2025/12/26/694dadbf3da4f.png', 
-  textLogoUrl: 'https://youke2.picui.cn/s1/2025/12/26/694dadbf08724.png', 
-  faviconUrl: 'https://youke2.picui.cn/s1/2025/12/26/694dadbf3da4f.png', 
+  graphicLogoUrl: '/image/logo/tuxing.png', 
+  textLogoUrl: '/image/logo/wenzi.png', 
+  faviconUrl: '/image/logo/tuxing.png', 
   themeColor: '#2C388B',
   contactPhone: '0515-88888888',
   contactEmail: 'office@jsyanyun.com',
@@ -143,14 +143,54 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
 
 export const INITIAL_MEDIA: MediaItem[] = [
   {
-    id: '1',
-    name: 'Office Exterior',
-    url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop',
+    id: 'm1',
+    name: 'Logo - Graphics',
+    url: '/image/logo/tuxing.png',
     type: 'image',
     category: 'site',
-    uploadDate: '2023-01-01',
+    uploadDate: '2025-01-01',
     size: '1.2 MB'
-  }
+  },
+  {
+    id: 'm2',
+    name: 'Logo - Text',
+    url: '/image/logo/wenzi.png',
+    type: 'image',
+    category: 'site',
+    uploadDate: '2025-01-01',
+    size: '1.0 MB'
+  },
+  // Domain Certificates
+  { id: 'm3', name: 'yanyun.cn Domain Cert', url: '/image/rongyu/yuming/yanyun.cn.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm4', name: 'yysjzx.com Domain Cert', url: '/image/rongyu/yuming/yysjzx.com.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm5', name: 'yanyun.wangzhi Domain Cert', url: '/image/rongyu/yuming/yanyun.wangzhi(1).png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm6', name: 'yanyun.zhongguo Domain Cert', url: '/image/rongyu/yuming/yanyun.zhongguo.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  
+  // ISO Certificates
+  { id: 'm7', name: 'ISO9001 Quality Cert', url: '/image/rongyu/iso/zhiliang/江苏盐韵工程项目管理有限公司-QES证书【合并6张】_01.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '3 MB' },
+  { id: 'm8', name: 'ISO14001 Env Cert', url: '/image/rongyu/iso/huanjing/江苏盐韵工程项目管理有限公司-QES证书【合并6张】_03.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '3 MB' },
+  { id: 'm9', name: 'ISO45001 Health Cert', url: '/image/rongyu/iso/zhiye/江苏盐韵工程项目管理有限公司-QES证书【合并6张】_05.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '3 MB' },
+
+  // Credit Certificates (AAA)
+  { id: 'm10', name: 'AAA Credit Enterprise', url: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级信用企业_中文版_电子版.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm11', name: 'AAA Honest Supplier', url: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级诚信供应商_中文版_电子版.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm12', name: 'AAA Credit Enterprise (Plaque)', url: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级信用企业_牌匾版_电子版.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm13', name: 'AAA Contract Credit', url: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级重合同守信用企业_中文版_电子版.jpg', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+
+  // Trademarks & Copyrights
+  { id: 'm14', name: 'Software Copyright 1', url: '/image/rongyu/ruanzhu/企业管理信息安全维护平台V1.0证书文件-江苏盐韵工程项目管理有限公司(1)_01.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm15', name: 'Software Copyright 2', url: '/image/rongyu/ruanzhu/咨询管理综合服务软件V1.0证书文件-江苏盐韵工程项目管理有限公司_01.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm16', name: 'Trademark Class 37', url: '/image/rongyu/shangbiao/图形-37类-商标注册证_68004650_江苏盐韵工程项目管理有限公司_01.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm17', name: 'Trademark Class 35', url: '/image/rongyu/shangbiao/图形，商标注册证，35类，82529457，江苏盐韵工程项目管理有限公司_01.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  { id: 'm18', name: 'Yanyun Trademark 37', url: '/image/rongyu/shangbiao/盐韵-37类-商标注册证_68020680_江苏盐韵工程项目管理有限公司_01.png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  
+  // Other Honors
+  { id: 'm19', name: 'Jiangsu Supervision Assoc Member', url: '/image/rongyu/rongyu/江苏监理协会会元单位【2023年8月】_01(1)(1).png', type: 'image', category: 'honor', uploadDate: '2024-01-01', size: '2 MB' },
+  
+  // Project Images (from 'any' folder)
+  { id: 'm20', name: 'Project Site 1', url: '/image/any/微信图片_20220620172130.jpg', type: 'image', category: 'project', uploadDate: '2022-06-20', size: '3 MB' },
+  { id: 'm21', name: 'Project Site 2', url: '/image/any/微信图片_20220620172142.jpg', type: 'image', category: 'project', uploadDate: '2022-06-20', size: '3 MB' },
+  { id: 'm22', name: 'Project Site 3', url: '/image/any/微信图片_20220620172146.jpg', type: 'image', category: 'project', uploadDate: '2022-06-20', size: '3 MB' }
 ];
 
 export const INITIAL_TENDERS: TenderItem[] = [
@@ -360,9 +400,137 @@ export const INITIAL_NEWS: NewsItem[] = [
 
 export const INITIAL_BRANCH_CATEGORIES: BranchCategory[] = [{ id: 'cat_hq', name: '总部及研发中心', order: 0 }];
 export const INITIAL_BRANCHES: Branch[] = [{ id: '1', name: '盐韵总部', address: '盐城市金融城5号楼12F', phone: '0515-88888888', manager: '张总经理', coordinates: { lat: 33.347, lng: 120.163 }, categoryId: 'cat_hq' }];
-export const INITIAL_LINKS: NavigationLink[] = [{ id: '1', title: '江苏省智慧工地云平台', url: 'https://zhgd.js.gov.cn/', category: '政府监管' }];
+
+export const INITIAL_LINKS: NavigationLink[] = [
+  // 一、政府监管平台
+  { id: '1', title: '江苏省住房和城乡建设厅', url: 'http://jsszfhcxjst.jiangsu.gov.cn/', category: '政府监管', description: '全省住建政策发布、企业资质查询、人员资格管理' },
+  { id: '2', title: '盐城市住房和城乡建设局', url: 'http://zfhcxjsj.yancheng.gov.cn/', category: '政府监管', description: '本地住建政策、工程审批、市场监管、安全质量监督' },
+  { id: '3', title: '江苏省公共资源交易网', url: 'http://jsggzy.jszwfw.gov.cn/', category: '政府监管', description: '全省工程招投标、政府采购、土地出让信息发布与交易' },
+  { id: '4', title: '盐城市公共资源交易中心', url: 'https://ggzy.yancheng.gov.cn/', category: '政府监管', description: '本地工程招投标、政府采购信息发布与交易' },
+  { id: '5', title: '江苏省建筑市场监管与诚信信息一体化平台', url: 'http://49.77.204.6:17001/Website/#/', category: '政府监管', description: '企业资质、人员注册、项目业绩、信用记录查询' },
+  { id: '6', title: '盐城市交通运输局', url: 'https://ycjtj.yancheng.gov.cn/', category: '政府监管', description: '交通工程招投标、工程建设管理、公路水运工程监管' },
+  { id: '7', title: '盐城市水利局', url: 'http://slj.yancheng.gov.cn/', category: '政府监管', description: '水利工程招投标、水利建设项目监管、水利工程质量监督' },
+  { id: '8', title: '盐城市自然资源和规划局', url: 'http://zrzy.jiangsu.gov.cn/yc/', category: '政府监管', description: '土地出让、规划许可、不动产登记、地质勘察监管' },
+  { id: '9', title: '江苏省建设工程质量监督网', url: 'http://www.jszljd.com', category: '政府监管', description: '工程质量监督、检测机构管理、质量事故通报' },
+  { id: '10', title: '江苏省建设工程安全监督网', url: 'http://www.jscin.gov.cn/jsaj', category: '政府监管', description: '工程安全监管、安全生产许可证管理、安全事故通报' },
+
+  // 二、招投标与采购平台
+  { id: '11', title: '江苏建设工程招标网', url: 'http://www.jszb.com.cn/', category: '招投标采购', description: '全省建设工程招投标信息发布、招标文件下载、中标公示' },
+  { id: '12', title: '江苏政府采购网', url: 'http://www.ccgp-jiangsu.gov.cn/', category: '招投标采购', description: '政府投资项目采购信息发布、采购文件下载、合同备案' },
+  { id: '13', title: '盐城市建设工程招投标网', url: 'https://ycggzy.jszwfw.gov.cn/gb-web/#/login', category: '招投标采购', description: '盐城市建设工程招投标信息发布、投标、开标、评标' },
+  { id: '14', title: '中国招标投标公共服务平台', url: 'http://gjpt.ahtba.org.cn/', category: '招投标采购', description: '全国招投标信息汇总、跨区域项目查询、行业监管' },
+  { id: '15', title: '全国公共资源交易平台', url: 'https://www.ggzy.gov.cn/', category: '招投标采购', description: '全国公共资源交易信息集中发布、跨区域交易查询' },
+  { id: '16', title: '云筑网', url: 'https://www.yzw.cn/', category: '招投标采购', description: '建筑行业招投标、供应链管理、企业采购服务' },
+  { id: '17', title: '筑材网', url: 'https://www.zhucai.com/', category: '招投标采购', description: '建筑材料招投标采购、供应商管理、合同管理' },
+  { id: '18', title: '中国通用招标网', url: 'https://www.china-tender.com.cn/', category: '招投标采购', description: '工程、货物、服务招标代理，招投标全流程服务' },
+  { id: '19', title: '江苏省水利工程建设招标投标监督服务平台', url: 'https://jswater.jiangsu.gov.cn/col/col80020/', category: '招投标采购', description: '全省水利工程招投标信息发布与监管' },
+  { id: '20', title: '盐城市政府采购网', url: 'http://zfcg.yancheng.gov.cn/', category: '招投标采购', description: '盐城市政府采购信息发布、采购文件下载、合同备案' },
+
+  // 三、工程造价与材料信息
+  { id: '21', title: '江苏省工程造价信息网', url: 'http://www.jszj.com.cn/', category: '造价与材料', description: '全省工程计价依据、材料价格信息、造价政策发布' },
+  { id: '22', title: '盐城市工程造价信息网', url: 'https://www.costku.com/yancheng/', category: '造价与材料', description: '盐城市材料价格信息、工程造价政策、信息价查询下载' },
+  { id: '23', title: '造价通(江苏站)', url: 'http://js.zjtcn.com', category: '造价与材料', description: '材料价格查询、询价、云造价服务、工程造价咨询' },
+  { id: '24', title: '江苏省工程材料价格信息平台', url: 'https://jiangsu.gxzjxh.cn/', category: '造价与材料', description: '全省建材价格信息发布、价格指数查询、历史价格对比' },
+  { id: '25', title: '盐城市建设工程材料价格信息平台', url: 'https://www.costku.com/36001.html', category: '造价与材料', description: '盐城市建材价格发布、价格动态监测、材料价格查询' },
+  { id: '26', title: '江苏省交通工程定额站', url: 'http://jtyst.jiangsu.gov.cn/', category: '造价与材料', description: '交通工程造价依据、公路水运工程材料价格发布' },
+  { id: '27', title: '江苏省水利工程造价管理网', url: 'https://jswater.jiangsu.gov.cn/col/col80021/', category: '造价与材料', description: '水利工程造价依据、水利工程材料价格发布' },
+  { id: '28', title: '江苏造价信息网(速得材价)', url: 'https://www.jszjxh.com/', category: '造价与材料', description: '全省材料价格查询系统、"速得"材价APP下载' },
+
+  // 四、工程技术资料与标准
+  { id: '29', title: '建标知网', url: 'https://www.kscecs.com/', category: '技术资料', description: '工程建设法律法规、标准规范检索、在线阅读、下载' },
+  { id: '30', title: '中国建筑标准设计研究院', url: 'http://www.cbsd.cn/', category: '技术资料', description: '国家标准图集、设计规范、施工标准发布与下载' },
+  { id: '31', title: '江苏省工程建设标准网', url: 'https://pan.clooo.cn/%E8%B5%84%E6%96%99/000-%E8%A1%8C%E4%B8%9A%E8%A7%84%E8%8C%83%E5%9B%BE%E9%9B%86%E5%A4%A7%E5%85%A8/3-%E7%9C%81%E6%A0%87/13%E6%B1%9F%E8%8B%8F%E7%9C%81%E6%A0%87/', category: '技术资料', description: '江苏省工程建设地方标准发布、下载、查询' },
+  { id: '32', title: '筑龙网', url: 'https://www.zhulong.com/', category: '技术资料', description: '工程资料下载、施工方案、技术交底、行业论坛交流' },
+  { id: '33', title: '建库网', url: 'https://www.jianku.com/', category: '技术资料', description: '建筑图纸、设计方案、施工组织设计免费下载' },
+  { id: '34', title: '中国建筑技术网', url: 'https://www.building.hc360.com/', category: '技术资料', description: '建筑技术资料、施工工艺、工程案例、技术标准查询' },
+
+  // 五、BIM与工程技术应用
+  { id: '35', title: '中国BIM门户', url: 'https://www.bimcn.org/', category: 'BIM与技术', description: 'BIM技术资讯、软件教程、应用案例、行业标准发布' },
+  { id: '36', title: 'BIM建筑网', url: 'https://www.bimii.com/', category: 'BIM与技术', description: 'BIM技术推广、软件培训、项目咨询、行业交流平台' },
+  { id: '37', title: '广联达BIM平台', url: 'https://bim.glodon.com/', category: 'BIM与技术', description: 'BIM软件下载、培训、项目协同、造价一体化解决方案' },
+  { id: '38', title: '鲁班工程管理数字平台', url: 'https://www.luban.com/', category: 'BIM与技术', description: 'BIM模型管理、施工模拟、碰撞检测、进度控制' },
+  { id: '39', title: '万间云-BIM数字建造平台', url: 'https://www.vanjian.com/', category: 'BIM与技术', description: 'BIM+IoT全生命周期管理、智慧工地、数字孪生应用' },
+
+  // 六、工程人才与企业服务
+  { id: '40', title: '江苏建设人才网', url: 'https://www.jsjsrc.com/', category: '人才与服务', description: '建筑人才招聘、求职、培训、证书挂靠、猎头服务' },
+  { id: '41', title: '盐城市建筑人才网', url: 'https://www.ycjsrc.com/', category: '人才与服务', description: '盐城市本地建筑人才招聘、求职信息发布' },
+  { id: '42', title: '江苏省人才服务云平台', url: 'https://www.jssrcfwypt.org.cn/', category: '人才与服务', description: '全省建筑人才招聘、人事代理、职称评定服务' },
+  { id: '43', title: '建筑英才网(江苏站)', url: 'https://www.buildhr.com/jiangsu/', category: '人才与服务', description: '建筑行业专业人才招聘、求职、人才测评服务' },
+  { id: '44', title: '江苏省工程咨询中心', url: 'https://www.cnjecc.com/', category: '人才与服务', description: '工程咨询、造价咨询、招标代理、项目管理、评估咨询' },
+  { id: '45', title: '江苏省规划设计集团', url: 'https://www.jspdg.com/', category: '人才与服务', description: '规划设计、建筑设计、市政设计、工程总承包服务' },
+
+  // 七、工程管理与施工服务
+  { id: '46', title: '乐建宝工程项目管理平台', url: 'https://www.gcb365.com/', category: '工程管理', description: '施工项目管理、移动办公、智慧工地、劳务管理、数据分析' },
+  { id: '47', title: '斗栱云工程管理系统', url: 'https://www.dougongyun.com/', category: '工程管理', description: '建筑总包、装饰、电力工程全流程管理解决方案' },
+  { id: '48', title: '筑云科技-BIMCC数字建造平台', url: 'https://www.bimcc.net/', category: '工程管理', description: 'BIM+GIS+BIMVR多引擎技术、智慧工地、进度质量安全管理' },
+  { id: '49', title: '江苏省工程档案资料管理系统', url: 'http://www.jsgcda.com/', category: '工程管理', description: '工程资料编制、归档、查询、档案验收服务' },
+  { id: '50', title: '盐城市工程建设项目审批管理系统', url: 'https://yc.jszwfw.gov.cn/col/col181563/index.html', category: '工程管理', description: '工程建设项目一站式审批、在线申报、进度查询' },
+];
+
 // Use online logos for partners
-export const INITIAL_PARTNERS: Partner[] = [{ id: '1', name: '中南集团', logoUrl: 'https://ui-avatars.com/api/?name=ZN&background=random&size=128' }];
+export const INITIAL_PARTNERS: Partner[] = [
+  // 一、市级国有投资平台
+  { id: '101', name: '盐城城投集团', logoUrl: 'https://ui-avatars.com/api/?name=CT&background=random&size=128' },
+  { id: '102', name: '盐城国投集团', logoUrl: 'https://ui-avatars.com/api/?name=GT&background=random&size=128' },
+  { id: '103', name: '盐城交投集团', logoUrl: 'https://ui-avatars.com/api/?name=JT&background=random&size=128' },
+  { id: '104', name: '盐城城镇化集团', logoUrl: 'https://ui-avatars.com/api/?name=CZ&background=random&size=128' },
+  { id: '105', name: '盐城海兴集团', logoUrl: 'https://ui-avatars.com/api/?name=HX&background=random&size=128' },
+  { id: '106', name: '悦达集团', logoUrl: 'https://ui-avatars.com/api/?name=YD&background=random&size=128' },
+  { id: '107', name: '盐城东方集团', logoUrl: 'https://ui-avatars.com/api/?name=DF&background=random&size=128' },
+  { id: '108', name: '盐城世纪新城集团', logoUrl: 'https://ui-avatars.com/api/?name=SJ&background=random&size=128' },
+  { id: '109', name: '盐城高新区集团', logoUrl: 'https://ui-avatars.com/api/?name=GX&background=random&size=128' },
+  { id: '110', name: '盐城港集团', logoUrl: 'https://ui-avatars.com/api/?name=YG&background=random&size=128' },
+
+  // 二、县区级国有投资平台
+  { id: '201', name: '亭湖城投集团', logoUrl: 'https://ui-avatars.com/api/?name=TH&background=random&size=128' },
+  { id: '202', name: '盐都国资集团', logoUrl: 'https://ui-avatars.com/api/?name=YD&background=random&size=128' },
+  { id: '203', name: '射阳城投公司', logoUrl: 'https://ui-avatars.com/api/?name=SY&background=random&size=128' },
+  { id: '204', name: '阜宁投资集团', logoUrl: 'https://ui-avatars.com/api/?name=FN&background=random&size=128' },
+  { id: '205', name: '滨海灌江集团', logoUrl: 'https://ui-avatars.com/api/?name=BH&background=random&size=128' },
+  { id: '206', name: '响水灌江集团', logoUrl: 'https://ui-avatars.com/api/?name=XS&background=random&size=128' },
+  { id: '207', name: '大丰城投集团', logoUrl: 'https://ui-avatars.com/api/?name=DF&background=random&size=128' },
+  { id: '208', name: '大丰港开发集团', logoUrl: 'https://ui-avatars.com/api/?name=DG&background=random&size=128' },
+  { id: '209', name: '建湖城投集团', logoUrl: 'https://ui-avatars.com/api/?name=JH&background=random&size=128' },
+  { id: '210', name: '东台城投集团', logoUrl: 'https://ui-avatars.com/api/?name=DT&background=random&size=128' },
+
+  // 三、专业领域投资主体
+  { id: '301', name: '盐城水务集团', logoUrl: 'https://ui-avatars.com/api/?name=SW&background=random&size=128' },
+  { id: '302', name: '盐城水利建设中心', logoUrl: 'https://ui-avatars.com/api/?name=SL&background=random&size=128' },
+  { id: '303', name: '盐城公路中心', logoUrl: 'https://ui-avatars.com/api/?name=GL&background=random&size=128' },
+  { id: '304', name: '盐城教育投资公司', logoUrl: 'https://ui-avatars.com/api/?name=JY&background=random&size=128' },
+  { id: '305', name: '盐城卫健委', logoUrl: 'https://ui-avatars.com/api/?name=WJ&background=random&size=128' },
+  { id: '306', name: '盐城资规局', logoUrl: 'https://ui-avatars.com/api/?name=ZG&background=random&size=128' },
+  { id: '307', name: '盐城海关', logoUrl: 'https://ui-avatars.com/api/?name=HG&background=random&size=128' },
+  { id: '308', name: '盐城机场', logoUrl: 'https://ui-avatars.com/api/?name=JC&background=random&size=128' },
+  { id: '309', name: '盐城邮政局', logoUrl: 'https://ui-avatars.com/api/?name=YZ&background=random&size=128' },
+  { id: '310', name: '盐城城北开投', logoUrl: 'https://ui-avatars.com/api/?name=CB&background=random&size=128' },
+
+  // 四、央企及省属国企在盐分支机构
+  { id: '401', name: '华润置地盐城公司', logoUrl: 'https://ui-avatars.com/api/?name=HR&background=random&size=128' },
+  { id: '402', name: '中建一局盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=ZJ&background=random&size=128' },
+  { id: '403', name: '中交二航局盐城公司', logoUrl: 'https://ui-avatars.com/api/?name=ZJ&background=random&size=128' },
+  { id: '404', name: '中铁建工盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=ZT&background=random&size=128' },
+  { id: '405', name: '中冶华天盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=ZY&background=random&size=128' },
+  { id: '406', name: '中国十九冶盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=SY&background=random&size=128' },
+  { id: '407', name: '中电建核电盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=ZD&background=random&size=128' },
+  { id: '408', name: '中核华兴盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=ZH&background=random&size=128' },
+  { id: '409', name: '江苏鸿源盐城分公司', logoUrl: 'https://ui-avatars.com/api/?name=HY&background=random&size=128' },
+  { id: '410', name: '省交建局盐城指挥部', logoUrl: 'https://ui-avatars.com/api/?name=JJ&background=random&size=128' },
+
+  // 五、产业园区及功能区开发主体
+  { id: '501', name: '盐城经开区管委会', logoUrl: 'https://ui-avatars.com/api/?name=JK&background=random&size=128' },
+  { id: '502', name: '盐城盐南高新区管委会', logoUrl: 'https://ui-avatars.com/api/?name=YN&background=random&size=128' },
+  { id: '503', name: '盐城环保科技城管委会', logoUrl: 'https://ui-avatars.com/api/?name=HB&background=random&size=128' },
+  { id: '504', name: '盐城黄海新区管委会', logoUrl: 'https://ui-avatars.com/api/?name=HH&background=random&size=128' },
+  { id: '505', name: '常盐工业园管委会', logoUrl: 'https://ui-avatars.com/api/?name=CY&background=random&size=128' },
+
+  // 六、知名房地产开发企业
+  { id: '601', name: '宝龙地产盐城公司', logoUrl: 'https://ui-avatars.com/api/?name=BL&background=random&size=128' },
+  { id: '602', name: '绿地盐城公司', logoUrl: 'https://ui-avatars.com/api/?name=LD&background=random&size=128' },
+  { id: '603', name: '金地商置盐城公司', logoUrl: 'https://ui-avatars.com/api/?name=JD&background=random&size=128' },
+  { id: '604', name: '碧桂园盐城公司', logoUrl: 'https://ui-avatars.com/api/?name=BG&background=random&size=128' },
+  { id: '605', name: '江苏华兴集团', logoUrl: 'https://ui-avatars.com/api/?name=HX&background=random&size=128' }
+];
 export const INITIAL_TESTIMONIALS: Testimonial[] = [];
 export const INITIAL_HONOR_CATEGORIES: HonorCategory[] = [
   { id: 'cat_domain', name: '域名证书', order: 1 },
@@ -381,7 +549,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'yanyun.cn 域名证书',
     issueDate: '2024',
     issuingAuthority: 'CNNIC',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694ea8fb810ed.jpg',
+    imageUrl: '/image/rongyu/yuming/yanyun.cn.jpg',
     categoryId: 'cat_domain'
   },
   {
@@ -389,7 +557,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'yysjzx.com 域名证书',
     issueDate: '2024',
     issuingAuthority: 'CNNIC',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694ea8fb1ee44.jpg',
+    imageUrl: '/image/rongyu/yuming/yysjzx.com.jpg',
     categoryId: 'cat_domain'
   },
   {
@@ -397,7 +565,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'yanyun.wangzhi 域名证书',
     issueDate: '2024',
     issuingAuthority: 'CNNIC',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eab3031a99.png',
+    imageUrl: '/image/rongyu/yuming/yanyun.wangzhi(1).png',
     categoryId: 'cat_domain'
   },
   {
@@ -405,7 +573,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'yanyun.zhongguo 域名证书',
     issueDate: '2024',
     issuingAuthority: 'CNNIC',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694ea8fb4f328.jpg',
+    imageUrl: '/image/rongyu/yuming/yanyun.zhongguo.jpg',
     categoryId: 'cat_domain'
   },
   {
@@ -413,95 +581,87 @@ export const INITIAL_HONORS: Honor[] = [
     title: '江苏省建设监理与招投标协会年度会员',
     issueDate: '2024',
     issuingAuthority: '江苏省建设监理与招投标协会',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eac56c7181.png',
+    imageUrl: '/image/rongyu/rongyu/江苏监理协会会元单位【2023年8月】_01(1)(1).png',
     categoryId: 'cat_honor'
   },
   {
     id: '13',
-    title: '软件著作权证书',
+    title: '企业管理信息安全维护平台V1.0',
     issueDate: '2024',
     issuingAuthority: '国家版权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb004e2927.png',
+    imageUrl: '/image/rongyu/ruanzhu/企业管理信息安全维护平台V1.0证书文件-江苏盐韵工程项目管理有限公司(1)_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '14',
-    title: '软件著作权证书',
+    title: '咨询管理综合服务软件V1.0',
     issueDate: '2024',
     issuingAuthority: '国家版权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb004d76e4.png',
+    imageUrl: '/image/rongyu/ruanzhu/咨询管理综合服务软件V1.0证书文件-江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '15',
-    title: '商标著作权证书',
+    title: '商标注册证-37类',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09d5a073.png',
+    imageUrl: '/image/rongyu/shangbiao/图形-37类-商标注册证_68004650_江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '16',
-    title: '商标著作权证书',
+    title: '商标注册证-35类',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09d78839.png',
+    imageUrl: '/image/rongyu/shangbiao/图形，商标注册证，35类，82529457，江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '17',
-    title: '商标著作权证书',
+    title: '商标注册证-39类',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09dcea5a.png',
+    imageUrl: '/image/rongyu/shangbiao/图形，商标注册证，39类，82538229，江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '18',
-    title: '商标著作权证书',
+    title: '商标注册证-41类',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09dadca9.png',
+    imageUrl: '/image/rongyu/shangbiao/图形，商标注册证，41类，82547186，江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '19',
-    title: '商标著作权证书',
+    title: '商标注册证-42类',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eb09d8c17d.png',
+    imageUrl: '/image/rongyu/shangbiao/图形，商标注册证，42类，82526056，江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '20',
-    title: '商标著作权证书',
+    title: '盐韵-37类-商标注册证',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb107634f1.png',
+    imageUrl: '/image/rongyu/shangbiao/盐韵-37类-商标注册证_68020680_江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
   },
   {
     id: '21',
-    title: '商标著作权证书',
+    title: '盐韵-45类-商标注册证',
     issueDate: '2024',
     issuingAuthority: '国家知识产权局',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb107afc8a.png',
+    imageUrl: '/image/rongyu/shangbiao/盐韵，商标注册证，45类，82439577，江苏盐韵工程项目管理有限公司_01.png',
     categoryId: 'cat_trademark'
-  },
-  {
-    id: '22',
-    title: '江苏省工程造价管理协会年度单位会员',
-    issueDate: '2023-08',
-    issuingAuthority: '江苏省工程造价管理协会',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/26/694eae929099e.png',
-    categoryId: 'cat_honor'
   },
   {
     id: '23',
     title: 'ISO9001 质量管理体系认证证书',
     issueDate: '2024',
     issuingAuthority: '认证中心',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb2566cd31.png',
+    imageUrl: '/image/rongyu/iso/zhiliang/江苏盐韵工程项目管理有限公司-QES证书【合并6张】_01.png',
     categoryId: 'cat_iso'
   },
   {
@@ -509,7 +669,7 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'ISO14001 环境管理体系认证证书',
     issueDate: '2024',
     issuingAuthority: '认证中心',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb256954f5.png',
+    imageUrl: '/image/rongyu/iso/huanjing/江苏盐韵工程项目管理有限公司-QES证书【合并6张】_03.png',
     categoryId: 'cat_iso'
   },
   {
@@ -517,91 +677,91 @@ export const INITIAL_HONORS: Honor[] = [
     title: 'ISO45001 职业健康安全管理体系认证证书',
     issueDate: '2024',
     issuingAuthority: '认证中心',
-    imageUrl: 'https://youke2.picui.cn/s1/2025/12/27/694eb256ba76a.png',
+    imageUrl: '/image/rongyu/iso/zhiye/江苏盐韵工程项目管理有限公司-QES证书【合并6张】_05.png',
     categoryId: 'cat_iso'
   },
-  { 
-    id: '1', 
-    title: '房屋建筑工程监理甲级资质', 
-    issueDate: '2019-05', 
-    issuingAuthority: '中华人民共和国住房和城乡建设部', 
-    imageUrl: 'https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2000&auto=format&fit=crop', 
-    categoryId: 'cat_qual' 
-  },
   {
-    id: '2',
-    title: '市政公用工程监理甲级资质',
-    issueDate: '2020-08',
-    issuingAuthority: '中华人民共和国住房和城乡建设部',
-    imageUrl: 'https://images.unsplash.com/photo-1635350736475-c8cef4b21906?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_qual'
-  },
-  {
-    id: '3',
-    title: '人防工程监理乙级资质',
-    issueDate: '2021-03',
-    issuingAuthority: '江苏省民防局',
-    imageUrl: 'https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_qual'
-  },
-  {
-    id: '4',
-    title: '江苏省优秀工程监理企业',
-    issueDate: '2023-12',
-    issuingAuthority: '江苏省建设监理协会',
-    imageUrl: 'https://images.unsplash.com/photo-1579548122080-c35fd6820ecb?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_honor'
-  },
-  {
-    id: '5',
-    title: 'AAA级信用企业证书',
-    issueDate: '2024-01',
+    id: '26',
+    title: 'AAA级信用企业',
+    issueDate: '2024',
     issuingAuthority: '中国企业信用等级评价中心',
-    imageUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=2000&auto=format&fit=crop',
+    imageUrl: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级信用企业_中文版_电子版.jpg',
     categoryId: 'cat_aaa'
   },
   {
-    id: '6',
-    title: 'ISO9001 质量管理体系认证',
-    issueDate: '2022-06',
-    issuingAuthority: '中国质量认证中心',
-    imageUrl: 'https://images.unsplash.com/photo-1554224154-260327c0d14d?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_iso'
+    id: '27',
+    title: 'AAA级诚信供应商',
+    issueDate: '2024',
+    issuingAuthority: '中国企业信用等级评价中心',
+    imageUrl: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级诚信供应商_中文版_电子版.jpg',
+    categoryId: 'cat_aaa'
   },
   {
-    id: '7',
-    title: '盐城市“扬子杯”优质工程奖',
-    issueDate: '2022-11',
-    issuingAuthority: '江苏省住房和城乡建设厅',
-    imageUrl: 'https://images.unsplash.com/photo-1613909207039-6b173b755cc1?q=80&w=2000&auto=format&fit=crop',
-    categoryId: 'cat_honor'
+    id: '28',
+    title: 'AAA级资信企业',
+    issueDate: '2024',
+    issuingAuthority: '中国企业信用等级评价中心',
+    imageUrl: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级资信企业_中文版_电子版.jpg',
+    categoryId: 'cat_aaa'
+  },
+  {
+    id: '29',
+    title: 'AAA级重合同守信用企业',
+    issueDate: '2024',
+    issuingAuthority: '中国企业信用等级评价中心',
+    imageUrl: '/image/rongyu/chengxin/江苏盐韵工程项目管理有限公司_AAA级重合同守信用企业_中文版_电子版.jpg',
+    categoryId: 'cat_aaa'
   }
 ];
 
 export const INITIAL_SERVICES: Service[] = [
   { 
     id: '1', 
-    title: '工程监理 (房屋建筑/市政双甲级)', 
-    description: '通过智能化巡检系统，实现对施工现场“质量、安全、进度、投资”的四位一体动态监控。', 
-    features: ['全过程风险识别与预控', '关键部位24小时驻点旁站', '安全生产标准化辅导', '档案资料数智化同步归档'], 
-    icon: 'clipboard-check', 
+    title: '建设工程监理服务', 
+    description: '提供房屋建筑与市政公用工程的全方位现场监理。通过“四控两管一协调”，确保工程质量、安全、进度与投资控制符合国家规范与合同要求。', 
+    features: ['施工全过程旁站监督', '隐蔽工程严格验收', '安全隐患排查治理', '工程档案同步管理'], 
+    icon: 'hard-hat', 
     order: 1 
   },
   { 
     id: '2', 
-    title: '全过程工程咨询 (PMC模式)', 
-    description: '打破行业壁垒，提供从策划、代建、设计管理到运营维护的全周期“管家式”服务。', 
-    features: ['多阶段业务流深度集成', '单一责任主体高效协同', 'BIM 5D 管理技术应用', '数字化资产完整移交'], 
-    icon: 'briefcase', 
+    title: '工程项目管理服务', 
+    description: '为业主提供从项目立项、报批、设计管理、施工管理到竣工验收交付的全生命周期代建与管理服务（PMC），实现真正的“交钥匙”工程。', 
+    features: ['全生命周期策划', '报批报建一站式服务', '设计施工一体化协调', '投资进度双重控制'], 
+    icon: 'kanban', 
     order: 2 
   },
   { 
     id: '3', 
-    title: '造价咨询与全过程审计', 
-    description: '基于大数据进行投资测算与成本核定，实现项目价值最大化及建设合规性把关。', 
-    features: ['工程量清单精准编制', '中期进度款支付动态核定', '竣工结算全流程审计', '材料价格趋势深度分析'], 
-    icon: 'calculator', 
+    title: '政府采购代理服务', 
+    description: '依据《政府采购法》为各级国家机关、事业单位及团体组织提供货物、工程和服务的采购代理服务，确保采购过程规范、透明、高效。', 
+    features: ['采购需求合规性审查', '采购文件标准化编制', '全流程电子化交易', '履约验收协助服务'], 
+    icon: 'landmark', 
     order: 3 
+  },
+  { 
+    id: '4', 
+    title: '工程招标代理服务', 
+    description: '为各类土木工程、建筑工程、线路管道及设备安装工程提供专业的勘察、设计、施工、监理及重要设备材料的招标代理服务。', 
+    features: ['招标方案科学策划', '招标文件严谨编制', '开评标过程严密组织', '异议质疑专业处理'], 
+    icon: 'gavel', 
+    order: 4 
+  },
+  { 
+    id: '5', 
+    title: '工程造价咨询服务', 
+    description: '提供投资估算、设计概算、施工图预算、工程量清单编制、招标控制价编制、工程结算审核及全过程造价跟踪咨询服务。', 
+    features: ['投资估算精准编制', '工程量清单复核', '全过程造价动态监控', '竣工结算严格审计'], 
+    icon: 'calculator', 
+    order: 5 
+  },
+  { 
+    id: '6', 
+    title: '工程司法鉴定服务', 
+    description: '接受人民法院或仲裁机构委托，对建设工程纠纷中的工程质量缺陷、造价争议、工期延误等专门性问题进行检测、鉴别和判断并提供鉴定意见。', 
+    features: ['工程质量缺陷鉴定', '工程造价争议鉴定', '工程修复方案评估', '权威客观鉴定报告'], 
+    icon: 'scale', 
+    order: 6 
   }
 ];
 
